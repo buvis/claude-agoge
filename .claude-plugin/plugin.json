@@ -1,0 +1,8 @@
+{
+  "name": "agoge",
+  "version": "0.1.0",
+  "description": "Product-QA agent pack for Claude Code. Seven specialists run your product instead of reading your diff: journeys, integration, UX, release truth, performance, runtime security. A lane that did not run is never a pass.",
+  "author": {
+    "name": "buvis"
+  }
+}
