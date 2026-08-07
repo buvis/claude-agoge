@@ -44,8 +44,10 @@ no file outside its own directory and the seven agent files.
 - `--authorized <source>` — assert, at invocation, that the target is the
   operator's own or explicitly authorized, where `<source>` names the human act
   it came from (an unattended loop passes its own name). Arms **trudy** only.
-  An empty or missing `<source>` is an error: stop and report. Never assert
-  anonymously, and never supply a source of your own.
+  A `--authorized` flag with no value is an error: stop and report. A
+  `--authorized` flag not passed at all is not an error — the run continues
+  without an invocation-level assertion. Never assert anonymously, and never
+  supply a source of your own.
 - `--resume <report>` — walk an existing report's packets and record decisions.
   Dispatches nobody. Jump straight to step 9.
 - `--decisions <file>` — with `--resume`, take the decisions from a JSON file
@@ -147,6 +149,10 @@ Each prompt is assembled from five parts, in this order:
    | `profile` | not vetoed, and the profile's `Authorization:` line is asserted (not `not asserted`) | that line verbatim, plus `Asserted by: profile (dev/local/agoge-profile.md)` |
    | `invocation` | not vetoed, and `--authorized <source>` was passed | the contract's assertion line, plus `Asserted by: invocation (<source>)` |
    | none | not vetoed, and neither of the above | nothing — **do not dispatch her**; report the lane `skipped`, reason "authorization not asserted" |
+
+   An absent `Authorization:` line, or one with an empty value, does not
+   satisfy the profile row's condition — both fail closed, the same as the
+   line never being written at all.
 
    A veto outranks an authorization: a veto is the human saying no, and an
    authorization is the human saying yes to a different question, so every row

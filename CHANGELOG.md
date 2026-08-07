@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   was passed now records route `vetoed` and the overruled source, in both the
   report header and the sidecar. That case previously had no route value, so
   the one decision where the operator said no left no audit trail.
+- **run-agoge**: two gate wordings no longer read two ways. `--authorized` with
+  no value is an error, while not passing it at all is not; and an absent or
+  empty-valued `Authorization:` line now explicitly fails closed.
 
 ## [0.1.0] - 2026-08-06
 
