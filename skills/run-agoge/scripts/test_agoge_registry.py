@@ -484,3 +484,36 @@ def test_the_asserted_by_label_cannot_drift_between_emitter_and_consumers() -> N
         assert "Asserted by: invocation (" in text, (
             f"{path.name} lost the invocation-route `Asserted by:` label"
         )
+
+
+def test_the_authorized_source_is_bounded_to_a_shell_word_shape() -> None:
+    """R3: `<source>` is passed verbatim into trudy's dispatch prompt, and her
+    authorization gate is prose a model reads, not code - an unconstrained
+    source could itself carry an instruction into that prompt rather than
+    just naming who authorized her.
+
+    The fix names the allowed shape exactly: a single shell-word-shaped token
+    of letters, digits, dash and underscore, rejected otherwise on the same
+    path as the two errors already documented (empty source, source that is
+    itself another flag). Pinned on the character-class words themselves, not
+    the sentence they sit in - none of `shell-word`, `single`, `letters`,
+    `digits`, `dash` or `underscore` occurs anywhere in the file today, so
+    this cannot pass on a phrase left over from something else.
+    """
+    text = _text(SKILL)
+    assert "shell-word" in text, (
+        "the skill must name the token family --authorized <source> is "
+        "bounded to, or the shape bound is undocumented"
+    )
+    assert "single" in text, (
+        "the bound must rule out more than one token (a source with a space "
+        "in it), or free text is still an allowed shape and can still carry "
+        "an instruction into trudy's prose gate"
+    )
+    for token_class in ("letters", "digits", "dash", "underscore"):
+        assert token_class in text, (
+            f"the allowed source shape must name {token_class!r}; leaving it "
+            "unstated leaves a character free that an implementor might "
+            "permit, and that character could carry an instruction into "
+            "trudy's prose authorization gate"
+        )
