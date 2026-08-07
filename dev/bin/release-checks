@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Pre-release checks for agoge. Run by claude-plugins/scripts/release-plugin
+# with CWD = repo root.
+#
+# The hygiene suite is the gate: it pins that no specialist can modify the
+# product it probes, that every lane says what it reports when it cannot run,
+# and that no shipped file points at a path only the author's machine has.
+# Shipping a release that fails it would ship a pack whose own promises are
+# untrue.
+set -euo pipefail
+
+uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q

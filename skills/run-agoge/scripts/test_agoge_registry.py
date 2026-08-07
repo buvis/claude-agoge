@@ -78,10 +78,19 @@ def registry() -> dict[str, tuple[dict[str, str], str]]:
 
 
 def test_the_roster_anchor_is_relative_to_this_skill_not_to_home() -> None:
-    """PRD 00103 ships this suite inside the plugin. A `$HOME` anchor would make
-    it validate the installer's own agents rather than the plugin's, so it would
-    pass on a machine with a stale personal copy and fail on a clean one."""
-    assert AGENTS_DIR == Path(__file__).resolve().parents[3] / "agents"
+    """A `$HOME` anchor would make this suite validate the INSTALLER's own
+    agents rather than the plugin's - and since most installers do have a
+    `~/.claude/agents/`, it would not even fail cleanly: it would check the
+    wrong roster and report on files this plugin never shipped.
+
+    Cross-checked against `REFERENCES`, which is derived by a different
+    expression, so re-anchoring `AGENTS_DIR` to `$HOME` fails here rather than
+    quietly agreeing with a copy of its own definition.
+    """
+    assert AGENTS_DIR.parent == REFERENCES.parents[2], (
+        f"the roster at {AGENTS_DIR} is not a sibling of the skills tree at "
+        f"{REFERENCES.parents[2]}; it must travel with the plugin, not with $HOME"
+    )
     assert AGENTS_DIR.is_dir(), f"roster not found beside the skill at {AGENTS_DIR}"
 
 
@@ -185,8 +194,19 @@ def test_playbooks_are_extraction_clean(playbook: str) -> None:
 
 
 def _shipped_markdown() -> list[Path]:
-    """Every markdown file the plugin carries: the skill and all its references."""
-    return [REFERENCES.parent / "SKILL.md", *sorted(REFERENCES.glob("*.md"))]
+    """Every markdown file the plugin carries, including the repo-root ones.
+
+    README and CHANGELOG were outside this sweep until 2026-08-07, while the
+    README claimed "no shipped file points at a path only the author's machine
+    has". A personal path added to the README would have shipped green against a
+    test that never read it, so the claim now covers what it says it covers.
+    """
+    root = REFERENCES.parents[2]
+    return [
+        REFERENCES.parent / "SKILL.md",
+        *sorted(REFERENCES.glob("*.md")),
+        *sorted(p for p in (root / "README.md", root / "CHANGELOG.md") if p.is_file()),
+    ]
 
 
 @pytest.mark.parametrize("path", _shipped_markdown(), ids=lambda p: p.name)
