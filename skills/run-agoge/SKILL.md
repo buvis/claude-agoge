@@ -144,17 +144,17 @@ Each prompt is assembled from five parts, in this order:
 
    | Source | When | What her prompt carries |
    |---|---|---|
-   | vetoed | the profile's pins section vetoes trudy | nothing — **never dispatch her**, whatever else is true |
    | `profile` | not vetoed, and the profile's `Authorization:` line is asserted (not `not asserted`) | that line verbatim, plus `Asserted by: profile (dev/local/agoge-profile.md)` |
    | `invocation` | not vetoed, and `--authorized <source>` was passed | the contract's assertion line, plus `Asserted by: invocation (<source>)` |
    | none | not vetoed, and neither of the above | nothing — **do not dispatch her**; report the lane `skipped`, reason "authorization not asserted" |
 
-   The veto row is first because it is the only one a flag must never override: a
-   veto is the human saying no, and an authorization is the human saying yes to a
-   different question. The profile wins over the invocation when both assert: the
-   file in the repo is the more specific act. Both routes are a human's — a
-   machine never asserts for itself, and recon still may not write that line.
-   Pass the source through verbatim; do not invent, shorten or supply one.
+   A veto outranks an authorization: a veto is the human saying no, and an
+   authorization is the human saying yes to a different question, so every row
+   above carries a `not vetoed` precondition. The profile wins over the
+   invocation when both assert: the file in the repo is the more specific act.
+   Both routes are a human's — a machine never asserts for itself, and recon
+   still may not write that line. Pass the source through verbatim; do not
+   invent, shorten or supply one.
 
    An `--authorized` with an empty source is an error. Stop the run and report
    it, the same rule the decisions file follows in step 9: a path whose whole

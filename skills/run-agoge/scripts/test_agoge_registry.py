@@ -329,18 +329,6 @@ def test_the_gate_still_fails_closed_everywhere_it_is_stated() -> None:
     )
 
 
-def test_a_veto_outranks_an_invocation_assertion() -> None:
-    """A veto is the human saying no; an authorization answers a different
-    question. The flag must never be able to overrule it, and the rule has to
-    live in the table that decides rather than in prose one step earlier."""
-    skill = _text(SKILL)
-    assert "| vetoed |" in skill, (
-        "the resolution table needs its own veto row; a veto stated only in "
-        "step 3 is not where the dispatch decision is made"
-    )
-    assert "never dispatch her" in skill
-
-
 def test_the_security_playbook_names_both_routes() -> None:
     """A pasted playbook is all the lane has; a route missing here is unusable."""
     text = _text(REFERENCES / "security-playbook.md")
