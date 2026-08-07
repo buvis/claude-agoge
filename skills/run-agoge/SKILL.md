@@ -162,6 +162,11 @@ Each prompt is assembled from five parts, in this order:
    itself another flag (`--authorized --refresh-profile`) is the same error, not
    a source named `--refresh-profile`.
 
+   `<source>` is bounded to a shell-word shape: a single token of letters,
+   digits, dash and underscore, and nothing else. A source outside that shape
+   is the same error, on the same path as the two above: stop the run and
+   report it, never sanitize it into shape. `autoclaude-drain` fits.
+
 Keep each prompt under 50 000 bytes — measure it, do not estimate. Recon output
 and one playbook are small; this only binds if you paste files in, so do not.
 

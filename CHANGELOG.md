@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: PRD emission no longer assumes `CLAUDE_SKILL_DIR` is set. It is
   empty in at least some headless runs, where the documented command would have
   resolved to `/scripts/allocate_prd_number.py` and failed.
+- **run-agoge**: `--authorized <source>` is bounded to a single shell-word token
+  (letters, digits, dash, underscore). Anything else is the same error as an
+  empty source, so a source built from a branch or CI value cannot carry an
+  instruction into the security lane's prompt.
 
 ## [0.1.0] - 2026-08-06
 
