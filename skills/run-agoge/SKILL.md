@@ -150,9 +150,9 @@ Each prompt is assembled from five parts, in this order:
    | `invocation` | not vetoed, and `--authorized <source>` was passed | the contract's assertion line, plus `Asserted by: invocation (<source>)` |
    | none | not vetoed, and neither of the above | nothing — **do not dispatch her**; report the lane `skipped`, reason "authorization not asserted" |
 
-   An absent `Authorization:` line, or one with an empty value, does not
-   satisfy the profile row's condition — both fail closed, the same as the
-   line never being written at all.
+   An `Authorization:` line with an empty value is treated the same as an
+   absent line: neither satisfies the profile row's condition, so both fail
+   closed.
 
    A veto outranks an authorization: a veto is the human saying no, and an
    authorization is the human saying yes to a different question, so every row
