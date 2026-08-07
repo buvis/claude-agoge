@@ -549,3 +549,65 @@ def test_a_vetoed_but_authorized_run_records_the_overruled_source() -> None:
         "a vetoed-but-authorized run; the sidecar alone is not what a human "
         "reads, and this is the one route with no audit trail today"
     )
+
+
+def test_no_ambiguous_reading_of_the_gate_contradicts_the_fail_closed_default() -> None:
+    """R7: this prose is executed by a model, so a second reading is a real
+    branch, not a style nit. Two spots read two ways today, both verbatim
+    from the source PRD.
+
+    The Arguments bullet calls an empty-or-missing `<source>` an error. On
+    one parse "missing" covers the flag never being passed at all - the
+    exact case the `none` row (skip trudy, finish the run) and 00117's R4
+    require NOT to be an error. The fix must name the flag-passed-with-no-
+    value case and the flag-not-passed-at-all case separately, not leave
+    "missing" to cover both.
+
+    The profile row fires only when the `Authorization:` line "is asserted
+    (not `not asserted`)", and says nothing about a line that is not there
+    at all. The fix must state that an absent line and an empty-value line
+    both resolve fail-closed, not just imply it through what "asserted"
+    excludes.
+    """
+    text = _text(SKILL)
+
+    # Wording 1: the `--authorized <source>` bullet under Arguments.
+    args_anchor = "assert, at invocation, that the target is the operator's own"
+    args_idx = text.find(args_anchor)
+    assert args_idx != -1, "the --authorized <source> bullet moved or was reworded"
+    args_window = text[args_idx : args_idx + 500]
+    assert "no value" in args_window, (
+        "the bullet must name a flag passed WITH NO VALUE as its own case "
+        "and keep it an error, or a reworded 'missing' still reads as "
+        "covering this case too"
+    )
+    assert "not passed" in args_window, (
+        "the bullet must name the flag NOT BEING PASSED AT ALL as a "
+        "separate case, or a reader still cannot tell it from the error "
+        "case above it - contradicting the `none` row, which skips trudy "
+        "and finishes the run for exactly this case"
+    )
+
+    # Wording 2: the profile row of the part-5 resolution table, plus the
+    # prose under it - the whole span the fix could land in.
+    profile_anchor = (
+        "the profile's `Authorization:` line is asserted (not `not asserted`)"
+    )
+    profile_idx = text.find(profile_anchor)
+    assert profile_idx != -1, "the profile row's asserted condition moved or was reworded"
+    section_end = text.find("Keep each prompt under 50 000 bytes")
+    assert section_end != -1, "part 5's closing sentence moved or was reworded"
+    profile_window = text[profile_idx:section_end]
+    assert "absent" in profile_window, (
+        "an ABSENT `Authorization:` line must be named as its own case, or "
+        "a reader cannot tell whether no line at all counts as asserted"
+    )
+    assert "empty value" in profile_window, (
+        "a line with an EMPTY VALUE must be named as its own case, distinct "
+        "from an absent line, or the two collapse back into one another"
+    )
+    assert "fail closed" in profile_window or "fail-closed" in profile_window, (
+        "the row (or the prose under it) must say both the absent and "
+        "empty-value cases resolve fail-closed, not just that they fall "
+        "outside 'asserted'"
+    )
