@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **run-agoge**: the unarmed-row exception no longer arms the security lane from
+  a row with no tactics; that row now reports `skipped` and points at
+  `--refresh-profile`.
+
 ## [0.1.0] - 2026-08-06
 
 ### Added

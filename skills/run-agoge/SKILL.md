@@ -105,6 +105,15 @@ If the row gives no reason, treat it as a surface verdict and leave her unarmed.
 Reading an unexplained row as the authorization case would let the exception
 swallow the cost gate.
 
+A third way the exception fails closed: the row must carry populated tactics,
+not just the reason. `finding-contract.md` defines an `unarmed` row as carrying
+the reason, not tactics, and part 2 of a dispatch prompt is built from that
+specialist's row — its tactics and the exact commands recon established. Arm a
+tacticsless row anyway and trudy probes blind while the report claims the lane
+ran armed. If the row's tactics are empty, do not dispatch her: report the lane
+`skipped`, reason "stale profile — rerun recon with `--refresh-profile` to give
+her real tactics before the exception can arm her."
+
 Dispatch every armed specialist **in one message**, one Agent call each, so they
 run concurrently. One that fails returns its error and the others are unaffected;
 record that lane `unverified` with the failure and finish the run.
