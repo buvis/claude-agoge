@@ -517,3 +517,47 @@ def test_the_authorized_source_is_bounded_to_a_shell_word_shape() -> None:
             "permit, and that character could carry an instruction into "
             "trudy's prose authorization gate"
         )
+
+
+def test_a_vetoed_but_authorized_run_records_the_overruled_source() -> None:
+    """R4: today's sidecar enum is `profile`, `invocation` or `none` - a run
+    where trudy is vetoed *and* `--authorized <source>` was passed has no
+    value to land in. `none` is wrong: an authorization was passed and
+    overruled. The contract must widen the enum to include `vetoed` and record
+    the overruled source alongside it, in both surfaces that carry the route:
+    the JSON sidecar and the markdown summary header.
+
+    Found by two reviewers independently, in two different files - Alice on
+    the sidecar, Blake on the report, same gap. A test binding only one
+    surface leaves the other open, so this checks both.
+    """
+    text = _text(REFERENCES / "finding-contract.md")
+
+    # Sidecar: `route` is `profile`, `invocation` or `none` today (the exact
+    # anchor is unique in the file). `vetoed` occurs once elsewhere in this
+    # doc (the summary-header's lane-status list, "armed, unarmed or vetoed"),
+    # far before this offset, so finding it inside this window is new, not a
+    # word the file already happened to contain.
+    sidecar_idx = text.find("`route` is `profile`")
+    assert sidecar_idx != -1, "the sidecar's route-enum sentence moved or was reworded"
+    sidecar_window = text[sidecar_idx : sidecar_idx + 250]
+    assert "vetoed" in sidecar_window, (
+        "the sidecar's `route` enum is still `profile`, `invocation` or "
+        "`none`; a vetoed-but-authorized run has no route value to record"
+    )
+    assert "overruled" in sidecar_window, (
+        "the sidecar must record the overruled source on the vetoed route, "
+        "or the JSON still can't show which act was passed and overruled"
+    )
+
+    # Markdown header: the security-lane authorization sentence names which
+    # human act authorized the probe, but says nothing today about a vetoed
+    # run that was also authorized.
+    header_idx = text.find("which human act authorized it")
+    assert header_idx != -1, "the header's authorization sentence moved or was reworded"
+    header_window = text[header_idx : header_idx + 300]
+    assert "overruled" in header_window, (
+        "the markdown summary header must also name the overruled source for "
+        "a vetoed-but-authorized run; the sidecar alone is not what a human "
+        "reads, and this is the one route with no audit trail today"
+    )
