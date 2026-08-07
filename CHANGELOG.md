@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: the unarmed-row exception no longer arms the security lane from
   a row with no tactics; that row now reports `skipped` and points at
   `--refresh-profile`.
+- **run-agoge**: PRD emission no longer assumes `CLAUDE_SKILL_DIR` is set. It is
+  empty in at least some headless runs, where the documented command would have
+  resolved to `/scripts/allocate_prd_number.py` and failed.
 
 ## [0.1.0] - 2026-08-06
 

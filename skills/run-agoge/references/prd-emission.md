@@ -17,11 +17,20 @@ not a grouping.
 
 ## Claiming the number
 
-Numbers are claimed, not chosen:
+Numbers are claimed, not chosen. The claimer is `scripts/allocate_prd_number.py`
+in this skill's own directory:
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/allocate_prd_number.py" /absolute/target/repo <kebab-slug>
 ```
+
+**Check that the path resolved before trusting it.** `CLAUDE_SKILL_DIR` is not
+always set — measured empty on 2026-08-07 in a headless resume run, where the
+command above would have become `/scripts/allocate_prd_number.py` and failed. If
+it is unset, substitute the absolute directory this skill was loaded from, which
+your own invocation names, and run the same script from there. Do not fall back
+to picking a number yourself: that is the one thing this script exists to
+prevent.
 
 It scans every `dev/local/prds/` lifecycle directory plus `dev/local/discovery/`,
 creates an **empty** file at the next free number with an exclusive create, and
