@@ -462,3 +462,25 @@ def test_a_tacticsless_row_can_never_dispatch_trudy() -> None:
         "has no fix to reach for — the flag mentioned elsewhere in the file "
         "(Arguments, step 2, the --authorized error) does not count"
     )
+
+
+def test_the_asserted_by_label_cannot_drift_between_emitter_and_consumers() -> None:
+    """SKILL.md's resolution table is the only place that emits `Asserted by:
+    profile (<path>)` / `Asserted by: invocation (<name>)`. trudy.md and the
+    security playbook are pasted-in consumers that instruct the agent to look
+    for exactly that line and treat anything without it as absent.
+
+    Reword the label on one side and trudy reads her own authorized prompt as
+    unsourced and refuses - the lane goes dark on every run with the whole
+    suite green otherwise. The label stays physically duplicated across all
+    three files on purpose (a pasted playbook cannot cite a file the running
+    agent cannot open), so this is what makes that duplication safe.
+    """
+    for path in (SKILL, AGENTS_DIR / "trudy.md", REFERENCES / "security-playbook.md"):
+        text = _text(path)
+        assert "Asserted by: profile (" in text, (
+            f"{path.name} lost the profile-route `Asserted by:` label"
+        )
+        assert "Asserted by: invocation (" in text, (
+            f"{path.name} lost the invocation-route `Asserted by:` label"
+        )
