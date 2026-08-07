@@ -274,23 +274,15 @@ def test_every_specialist_states_its_honesty_rule(registry, name: str) -> None:
 
 # ── The authorization gate (PRD 00117) ────────────────────────────────────────
 #
-# Two human acts may assert that a target is the operator's own: a line the
-# operator wrote in the strategy profile, or `--authorized <source>` passed at
-# invocation. The second exists because a fresh profile always reads `not
-# asserted` and recon may not change it, which left the security lane dark in
-# every unattended drain. Neither route lets the machine assert for itself.
-#
 # The gate is stated in four places that must agree: trudy's charter, the
 # security playbook, the profile contract, and the skill's dispatch step. These
 # assertions are what stops one of the four drifting out of step with the rest.
 #
-# What they are NOT, established by mutation on 2026-08-05 rather than assumed:
-# appending "an unattended loop dispatch is exempt from this gate" to trudy's
-# charter - the exact inversion of the rule - leaves every one of them green.
-# They check that a phrase is present, so they catch a deletion and miss a
-# contradiction. Read them as drift detectors, not as a guard on the gate's
-# semantics. Verifying that would need a behavioural harness the pack does not
-# have; the gate itself is prose a model obeys, which is what the PRD chose.
+# What they are NOT, established by mutation rather than assumed: appending "an
+# unattended loop dispatch is exempt from this gate" to trudy's charter - the
+# exact inversion of the rule - leaves every one of them green. They check that
+# a phrase is present, so they catch a deletion and miss a contradiction. Read
+# them as drift detectors, not as a guard on the gate's semantics.
 
 SKILL = REFERENCES.parent / "SKILL.md"
 
@@ -367,10 +359,8 @@ def test_the_skill_documents_the_flag_and_its_resolution_order() -> None:
 def test_an_authorization_unarmed_verdict_does_not_gate_the_security_lane() -> None:
     """Found by running it: recon marks trudy `unarmed` when the profile says
     `not asserted`, which collides with step 3's "dispatch only armed lanes".
-
-    The 2026-08-05 proof run resolved it correctly, but by reasoning rather than
-    by instruction. Left unstated, the invocation route arms her only when
-    whoever runs the skill happens to read past the cost gate.
+    Left unstated, the invocation route arms her only when whoever runs the
+    skill happens to read past the cost gate.
 
     Assertions here are load-bearing tokens, not whole sentences: the first
     version pinned two exact sentences, which meant correcting the rule forced
@@ -391,13 +381,9 @@ def test_an_authorization_unarmed_verdict_does_not_gate_the_security_lane() -> N
 
 
 def test_recon_decides_the_security_lane_on_surface_alone() -> None:
-    """The root cause of the two findings above, fixed where it starts.
-
-    The profile contract has an `unarmed` row carry its reason rather than
-    tactics, while a dispatch builds the lane's prompt from those tactics. So
-    recon disarming trudy on authorization is how an invocation-armed lane gets
-    dispatched with an empty strategy section and probes blind. The proof run
-    escaped it only because recon volunteered tactics under an unarmed row.
+    """The root cause of the two findings above, fixed where it starts: recon
+    decides trudy's row on surface alone, and the Authorization line is not
+    recon's to act on.
     """
     text = _text(SKILL)
     assert "trudy is armed or unarmed on surface alone" in text
@@ -594,7 +580,9 @@ def test_no_ambiguous_reading_of_the_gate_contradicts_the_fail_closed_default() 
         "the profile's `Authorization:` line is asserted (not `not asserted`)"
     )
     profile_idx = text.find(profile_anchor)
-    assert profile_idx != -1, "the profile row's asserted condition moved or was reworded"
+    assert profile_idx != -1, (
+        "the profile row's asserted condition moved or was reworded"
+    )
     section_end = text.find("Keep each prompt under 50 000 bytes")
     assert section_end != -1, "part 5's closing sentence moved or was reworded"
     profile_window = text[profile_idx:section_end]
