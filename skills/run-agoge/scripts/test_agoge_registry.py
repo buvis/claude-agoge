@@ -406,3 +406,39 @@ def test_the_report_records_which_act_authorized_the_probe() -> None:
         "the markdown summary must name the route too; the sidecar alone is not "
         "what a human reads"
     )
+
+
+def test_a_tacticsless_row_can_never_dispatch_trudy() -> None:
+    """Part 5's exception can arm trudy from a row whose stated reason is the
+    `Authorization:` default rather than a surface fact. `finding-contract.md`
+    defines an `unarmed` row as carrying the reason, not tactics — but part 2 of
+    every dispatch prompt is built from that specialist's row, its tactics and
+    the exact commands recon established. Arm that row anyway and the strategy
+    section is empty: trudy probes blind while the report says the lane ran
+    armed.
+    """
+    text = _text(SKILL)
+    assert "populated tactics" in text, (
+        "the exception must require the row to carry populated tactics before "
+        "arming trudy, or an authorization-reason row with none dispatches her "
+        "blind"
+    )
+    assert "stale profile" in text, (
+        "when tactics are absent the skip reason must name the stale profile — "
+        "reusing 'authorization not asserted' would misreport why the lane "
+        "did not run"
+    )
+    # `--refresh-profile` already appears four times elsewhere in the skill
+    # (Arguments, step 2, and twice in the `--authorized --refresh-profile`
+    # error case), so a file-wide `in text` check would pass even if the skip
+    # reason never mentions the flag. Bind proximity instead: the flag has to
+    # sit in the same sentence or two as the reason it fixes, not just
+    # somewhere in the document.
+    stale_idx = text.find("stale profile")
+    window = text[stale_idx : stale_idx + 300]
+    assert "--refresh-profile" in window, (
+        "the skip reason must point at --refresh-profile within a sentence or "
+        "two of naming the stale profile, or an operator reading the reason "
+        "has no fix to reach for — the flag mentioned elsewhere in the file "
+        "(Arguments, step 2, the --authorized error) does not count"
+    )
