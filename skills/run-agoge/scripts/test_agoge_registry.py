@@ -645,3 +645,75 @@ def test_skill_step_7_names_every_authorization_route_the_contract_declares() ->
         "(the overruled source), or an agent following it has no "
         "instruction for that field on a vetoed-but-authorized run"
     )
+
+
+def _route_enum_continuation(text: str) -> str:
+    """Text from the route-enum's closing `;` to the next paragraph.
+
+    Anchored on `` `route` is `profile` `` and its first `;`, the same pair
+    `test_skill_step_7_names_every_authorization_route_the_contract_declares`
+    relies on staying put - so this helper never asks that opening to move or
+    reword, and only reads what follows it.
+    """
+    enum_idx = text.find("`route` is `profile`")
+    assert enum_idx != -1, "the contract's route-enum sentence moved or was reworded"
+    semi_idx = text.find(";", enum_idx)
+    assert semi_idx != -1, "the enum clause lost its closing semicolon"
+    end = text.find("`fixture` names", semi_idx)
+    assert end != -1, "the paragraph boundary after the source rule moved"
+    return text[semi_idx:end]
+
+
+def test_vetoed_route_names_the_overruled_invocation_token_as_source() -> None:
+    """A veto overruling `--authorized <source>` still has a real token to
+    report. If the vetoed-route clause does not tie the recorded token to the
+    overruled invocation specifically, a vetoed-but-invocation-authorized run
+    cannot be told apart from a vetoed-but-profile-authorized one, and the one
+    route with an audit trail today loses it.
+    """
+    window = _route_enum_continuation(_text(REFERENCES / "finding-contract.md"))
+    overruled_idx = window.find("overruled")
+    assert overruled_idx != -1, "the vetoed route's overruled-source rule is gone"
+    # Scoped to the clause itself (up to its own comma or period), not a
+    # character count: `invocation` already names the *invocation route's*
+    # own source earlier in this same sentence, so a plain "both words
+    # anywhere in the span" check is true today for the wrong reason. The
+    # clause boundary is the sentence's own punctuation, not a guessed gap.
+    ends = [i for i in (window.find(",", overruled_idx), window.find(".", overruled_idx)) if i != -1]
+    clause = window[overruled_idx : (min(ends) if ends else len(window))]
+    assert "invocation" in clause, (
+        "the vetoed-route clause must name the overruled token as the "
+        "invocation's; today `invocation` only names the invocation route's "
+        "own source, not what a veto on it overruled"
+    )
+
+
+def test_vetoed_route_source_is_absent_when_the_profile_line_was_overruled() -> None:
+    """A veto that overrides the profile's `Authorization:` line overrules a
+    path, not a token - there is nothing legal for `source` to hold. Without
+    a rule naming this case, a profile-overruled veto reads as if it carries
+    a `source` value the same way an invocation-overruled one does.
+    """
+    window = _route_enum_continuation(_text(REFERENCES / "finding-contract.md"))
+    assert "profile" in window, (
+        "the vetoed route's `source` rule never names the profile-overruled case"
+    )
+    assert "absent" in window or "no `source`" in window, (
+        "a profile-overruled veto must leave `source` absent, or the "
+        "distinction from an invocation-overruled veto has no textual signal"
+    )
+
+
+def test_a_veto_with_nothing_asserted_is_the_none_route_not_vetoed() -> None:
+    """A veto only overrules an assertion that was actually made. With no
+    `--authorized` token and no profile `Authorization:` line, there is
+    nothing to overrule, so the run reads as unauthorized, not overruled.
+    Without this rule both readings of `vetoed` stay legal, and a reader
+    cannot tell a genuinely overruled run from one never authorized at all.
+    """
+    window = _route_enum_continuation(_text(REFERENCES / "finding-contract.md"))
+    accepted = ("nothing to overrule", "no assertion", "nothing was asserted")
+    assert any(phrase in window for phrase in accepted), (
+        "the contract never states that a veto with no assertion at all takes "
+        f"the `none` route rather than `vetoed`; accepted phrasings: {accepted}"
+    )
