@@ -599,3 +599,49 @@ def test_no_ambiguous_reading_of_the_gate_contradicts_the_fail_closed_default() 
         "empty-value cases resolve fail-closed, not just that they fall "
         "outside 'asserted'"
     )
+
+
+def test_skill_step_7_names_every_authorization_route_the_contract_declares() -> None:
+    """finding-contract.md's `route` enum is the source of truth for what the
+    sidecar's `authorization.route` may hold; SKILL.md step 7 is the
+    procedure the running agent actually executes to write the report. Add a
+    route to the contract's enum without teaching step 7 to name it, and an
+    agent following step 7 still writes only the old outcomes - the emitter
+    and the contract disagree, and the new route has no instruction telling
+    the agent to record it or what `source` carries alongside it.
+
+    Scoped to the authorization-recording sentence itself, not the whole
+    step - step 7's summary-header bullet already says "armed, unarmed or
+    vetoed" about lane status, unrelated to this enum, and a section-wide
+    check would pass on `vetoed` for that reason alone regardless of whether
+    the route work was ever done.
+    """
+    contract = _text(REFERENCES / "finding-contract.md")
+    enum_idx = contract.find("`route` is `profile`")
+    assert enum_idx != -1, "the contract's route-enum sentence moved or was reworded"
+    semi_idx = contract.find(";", enum_idx)
+    routes = [
+        r for r in re.findall(r"`(\w+)`", contract[enum_idx:semi_idx]) if r != "route"
+    ]
+    assert routes, "could not extract route values from the contract's enum sentence"
+
+    skill = _text(SKILL)
+    auth_idx = skill.find("how the security lane was authorized")
+    auth_end = skill.find("### 8. Close")
+    assert auth_idx != -1 and auth_end != -1, (
+        "the authorization-recording sentence or step 7's closing boundary moved"
+    )
+    auth_text = skill[auth_idx:auth_end]
+
+    for route in routes:
+        assert route in auth_text, (
+            f"the authorization-recording sentence in step 7 never names the "
+            f"{route!r} route the contract declares; an agent following it to "
+            "write the report has no instruction to record that route, so it "
+            "writes the wrong value"
+        )
+    assert "overruled" in auth_text, (
+        "the sentence must say what `source` carries on the vetoed route "
+        "(the overruled source), or an agent following it has no "
+        "instruction for that field on a vetoed-but-authorized run"
+    )
