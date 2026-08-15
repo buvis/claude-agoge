@@ -679,7 +679,11 @@ def test_vetoed_route_names_the_overruled_invocation_token_as_source() -> None:
     # own source earlier in this same sentence, so a plain "both words
     # anywhere in the span" check is true today for the wrong reason. The
     # clause boundary is the sentence's own punctuation, not a guessed gap.
-    ends = [i for i in (window.find(",", overruled_idx), window.find(".", overruled_idx)) if i != -1]
+    ends = [
+        i
+        for i in (window.find(",", overruled_idx), window.find(".", overruled_idx))
+        if i != -1
+    ]
     clause = window[overruled_idx : (min(ends) if ends else len(window))]
     assert "invocation" in clause, (
         "the vetoed-route clause must name the overruled token as the "
