@@ -91,8 +91,10 @@ human's veto is a defect in the pack, not a detail.
 ### 3. Dispatch the armed specialists
 
 From the profile's per-specialist strategy, dispatch **only** specialists marked
-`armed` and not vetoed. Unarmed and vetoed lanes are reported, never run —
-that is the cost gate.
+`armed`, not vetoed, and carrying populated tactics. Unarmed and vetoed lanes
+are reported, never run — that is the cost gate. An `armed` row with empty
+tactics is reported `skipped` too, reason "stale profile, rerun recon with
+`--refresh-profile` to give it real tactics before dispatch."
 
 **One exception, and only one, and it turns on the reason.** `unarmed` is a
 verdict about *surface*: recon found nothing here for that lane to run. Recon is
@@ -107,7 +109,7 @@ If the row gives no reason, treat it as a surface verdict and leave her unarmed.
 Reading an unexplained row as the authorization case would let the exception
 swallow the cost gate.
 
-A third way the exception fails closed: the row must carry populated tactics,
+A third way the exception fails closed: it inherits the tactics rule above,
 not just the reason. `finding-contract.md` defines an `unarmed` row as carrying
 the reason, not tactics, and part 2 of a dispatch prompt is built from that
 specialist's row — its tactics and the exact commands recon established. Arm a

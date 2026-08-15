@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **run-agoge**: the unarmed-row exception no longer arms the security lane from
-  a row with no tactics; that row now reports `skipped` and points at
-  `--refresh-profile`.
+- **run-agoge**: a profile row with no tactics can no longer dispatch any
+  specialist. The rule now governs the normal dispatch path as well as the
+  unarmed-row exception, so an `armed` row with empty tactics reports `skipped`
+  and points at `--refresh-profile` instead of probing blind while the report
+  claims the lane ran armed.
 - **run-agoge**: PRD emission no longer assumes `CLAUDE_SKILL_DIR` is set. It is
   empty in at least some headless runs, where the documented command would have
   resolved to `/scripts/allocate_prd_number.py` and failed.
