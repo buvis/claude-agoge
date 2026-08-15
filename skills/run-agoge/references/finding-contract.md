@@ -74,8 +74,9 @@ One run writes two files into the target repo's `dev/local/audit-results/`:
 1. **Summary header** — per-lane counts of verified / unverified / mocked /
    skipped, and which specialists were armed, unarmed or vetoed. For the security
    lane it also names **which human act authorized it**: the profile line, the
-   invocation and the source it named, or, on a vetoed run, the overruled
-   source. A reader must be able to tell those apart without opening the
+   invocation and the source it named, or, on a vetoed run, whichever of those
+   two was overruled (the invocation names its token; the profile line does
+   not). A reader must be able to tell those apart without opening the
    profile, so state the route, never just "authorized".
 2. **Findings**, each as a walkthrough packet in the shape below.
 3. **How-to-proceed block**, verbatim, at the end.
@@ -154,8 +155,13 @@ the record survives without the markdown:
 ```
 
 `route` is `profile`, `invocation`, `vetoed` or `none`; `source` is the
-invocation's named act on the invocation route, the overruled source on the
-vetoed route, and absent on the other two routes. The scorer ignores it.
+invocation's named act on the invocation route, absent on the profile route,
+and on the vetoed route the overruled invocation token when the overruled
+assertion came from `--authorized`, or absent when it came from the profile
+line instead. A veto only overrules an assertion that was actually made:
+with no assertion at all there is nothing to overrule, so that run reads
+`none`, not `vetoed`, and `source` stays absent there too. The scorer
+ignores it.
 
 `fixture` names the target the run was pointed at. The scorer requires it: two
 targets can share a relative path (both gym fixtures ship a root `CHANGELOG.md`)

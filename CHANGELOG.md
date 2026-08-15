@@ -22,7 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: a run where the security lane is vetoed *and* `--authorized`
   was passed now records route `vetoed` and the overruled source, in both the
   report header and the sidecar. That case previously had no route value, so
-  the one decision where the operator said no left no audit trail.
+  the one decision where the operator said no left no audit trail. All three
+  veto cases are now defined: a veto over an `--authorized` assertion records
+  the overruled token, a veto over a profile-line assertion records no source,
+  and a veto with nothing asserted reads `none` rather than `vetoed`. Step 7
+  of the skill, which is what actually writes the report, names all four
+  routes instead of three.
 - **run-agoge**: two gate wordings no longer read two ways. `--authorized` with
   no value is an error, while not passing it at all is not; and an absent or
   empty-valued `Authorization:` line now explicitly fails closed.
