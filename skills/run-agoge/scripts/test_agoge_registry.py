@@ -357,14 +357,10 @@ def test_the_skill_documents_the_flag_and_its_resolution_order() -> None:
 
 
 def test_an_authorization_unarmed_verdict_does_not_gate_the_security_lane() -> None:
-    """Found by running it: recon marks trudy `unarmed` when the profile says
-    `not asserted`, which collides with step 3's "dispatch only armed lanes".
-    Left unstated, the invocation route arms her only when whoever runs the
-    skill happens to read past the cost gate.
-
-    Assertions here are load-bearing tokens, not whole sentences: the first
-    version pinned two exact sentences, which meant correcting the rule forced
-    editing the test that guards it.
+    """Recon marks trudy `unarmed` when the profile says `not asserted`, which
+    collides with step 3's "dispatch only armed lanes". Left unstated, the
+    invocation route arms her only when whoever runs the skill happens to
+    read past the cost gate.
     """
     text = _text(SKILL)
     assert "verdict about *surface*" in text, (
@@ -438,30 +434,84 @@ def test_a_tacticsless_row_can_never_dispatch_trudy() -> None:
     )
 
 
-def test_the_asserted_by_label_cannot_drift_between_emitter_and_consumers() -> None:
+def test_the_profile_routes_asserted_by_label_cannot_drift() -> None:
     """SKILL.md's resolution table is the only place that emits `Asserted by:
-    profile (<path>)` / `Asserted by: invocation (<name>)`. trudy.md and the
-    security playbook are pasted-in consumers that instruct the agent to look
-    for exactly that line and treat anything without it as absent.
+    profile (<path>)`. trudy.md and the security playbook are pasted-in
+    consumers that instruct the agent to look for exactly that line and
+    treat anything without it as absent.
 
-    Reword the label on one side and trudy reads her own authorized prompt as
-    unsourced and refuses - the lane goes dark on every run with the whole
-    suite green otherwise. The label stays physically duplicated across all
-    three files on purpose (a pasted playbook cannot cite a file the running
-    agent cannot open), so this is what makes that duplication safe.
+    Reword the profile-route label on one side and trudy reads her own
+    authorized prompt as unsourced and refuses - the lane goes dark on every
+    run with the whole suite green otherwise. The label stays physically
+    duplicated across all three files on purpose (a pasted playbook cannot
+    cite a file the running agent cannot open).
+
+    The payload is not identical across all three by design: SKILL.md
+    substitutes the resolved value at dispatch time (the fixed profile
+    path), while the two consumers describe the line's shape generically
+    (`<path>`) instead of quoting the emitter, since a pasted playbook is
+    authored before any run and cannot know the value. What is actually
+    bindable, and what this test binds, is SKILL.md's payload against its
+    known literal, and the two consumers' payloads against each other.
     """
-    for path in (SKILL, AGENTS_DIR / "trudy.md", REFERENCES / "security-playbook.md"):
-        text = _text(path)
-        assert "Asserted by: profile (" in text, (
-            f"{path.name} lost the profile-route `Asserted by:` label"
+    pattern = re.compile(r"Asserted by: profile \(([^)]*)\)")
+
+    skill_match = pattern.search(_text(SKILL))
+    assert skill_match, "SKILL.md lost the profile-route `Asserted by:` label"
+    assert skill_match.group(1) == "dev/local/agoge-profile.md", (
+        "SKILL.md's profile-route payload must stay the fixed profile path"
+    )
+
+    for path in (AGENTS_DIR / "trudy.md", REFERENCES / "security-playbook.md"):
+        match = pattern.search(_text(path))
+        assert match, f"{path.name} lost the profile-route `Asserted by:` label"
+        assert match.group(1) == "<path>", (
+            f"{path.name}'s profile-route payload must describe the line's "
+            "shape as `<path>`, the same placeholder the other consumer uses"
         )
-        assert "Asserted by: invocation (" in text, (
-            f"{path.name} lost the invocation-route `Asserted by:` label"
+
+
+def test_the_invocation_routes_asserted_by_label_cannot_drift() -> None:
+    """SKILL.md's resolution table is the only place that emits `Asserted by:
+    invocation (<name>)`. trudy.md and the security playbook are pasted-in
+    consumers that instruct the agent to look for exactly that line and
+    treat anything without it as absent.
+
+    Reword the invocation-route label on one side and trudy reads her own
+    authorized prompt as unsourced and refuses - the lane goes dark on every
+    run with the whole suite green otherwise. The label stays physically
+    duplicated across all three files on purpose (a pasted playbook cannot
+    cite a file the running agent cannot open).
+
+    The payload is not identical across all three by design: SKILL.md
+    substitutes `<source>`, naming its own `--authorized <source>` flag,
+    while the two consumers describe the line's shape generically (`<name>`)
+    instead of quoting the emitter, since a pasted playbook is authored
+    before any run and cannot know the value. What is actually bindable, and
+    what this test binds, is SKILL.md's payload against its known literal,
+    and the two consumers' payloads against each other.
+    """
+    pattern = re.compile(r"Asserted by: invocation \(([^)]*)\)")
+
+    skill_match = pattern.search(_text(SKILL))
+    assert skill_match, "SKILL.md lost the invocation-route `Asserted by:` label"
+    assert skill_match.group(1) == "<source>", (
+        "SKILL.md's invocation-route payload must stay `<source>`, matching "
+        "its own `--authorized <source>` flag"
+    )
+
+    for path in (AGENTS_DIR / "trudy.md", REFERENCES / "security-playbook.md"):
+        match = pattern.search(_text(path))
+        assert match, f"{path.name} lost the invocation-route `Asserted by:` label"
+        assert match.group(1) == "<name>", (
+            f"{path.name}'s invocation-route payload must describe the "
+            "line's shape as `<name>`, the same placeholder the other "
+            "consumer uses"
         )
 
 
 def test_the_authorized_source_is_bounded_to_a_shell_word_shape() -> None:
-    """R3: `<source>` is passed verbatim into trudy's dispatch prompt, and her
+    """`<source>` is passed verbatim into trudy's dispatch prompt, and her
     authorization gate is prose a model reads, not code - an unconstrained
     source could itself carry an instruction into that prompt rather than
     just naming who authorized her.
@@ -494,16 +544,15 @@ def test_the_authorized_source_is_bounded_to_a_shell_word_shape() -> None:
 
 
 def test_a_vetoed_but_authorized_run_records_the_overruled_source() -> None:
-    """R4: today's sidecar enum is `profile`, `invocation` or `none` - a run
+    """Today's sidecar enum is `profile`, `invocation` or `none` - a run
     where trudy is vetoed *and* `--authorized <source>` was passed has no
     value to land in. `none` is wrong: an authorization was passed and
     overruled. The contract must widen the enum to include `vetoed` and record
     the overruled source alongside it, in both surfaces that carry the route:
     the JSON sidecar and the markdown summary header.
 
-    Found by two reviewers independently, in two different files - Alice on
-    the sidecar, Blake on the report, same gap. A test binding only one
-    surface leaves the other open, so this checks both.
+    A test binding only one surface leaves the other open, so this checks
+    both.
     """
     text = _text(REFERENCES / "finding-contract.md")
 
@@ -537,27 +586,17 @@ def test_a_vetoed_but_authorized_run_records_the_overruled_source() -> None:
     )
 
 
-def test_no_ambiguous_reading_of_the_gate_contradicts_the_fail_closed_default() -> None:
-    """R7: this prose is executed by a model, so a second reading is a real
-    branch, not a style nit. Two spots read two ways today, both verbatim
-    from the source PRD.
-
-    The Arguments bullet calls an empty-or-missing `<source>` an error. On
-    one parse "missing" covers the flag never being passed at all - the
-    exact case the `none` row (skip trudy, finish the run) and 00117's R4
-    require NOT to be an error. The fix must name the flag-passed-with-no-
-    value case and the flag-not-passed-at-all case separately, not leave
-    "missing" to cover both.
-
-    The profile row fires only when the `Authorization:` line "is asserted
-    (not `not asserted`)", and says nothing about a line that is not there
-    at all. The fix must state that an absent line and an empty-value line
-    both resolve fail-closed, not just imply it through what "asserted"
-    excludes.
+def test_the_arguments_bullet_separates_no_value_from_not_passed_at_all() -> None:
+    """This prose is executed by a model, so a second reading is a real
+    branch, not a style nit. The Arguments bullet calls an empty-or-missing
+    `<source>` an error. On one parse "missing" covers the flag never being
+    passed at all - the exact case the `none` row (skip trudy, finish the
+    run) requires NOT to be an error. The fix must name the
+    flag-passed-with-no-value case and the flag-not-passed-at-all case
+    separately, not leave "missing" to cover both.
     """
     text = _text(SKILL)
 
-    # Wording 1: the `--authorized <source>` bullet under Arguments.
     args_anchor = "assert, at invocation, that the target is the operator's own"
     args_idx = text.find(args_anchor)
     assert args_idx != -1, "the --authorized <source> bullet moved or was reworded"
@@ -574,8 +613,19 @@ def test_no_ambiguous_reading_of_the_gate_contradicts_the_fail_closed_default() 
         "and finishes the run for exactly this case"
     )
 
-    # Wording 2: the profile row of the part-5 resolution table, plus the
-    # prose under it - the whole span the fix could land in.
+
+def test_the_profile_row_treats_an_absent_or_empty_authorization_line_as_fail_closed() -> (
+    None
+):
+    """This prose is executed by a model, so a second reading is a real
+    branch, not a style nit. The profile row fires only when the
+    `Authorization:` line "is asserted (not `not asserted`)", and says
+    nothing about a line that is not there at all. The fix must state that
+    an absent line and an empty-value line both resolve fail-closed, not
+    just imply it through what "asserted" excludes.
+    """
+    text = _text(SKILL)
+
     profile_anchor = (
         "the profile's `Authorization:` line is asserted (not `not asserted`)"
     )
@@ -719,7 +769,7 @@ def test_vetoed_route_source_is_absent_when_the_profile_line_was_overruled() -> 
 
 
 def test_the_normal_dispatch_rule_gates_on_tactics_not_only_the_exception() -> None:
-    """R1: a row with no tactics can never dispatch trudy, without qualification.
+    """A row with no tactics can never dispatch trudy, without qualification.
     The tactics guard lives inside "One exception, and only one" - the block for
     an `unarmed` row re-armed by an authorization. An `armed` row with empty
     tactics never enters that block: it reaches dispatch on the normal path,
