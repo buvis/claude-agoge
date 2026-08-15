@@ -699,10 +699,20 @@ def test_vetoed_route_source_is_absent_when_the_profile_line_was_overruled() -> 
     a `source` value the same way an invocation-overruled one does.
     """
     window = _route_enum_continuation(_text(REFERENCES / "finding-contract.md"))
-    assert "profile" in window, (
-        "the vetoed route's `source` rule never names the profile-overruled case"
+    # Scoped to the vetoed-route clause itself (its own sentence), not the
+    # whole span: `profile` and `absent` both already occur in the plain
+    # profile-route bullet earlier in this sentence, unrelated to a veto
+    # overruling it. A span-wide check would stay green even with the
+    # profile-overruled disjunct deleted from the vetoed-route clause.
+    clause_start = window.find("vetoed route")
+    assert clause_start != -1, "the vetoed-route clause is gone"
+    clause_end = window.find(".", clause_start)
+    assert clause_end != -1, "the vetoed-route clause's closing period is gone"
+    clause = window[clause_start:clause_end]
+    assert "profile" in clause, (
+        "the vetoed-route clause never names the profile-overruled case"
     )
-    assert "absent" in window or "no `source`" in window, (
+    assert "absent" in clause or "no `source`" in clause, (
         "a profile-overruled veto must leave `source` absent, or the "
         "distinction from an invocation-overruled veto has no textual signal"
     )
