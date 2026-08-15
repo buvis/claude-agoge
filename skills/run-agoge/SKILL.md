@@ -47,7 +47,10 @@ no file outside its own directory and the seven agent files.
   A `--authorized` flag with no value is an error: stop and report. A
   `--authorized` flag not passed at all is not an error — the run continues
   without an invocation-level assertion. Never assert anonymously, and never
-  supply a source of your own.
+  supply a source of your own. A source shaped like another flag
+  (`--authorized --refresh-profile`) is the same error, not a source named
+  `--refresh-profile`. `<source>` must be a single token of letters, digits,
+  dash and underscore; anything else is the same error.
 - `--resume <report>` — walk an existing report's packets and record decisions.
   Dispatches nobody. Jump straight to step 9.
 - `--decisions <file>` — with `--resume`, take the decisions from a JSON file
@@ -115,8 +118,7 @@ the reason, not tactics, and part 2 of a dispatch prompt is built from that
 specialist's row — its tactics and the exact commands recon established. Arm a
 tacticsless row anyway and trudy probes blind while the report claims the lane
 ran armed. If the row's tactics are empty, do not dispatch her: report the lane
-`skipped`, reason "stale profile — rerun recon with `--refresh-profile` to give
-her real tactics before the exception can arm her."
+`skipped` for the same reason given above.
 
 Dispatch every armed specialist **in one message**, one Agent call each, so they
 run concurrently. One that fails returns its error and the others are unaffected;
@@ -143,26 +145,25 @@ Each prompt is assembled from five parts, in this order:
    job in step 6 — say so in the prompt so the specialist puts its test in the
    finding's `fix` field instead of on disk.
 4. The `## Finding contract` section, pasted verbatim.
-5. For **trudy** only: the authorization, and the human act it came from. Resolve
-   it in this order and stop at the first hit:
+5. For **trudy** only: the authorization, and the human act it came from. A
+   vetoed trudy never reaches this resolution at all: step 3 already refused
+   her before part 5 runs, so every row below resolves only for a lane that
+   got this far. Resolve it in this order and stop at the first hit:
 
    | Source | When | What her prompt carries |
    |---|---|---|
-   | `profile` | not vetoed, and the profile's `Authorization:` line is asserted (not `not asserted`) | that line verbatim, plus `Asserted by: profile (dev/local/agoge-profile.md)` |
-   | `invocation` | not vetoed, and `--authorized <source>` was passed | the contract's assertion line, plus `Asserted by: invocation (<source>)` |
-   | none | not vetoed, and neither of the above | nothing — **do not dispatch her**; report the lane `skipped`, reason "authorization not asserted" |
+   | `profile` | the profile's `Authorization:` line is asserted (not `not asserted`) | that line verbatim, plus `Asserted by: profile (dev/local/agoge-profile.md)` |
+   | `invocation` | `--authorized <source>` was passed | the contract's assertion line, plus `Asserted by: invocation (<source>)` |
+   | none | neither of the above | nothing — **do not dispatch her**; report the lane `skipped`, reason "authorization not asserted" |
 
    An `Authorization:` line with an empty value is treated the same as an
    absent line: neither satisfies the profile row's condition, so both fail
    closed.
 
-   A veto outranks an authorization: a veto is the human saying no, and an
-   authorization is the human saying yes to a different question, so every row
-   above carries a `not vetoed` precondition. The profile wins over the
-   invocation when both assert: the file in the repo is the more specific act.
-   Both routes are a human's — a machine never asserts for itself, and recon
-   still may not write that line. Pass the source through verbatim; do not
-   invent, shorten or supply one.
+   The profile wins over the invocation when both assert: the file in the repo
+   is the more specific act. Both routes are a human's — a machine never
+   asserts for itself, and recon still may not write that line. Pass the
+   source through verbatim; do not invent, shorten or supply one.
 
    An `--authorized` with an empty source is an error. Stop the run and report
    it, the same rule the decisions file follows in step 9: a path whose whole

@@ -85,7 +85,8 @@ never be mistaken for a hand-edited profile.
 - **Batch-drain wiring.** The author's shell wrapper fires one unattended run per
   drained batch of work. That is dotfiles glue, not plugin material — a plugin
   cannot install shell functions. If you want the same thing, invoke
-  `/run-agoge <repo> --authorized <your runner's name>` from your own automation.
+  `/run-agoge <repo> --authorized <your runner's name>` (a single token: letters,
+  digits, dash, underscore) from your own automation.
 - **The fixture gym.** The pack is calibrated against
   [buvis/agoge-gym](https://github.com/buvis/agoge-gym), a repo of deliberately
   seeded applications with a known defect manifest. It is the pack's eval, not
