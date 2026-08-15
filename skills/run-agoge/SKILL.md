@@ -226,12 +226,18 @@ The summary header is the honesty ledger. A lane with zero findings still states
 which of the four statuses applies to it, and why. Counts are post-downgrade.
 Name the authored branch and its runner command, or say nothing was authored.
 
-It also records **how the security lane was authorized** — the profile line, or
-the invocation and the source it named, or neither — in the header and in the
-sidecar's `authorization` object. Whether a probe was authorized by a file
-somebody wrote in that repo or by the flag on the command that started the run is
-exactly the kind of thing a reader cannot reconstruct later, so it is written
-down at the time.
+It also records **how the security lane was authorized**, one of four routes, in
+the header and in the sidecar's `authorization` object: `profile` (the profile's
+`Authorization:` line asserted it; no separate source, since the profile path is
+already its identity), `invocation` (`--authorized <source>` asserted it; record
+that token as source), `vetoed` (a veto overrode an assertion that was actually
+made, by either route; source carries the overruled invocation token when that
+assertion came from `--authorized`, and is absent when it came from the profile
+line), or `none` (no assertion was made at all, so there is no source; a veto
+with nothing to overrule is `none`, not `vetoed`). A reader must be able to tell
+later which human act decided, and `vetoed` is the one case where the operator
+said no, the one route that had no audit trail before this: write it down at the
+time.
 
 ### 8. Close
 
