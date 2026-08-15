@@ -718,6 +718,39 @@ def test_vetoed_route_source_is_absent_when_the_profile_line_was_overruled() -> 
     )
 
 
+def test_the_normal_dispatch_rule_gates_on_tactics_not_only_the_exception() -> None:
+    """R1: a row with no tactics can never dispatch trudy, without qualification.
+    The tactics guard lives inside "One exception, and only one" - the block for
+    an `unarmed` row re-armed by an authorization. An `armed` row with empty
+    tactics never enters that block: it reaches dispatch on the normal path,
+    which says nothing about tactics today.
+
+    Scoped to the text before the exception begins, not the whole step:
+    "tactics" already appears later (part 2 of the prompt is built from "its
+    tactics"), so a step-wide `in` check would pass for a sentence that
+    describes the bug rather than gates it. A bare `"tactics" in slice` check
+    is also not enough: a purely descriptive sentence ("built from its
+    tactics") added to this same paragraph would satisfy it while an armed
+    tacticsless row still dispatches. The slice must state a refusal, not
+    just mention the word.
+    """
+    text = _text(SKILL)
+    start = text.find("### 3. Dispatch the armed specialists")
+    end = text.find("One exception, and only one, and it turns on the reason.")
+    assert start != -1 and end != -1, "step 3's heading or exception opener moved"
+    normal_path = text[start:end]
+    assert "tactics" in normal_path, (
+        "the normal dispatch rule never mentions tactics; an armed row with "
+        "empty tactics reaches dispatch untouched by the tactics guard"
+    )
+    refusal_forms = ("skipped", "do not dispatch", "never dispatch", "refuse")
+    assert any(form in normal_path for form in refusal_forms), (
+        "the normal dispatch rule mentions tactics but states no refusal, so "
+        f"it reads as description rather than a gate; accepted forms: "
+        f"{refusal_forms}"
+    )
+
+
 def test_a_veto_with_nothing_asserted_is_the_none_route_not_vetoed() -> None:
     """A veto only overrules an assertion that was actually made. With no
     `--authorized` token and no profile `Authorization:` line, there is
