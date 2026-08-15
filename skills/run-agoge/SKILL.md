@@ -47,10 +47,12 @@ no file outside its own directory and the seven agent files.
   A `--authorized` flag with no value is an error: stop and report. A
   `--authorized` flag not passed at all is not an error — the run continues
   without an invocation-level assertion. Never assert anonymously, and never
-  supply a source of your own. A source shaped like another flag
+  supply a source of your own. A source that is itself another flag
   (`--authorized --refresh-profile`) is the same error, not a source named
-  `--refresh-profile`. `<source>` must be a single token of letters, digits,
-  dash and underscore; anything else is the same error.
+  `--refresh-profile`. `<source>` is bounded to a shell-word shape: a single
+  token of letters, digits, dash and underscore, and nothing else. A source
+  outside that shape is the same error: stop and report it, never sanitize it
+  into shape. `autoclaude-drain` fits.
 - `--resume <report>` — walk an existing report's packets and record decisions.
   Dispatches nobody. Jump straight to step 9.
 - `--decisions <file>` — with `--resume`, take the decisions from a JSON file
@@ -167,14 +169,8 @@ Each prompt is assembled from five parts, in this order:
 
    An `--authorized` with an empty source is an error. Stop the run and report
    it, the same rule the decisions file follows in step 9: a path whose whole
-   point is that a human authorized it must not guess who. A source that is
-   itself another flag (`--authorized --refresh-profile`) is the same error, not
-   a source named `--refresh-profile`.
-
-   `<source>` is bounded to a shell-word shape: a single token of letters,
-   digits, dash and underscore, and nothing else. A source outside that shape
-   is the same error, on the same path as the two above: stop the run and
-   report it, never sanitize it into shape. `autoclaude-drain` fits.
+   point is that a human authorized it must not guess who. The flag-shaped and
+   out-of-shape source errors stated in Arguments take that same path.
 
 Keep each prompt under 50 000 bytes — measure it, do not estimate. Recon output
 and one playbook are small; this only binds if you paste files in, so do not.
