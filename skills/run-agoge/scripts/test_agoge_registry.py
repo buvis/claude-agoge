@@ -851,3 +851,48 @@ def test_a_veto_with_nothing_asserted_is_the_none_route_not_vetoed() -> None:
         "the contract never states that a veto with no assertion at all takes "
         f"the `none` route rather than `vetoed`; accepted phrasings: {accepted}"
     )
+
+
+def test_vetoed_route_source_is_absent_when_both_the_profile_and_invocation_assert() -> (
+    None
+):
+    """A vetoed trudy authorized both ways at once - the profile's
+    `Authorization:` line asserted and `--authorized <source>` passed at
+    invocation - has two precedents pulling different ways: this bullet's own
+    rule naming the overruled invocation token as `source`, and part 5's
+    "The profile wins over the invocation when both assert" precedence for the
+    non-vetoed lane. A vetoed trudy never reaches part 5 ("step 3 already
+    refused her before part 5 runs"), so step 7's own vetoed-route rule has to
+    restate that precedence for itself, or a vetoed lane authorized both ways
+    has no stated `source` outcome at all - two live rules, no tiebreaker.
+    """
+    text = _text(SKILL)
+    vetoed_idx = text.find("`vetoed` (a veto overrode")
+    assert vetoed_idx != -1, "the vetoed-route parenthetical moved or was reworded"
+    clause_end = text.find(", or `none`", vetoed_idx)
+    assert clause_end != -1, "the vetoed-route clause's boundary before `none` moved"
+    clause = text[vetoed_idx:clause_end]
+
+    # `both` is not a word this clause uses at all today - the combined case
+    # (profile line AND `--authorized <source>` both asserting) has no rule
+    # here, only the two single-route cases. Any of these phrasings would
+    # newly name it. This is the check that actually fails today; the
+    # `absent` check below cannot, on its own, since that word already names
+    # the unrelated profile-line-alone case in this same clause - it is
+    # `both` naming the combined case at all that carries the guarantee.
+    both_phrases = (
+        "both assert",
+        "both are asserted",
+        "both were asserted",
+        "both routes assert",
+        "both the profile and the invocation",
+    )
+    assert any(phrase in clause for phrase in both_phrases), (
+        "the vetoed-route clause never names the case where the profile line "
+        f"and `--authorized <source>` both assert; accepted phrasings: {both_phrases}"
+    )
+    assert "absent" in clause or "no `source`" in clause, (
+        "the combined-assertion case must leave `source` absent - the "
+        "profile-wins precedent from part 5 applies here too - or a vetoed "
+        "lane authorized both ways has no stated `source` outcome"
+    )
