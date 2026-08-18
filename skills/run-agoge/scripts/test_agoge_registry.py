@@ -801,6 +801,43 @@ def test_the_normal_dispatch_rule_gates_on_tactics_not_only_the_exception() -> N
     )
 
 
+def test_the_exception_path_states_its_own_tactics_rule() -> None:
+    """The test above binds the normal path's tactics guard; this one binds
+    the exception's own. 00118 moved "populated tactics" / "stale profile" /
+    "--refresh-profile" out of this paragraph and into step 3's normal-path
+    sentence, so a file-wide `in text` check for those phrases now passes on
+    the normal-path sentence alone — deleting this whole "A third way..."
+    paragraph leaves the suite green. But the exception re-arms a row marked
+    `unarmed`, which the normal-path wording never reaches: only this
+    paragraph says the re-armed row still owes tactics, not just a reason.
+
+    Scoped to just this paragraph, not the whole file: "inherits the tactics
+    rule above" and "trudy probes blind" only occur here, so isolating the
+    slice (rather than a file-wide `in` check, which is what let the bug
+    through) is what proves the guarantee lives in this paragraph and not
+    merely somewhere in the document.
+    """
+    text = _text(SKILL)
+    start = text.find("A third way the exception fails closed")
+    end = text.find("Dispatch every armed specialist")
+    assert start != -1 and end != -1, (
+        "the exception's own tactics paragraph or the next step's opener moved"
+    )
+    paragraph = text[start:end]
+    assert "inherits the tactics rule above, not just the reason" in paragraph, (
+        "the exception must say it inherits the tactics rule, not just the "
+        "reason, or a re-armed unarmed row skips the tactics gate entirely"
+    )
+    assert "defines an `unarmed` row as carrying the reason, not tactics" in paragraph, (
+        "the paragraph must cite finding-contract.md's definition of what an "
+        "`unarmed` row carries, or the tactics requirement reads as unsourced"
+    )
+    assert "trudy probes blind while the report claims the lane ran armed" in paragraph, (
+        "the paragraph must state what arming a tacticsless row costs, or the "
+        "rule reads as advisory rather than a gate"
+    )
+
+
 def test_a_veto_with_nothing_asserted_is_the_none_route_not_vetoed() -> None:
     """A veto only overrules an assertion that was actually made. With no
     `--authorized` token and no profile `Authorization:` line, there is
