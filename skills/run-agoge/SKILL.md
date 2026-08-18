@@ -232,7 +232,10 @@ already its identity), `invocation` (`--authorized <source>` asserted it; record
 that token as source), `vetoed` (a veto overrode an assertion that was actually
 made, by either route; source carries the overruled invocation token when that
 assertion came from `--authorized`, and is absent when it came from the profile
-line), or `none` (no assertion was made at all, so there is no source; a veto
+line; when the profile line and `--authorized <source>` both assert, the
+profile wins and source stays absent, the same precedence part 5 states for
+the non-vetoed case, restated here since a vetoed trudy never reaches part 5),
+or `none` (no assertion was made at all, so there is no source; a veto
 with nothing to overrule is `none`, not `vetoed`). A reader must be able to tell
 later which human act decided, and `vetoed` is the one case where the operator
 said no, the one route that had no audit trail before this: write it down at the
