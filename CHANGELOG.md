@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **run-agoge**: a vetoed security-lane run authorized both by the profile
+  line and `--authorized <source>` now records no `source` (the profile
+  wins), the same precedence part 5 already states for the non-vetoed case.
+  That combined case previously had two live rules pulling different ways
+  with no stated tiebreaker.
+
 ## [0.1.1] - 2026-08-17
 
 ### Fixed
