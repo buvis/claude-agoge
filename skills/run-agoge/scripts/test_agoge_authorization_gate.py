@@ -192,23 +192,16 @@ def test_the_profile_routes_asserted_by_label_cannot_drift() -> None:
     duplicated across all three files on purpose (a pasted playbook cannot
     cite a file the running agent cannot open).
 
-    The payload is not identical across all three by design: SKILL.md
-    substitutes the resolved value at dispatch time (the fixed profile
-    path), while the two consumers describe the line's shape generically
-    (`<path>`) instead of quoting the emitter, since a pasted playbook is
-    authored before any run and cannot know the value. What is actually
-    bindable, and what this test binds, is SKILL.md's payload against its
-    known literal, and the two consumers' payloads against each other.
+    The payload is `<path>` in all three since PRD 00001: the profile resolves
+    meta-first with a root fallback, so SKILL.md cannot know the value when it
+    is authored either - it substitutes the path that resolved at dispatch
+    time, exactly as the two pasted-in consumers already assumed. What this
+    test binds is that all three describe the line's shape with the same
+    placeholder.
     """
     pattern = re.compile(r"Asserted by: profile \(([^)]*)\)")
 
-    skill_match = pattern.search(_text(SKILL))
-    assert skill_match, "SKILL.md lost the profile-route `Asserted by:` label"
-    assert skill_match.group(1) == "dev/local/agoge-profile.md", (
-        "SKILL.md's profile-route payload must stay the fixed profile path"
-    )
-
-    for path in (AGENTS_DIR / "trudy.md", REFERENCES / "security-playbook.md"):
+    for path in (SKILL, AGENTS_DIR / "trudy.md", REFERENCES / "security-playbook.md"):
         match = pattern.search(_text(path))
         assert match, f"{path.name} lost the profile-route `Asserted by:` label"
         assert match.group(1) == "<path>", (
@@ -574,11 +567,15 @@ def test_the_exception_path_states_its_own_tactics_rule() -> None:
         "the exception must say it inherits the tactics rule, not just the "
         "reason, or a re-armed unarmed row skips the tactics gate entirely"
     )
-    assert "defines an `unarmed` row as carrying the reason, not tactics" in paragraph, (
+    assert (
+        "defines an `unarmed` row as carrying the reason, not tactics" in paragraph
+    ), (
         "the paragraph must cite finding-contract.md's definition of what an "
         "`unarmed` row carries, or the tactics requirement reads as unsourced"
     )
-    assert "trudy probes blind while the report claims the lane ran armed" in paragraph, (
+    assert (
+        "trudy probes blind while the report claims the lane ran armed" in paragraph
+    ), (
         "the paragraph must state what arming a tacticsless row costs, or the "
         "rule reads as advisory rather than a gate"
     )
@@ -641,4 +638,28 @@ def test_vetoed_route_source_is_absent_when_both_the_profile_and_invocation_asse
         "the combined-assertion case must leave `source` absent - the "
         "profile-wins precedent from part 5 applies here too - or a vetoed "
         "lane authorized both ways has no stated `source` outcome"
+    )
+
+
+def test_the_profile_resolves_meta_first_with_a_root_fallback() -> None:
+    """The profile is what the `profile` route asserts from, so where step 2
+    looks for it is a gate fact (PRD 00001). `dev/local/meta/` is canonical
+    since the 2026-08-23 keeper move; the root path stays readable because
+    unmigrated repos still keep the profile there. Drop either half and one
+    class of target repo loses its authorization source silently.
+    """
+    text = _text(SKILL)
+    step = text[text.find("### 2. Profile") : text.find("### 3.")]
+    assert step, "step 2 moved or was renamed"
+
+    meta_idx = step.find("dev/local/meta/agoge-profile.md")
+    assert meta_idx != -1, "step 2 stopped naming the canonical meta/ profile path"
+    root_idx = step.find("dev/local/agoge-profile.md", meta_idx + 1)
+    assert root_idx != -1, (
+        "step 2 stopped naming the root fallback; an unmigrated target repo "
+        "then has no profile and every armed lane loses its authorization"
+    )
+    assert "fall" in step[meta_idx:root_idx], (
+        "step 2 names both paths but never says the root one is a fallback, so "
+        "which one wins when both exist is undefined"
     )

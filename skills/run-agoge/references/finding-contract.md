@@ -174,9 +174,10 @@ scoring as a zero the pack did not earn.
 
 ## Strategy profile contract
 
-One landing spot: `dev/local/agoge-profile.md` in the target repo. A named
-keeper, so it survives dev/local GC, and it sits in the repo it governs, where
-the human who owns the pins can read and edit it.
+One landing spot: `dev/local/meta/agoge-profile.md` in the target repo, falling
+back to `dev/local/agoge-profile.md` when `meta/` has none. A named keeper, so
+it survives dev/local GC, and it sits in the repo it governs, where the human
+who owns the pins can read and edit it.
 
 > One spot, deliberately. A generated codebase-map file was tried as a second
 > home on 2026-08-04 and dropped: the generator rebuilt the file wholesale, so a

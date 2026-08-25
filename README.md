@@ -26,8 +26,10 @@ Triggers on "run agoge", "product QA", "QA this project", or `/run-agoge`.
 
 ## How a run goes
 
-1. **Recon** writes a strategy profile to `dev/local/agoge-profile.md` in the
-   target repo, naming the runnable surfaces and which lanes are worth arming.
+1. **Recon** writes a strategy profile to `dev/local/meta/agoge-profile.md` in
+   the target repo (an existing profile at the older `dev/local/agoge-profile.md`
+   is still read and refreshed in place), naming the runnable surfaces and which
+   lanes are worth arming.
 2. **Only armed lanes dispatch.** An unarmed lane is reported, never run — that
    is the cost gate, and it is why a run over a repo with no browser does not pay
    for a browser lane.
@@ -44,7 +46,7 @@ Triggers on "run agoge", "product QA", "QA this project", or `/run-agoge`.
 
 ### The profile is yours to edit
 
-`dev/local/agoge-profile.md` has a human-owned `## Pins and vetoes` section. The
+The profile has a human-owned `## Pins and vetoes` section. The
 machine never edits it; a refresh copies it through byte-identically. Veto a
 specialist there and it never runs.
 

@@ -81,8 +81,11 @@ specialists get the contract without reading any path of yours.
 
 ### 2. Profile
 
-The profile is `dev/local/agoge-profile.md` in the **target** repo. It decides
-who runs, so a wrong profile is a wasted run.
+The profile is `dev/local/meta/agoge-profile.md` in the **target** repo,
+falling back to `dev/local/agoge-profile.md` when `meta/` has none. It decides
+who runs, so a wrong profile is a wasted run. Whichever one you read is *the
+resolved path*: every later step that names the profile names that path, not
+the other one.
 
 - **Missing**, or its freshness sha is not the target's HEAD, or
   `--refresh-profile`: dispatch **olivia** as `subagent_type: agoge:olivia`
@@ -160,7 +163,7 @@ Each prompt is assembled from five parts, in this order:
 
    | Source | When | What her prompt carries |
    |---|---|---|
-   | `profile` | the profile's `Authorization:` line is asserted (not `not asserted`) | that line verbatim, plus `Asserted by: profile (dev/local/agoge-profile.md)` |
+   | `profile` | the profile's `Authorization:` line is asserted (not `not asserted`) | that line verbatim, plus `Asserted by: profile (<path>)` — `<path>` is the profile path that resolved in step 2, `dev/local/meta/agoge-profile.md` or the root fallback |
    | `invocation` | `--authorized <source>` was passed | the contract's assertion line, plus `Asserted by: invocation (<source>)` |
    | none | neither of the above | nothing — **do not dispatch her**; report the lane `skipped`, reason "authorization not asserted" |
 
@@ -310,7 +313,10 @@ report.
 Dispatch `subagent_type: agoge:olivia` with:
 
 1. The absolute target repo path.
-2. The profile path: `dev/local/agoge-profile.md`, relative to that repo.
+2. The profile path, relative to that repo: the one that resolved in step 2 —
+   `dev/local/meta/agoge-profile.md`, or the root `dev/local/agoge-profile.md`
+   when that is the existing profile being refreshed. A fresh profile is
+   always written to `dev/local/meta/`.
 3. The `## Strategy profile contract` section from
    `references/finding-contract.md`, pasted verbatim — it names the six sections
    and their order.

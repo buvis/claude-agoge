@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **run-agoge**: the strategy profile is read from
+  `dev/local/meta/agoge-profile.md`, falling back to the older
+  `dev/local/agoge-profile.md` when `meta/` has none. The security lane's
+  `Asserted by: profile (<path>)` line now names whichever path resolved, so
+  an armed run keeps its authorization source once the root compat symlinks
+  retire.
+
 ## [0.1.3] - 2026-08-26
 
 ### Fixed
