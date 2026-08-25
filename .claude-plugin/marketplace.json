@@ -8,7 +8,7 @@
     {
       "name": "agoge",
       "description": "Seven QA specialists that run your product instead of reading your diff",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": {
         "name": "buvis"
       },

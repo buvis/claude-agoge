@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-25
+
 ### Fixed
 
 - **run-agoge**: a vetoed security-lane run authorized both by the profile
