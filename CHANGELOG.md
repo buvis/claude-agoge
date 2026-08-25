@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **run-agoge**: specialists are now dispatched as `agoge:<persona>`. The skill
+  named them bare, which a plugin-owned agent never resolves as, so recon failed
+  to dispatch, no lane got a strategy row, and the run still wrote a report that
+  read like a pass.
+
 ## [0.1.2] - 2026-08-25
 
 ### Fixed

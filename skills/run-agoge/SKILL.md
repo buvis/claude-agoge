@@ -18,7 +18,11 @@ never a pass.** Every result carries `verified`, `unverified`, `mocked` or
 ## Dependencies
 
 - Agent registry: `olivia`, `walter`, `heidi`, `judy`, `wendy`, `peggy`,
-  `trudy` — dispatched by `subagent_type`. Missing = this skill cannot run.
+  `trudy` — each dispatched as `subagent_type: agoge:<name>`. Missing = this
+  skill cannot run. The frontmatter `name` is the file stem; the dispatch name
+  is that stem namespaced, because a plugin's agents register under its
+  namespace only. Naming a persona bare fails outright with
+  `Agent type 'olivia' not found`.
 - Path: `references/finding-contract.md` in this skill's directory — the
   finding, report and profile contracts. Read it before step 2.
 - Path: `references/{browser,data,perf,security}-playbook.md` in this skill's
@@ -81,7 +85,8 @@ The profile is `dev/local/agoge-profile.md` in the **target** repo. It decides
 who runs, so a wrong profile is a wasted run.
 
 - **Missing**, or its freshness sha is not the target's HEAD, or
-  `--refresh-profile`: dispatch **olivia** (see the recon prompt below).
+  `--refresh-profile`: dispatch **olivia** as `subagent_type: agoge:olivia`
+  (see the recon prompt below).
 - **Fresh**: read it and go to step 3.
 
 After a refresh, before anything else, prove the human-owned section survived.
@@ -122,9 +127,10 @@ tacticsless row anyway and trudy probes blind while the report claims the lane
 ran armed. If the row's tactics are empty, do not dispatch her: report the lane
 `skipped` for the same reason given above.
 
-Dispatch every armed specialist **in one message**, one Agent call each, so they
-run concurrently. One that fails returns its error and the others are unaffected;
-record that lane `unverified` with the failure and finish the run.
+Dispatch every armed specialist **in one message**, one Agent call each naming
+`subagent_type: agoge:<persona>`, so they run concurrently. One that fails
+returns its error and the others are unaffected; record that lane `unverified`
+with the failure and finish the run.
 
 Each prompt is assembled from five parts, in this order:
 
@@ -301,7 +307,7 @@ report.
 
 ## The recon prompt
 
-Dispatch `olivia` with:
+Dispatch `subagent_type: agoge:olivia` with:
 
 1. The absolute target repo path.
 2. The profile path: `dev/local/agoge-profile.md`, relative to that repo.

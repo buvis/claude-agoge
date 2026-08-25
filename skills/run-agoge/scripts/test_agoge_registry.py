@@ -107,7 +107,7 @@ def test_roster_is_recon_plus_six_specialists() -> None:
 @pytest.mark.parametrize("name", ROSTER)
 def test_name_matches_the_filename(registry, name: str) -> None:
     fields, _ = registry[name]
-    assert fields.get("name") == name, "the name IS the dispatch name"
+    assert fields.get("name") == name, "the name is the stem of `agoge:<name>`"
 
 
 @pytest.mark.parametrize("name", ROSTER)
@@ -272,3 +272,25 @@ def test_every_specialist_states_its_honesty_rule(registry, name: str) -> None:
     )
 
 
+def test_native_dispatch_names_are_namespaced() -> None:
+    """A roster persona dispatches as `agoge:<name>`, never bare.
+
+    These agents ship inside a plugin, so the harness registers them under the
+    plugin namespace only; a bare `subagent_type` fails with "Agent type
+    'olivia' not found". The sibling autopilot pack shipped exactly this bug
+    (`~/.claude` PRD 00144) and it failed quietly: recon never dispatched, so
+    no lane got a strategy row and the run still wrote a report.
+    """
+    pattern = re.compile(r"subagent_type:\s*([A-Za-z0-9_:-]+)")
+    seen = 0
+    for path in (AGENTS_DIR.parent / "skills").rglob("*.md"):
+        for value in pattern.findall(path.read_text(encoding="utf-8")):
+            stem = value.rpartition(":")[2]
+            if stem not in ROSTER:
+                continue  # a foreign pack's persona, not ours to namespace
+            seen += 1
+            assert value == f"agoge:{stem}", (
+                f"{path} dispatches {value!r}; a plugin-owned persona only "
+                f"resolves as 'agoge:{stem}'"
+            )
+    assert seen, "no roster dispatch site found; the sweep matched nothing"
