@@ -24,3 +24,7 @@
 - The never-run-`restore` check is a regex over the whole SKILL.md, not only step 3 or step 6. This follows "the skill text says never to run a `restore`".
 - The incident fixture keeps the lane dir from `_build_incident_fixture`. It does not change the asserted ref set.
 - "Working restore command" means: run via `shlex.split`, it succeeds and the refs end up equal to `start.json`'s `refs`.
+
+## Task 4: Apply B3 edits to skills/run-agoge/SKILL.md
+
+- In edits 6 and 7, the inserted text was re-wrapped to fit the surrounding lines; the words are exactly the spec's.
