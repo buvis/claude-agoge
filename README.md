@@ -33,13 +33,18 @@ Triggers on "run agoge", "product QA", "QA this project", or `/run-agoge`.
 2. **Only armed lanes dispatch.** An unarmed lane is reported, never run — that
    is the cost gate, and it is why a run over a repo with no browser does not pay
    for a browser lane.
-3. **Every finding carries a status**: `verified`, `unverified`, `mocked` or
+3. **The target stays as found.** The master snapshots the target's refs,
+   index and tracked files before recon and again before the lanes, and
+   compares after each. Any change fails the run, and the report names what
+   moved and how to put it back. Every lane works in a scratch root outside
+   the target.
+4. **Every finding carries a status**: `verified`, `unverified`, `mocked` or
    `skipped`. Only `verified` is a defect. The master audits those claims against
    their own evidence and downgrades any that reason from the source instead of
    quoting a command and its output.
-4. **One report** lands in `docs/dev/project-management/audit-results/`, with a walkthrough packet
+5. **One report** lands in `docs/dev/project-management/audit-results/`, with a walkthrough packet
    per finding, plus a JSON sidecar.
-5. **You decide.** An interactive run walks the packets one at a time. An
+6. **You decide.** An interactive run walks the packets one at a time. An
    unattended run writes them and stops — it never files its own findings as
    work, because a machine that opens tickets for itself has approved them on
    your behalf.
