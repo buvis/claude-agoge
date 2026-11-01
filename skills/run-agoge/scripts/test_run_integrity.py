@@ -40,35 +40,114 @@ def _section(text, start, end):
     return text[text.index(start):text.index(end)]
 
 
-def _find(pattern, text, pos):
-    match = re.compile(pattern).search(text, pos)
-    assert match, f"{pattern!r} not found after offset {pos}"
-    return match
+COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
+BASH_FENCE_RE = re.compile(r"^```bash[ \t]*\n(.*?)^```[ \t]*$", re.DOTALL | re.MULTILINE)
+# One shell word: <placeholder> chunks or plain characters, never a redirect,
+# pipe, list operator or comment.
+_WORD = r"(?:<[^<>\n]*>|[^\s<>|;&#`])+"
+_SCRIPT = r'"?[^\s<>|;&#`"]*target_snapshot\.py"?'
+
+
+def _invocation(verb, name, tail=""):
+    return re.compile(rf"python3 {_SCRIPT} {verb} {_WORD} {_WORD}/{re.escape(name)}{tail}")
+
+
+SNAP_START = _invocation("snapshot", "start.json")
+COMPARE_START = _invocation("compare", "start.json", r"(?P<allows>(?: --allow [^\s<>|;&#`]+)+)")
+SNAP_LANES = _invocation("snapshot", "lanes.json")
+COMPARE_LANES = _invocation("compare", "lanes.json")
+DISPATCH = "Dispatch every armed specialist **in one message**"
+SKIP_SENTENCE = (
+    "Skip the step, and say so in the report, when the profile assigns no "
+    "authoring, no finding survived step 4 as `verified`, the target's tree is "
+    "dirty, or a target comparison in step 3 did not exit 0."
+)
+RESTORE_BAN = (
+    "**Never run a `restore` command the comparison prints.** It changes the "
+    "operator's repository, and only the operator decides."
+)
+
+
+def _live(text):
+    """The text with HTML comments removed: nothing inside one ever runs."""
+    return COMMENT_RE.sub("", text)
+
+
+def _commands(section):
+    """(offset, command) for each logical line of each bash fence in section.
+
+    Shell comments are dropped and backslash continuations joined, so a
+    command is what the shell would run, not what a trailing comment says.
+    """
+    out = []
+    for fence in BASH_FENCE_RE.finditer(section):
+        offset, parts, start = fence.start(1), [], None
+        for line in fence.group(1).splitlines(keepends=True):
+            code = re.sub(r"(?:^|\s)#.*$", "", line.rstrip("\n")).rstrip()
+            start = offset if start is None else start
+            offset += len(line)
+            if code.endswith("\\"):
+                parts.append(code[:-1])
+                continue
+            parts.append(code)
+            command = " ".join(" ".join(parts).split())
+            if command:
+                out.append((start, command))
+            parts, start = [], None
+    return out
+
+
+def _sentence(phrase):
+    """A regex for phrase opening a sentence or paragraph, any whitespace between words."""
+    return r"(?:\A|[.!?:]\s+|\n\s*\n)\**" + r"\s+".join(map(re.escape, phrase.split()))
+
+
+def _only(pattern, commands, where):
+    hits = [(offset, m) for offset, cmd in commands if (m := pattern.fullmatch(cmd))]
+    assert len(hits) == 1, f"{where}: {len(hits)} invocations match {pattern.pattern!r}"
+    return hits[0]
 
 
 def test_run_integrity_wiring():
-    text = SKILL_PATH.read_text()
+    text = _live(SKILL_PATH.read_text())
+    strict = (SNAP_START, COMPARE_START, SNAP_LANES, COMPARE_LANES)
+    for _, cmd in _commands(text):
+        if "target_snapshot" in cmd:
+            assert any(p.fullmatch(cmd) for p in strict), f"loose invocation: {cmd}"
+
     step1 = _section(text, "### 1. Resolve the target", "### 2. Profile")
-    _find(r"target_snapshot\.py\s+snapshot\b[\s\S]{0,300}?start\.json", step1, 0)
+    _only(SNAP_START, _commands(step1), "step 1")
+    assert re.search(_sentence("If the snapshot exits 2, stop before recon"), step1)
 
     step3 = _section(text, "### 3. Dispatch the armed specialists", "### 4. Audit the statuses")
-    recon = _find(r"target_snapshot\.py\s+compare\b[\s\S]{0,300}?start\.json", step3, 0)
-    lanes_snap = _find(
-        r"target_snapshot\.py\s+snapshot\b[\s\S]{0,300}?lanes\.json", step3, recon.end()
-    )
-    _find(r"target_snapshot\.py\s+compare\b[\s\S]{0,300}?lanes\.json", step3, lanes_snap.end())
+    assert step3.count(DISPATCH) == 1, "step 3 must name the dispatch exactly once"
+    dispatch = step3.index(DISPATCH)
+    commands = _commands(step3)
+    recon_at, recon = _only(COMPARE_START, commands, "step 3")
+    snap_at, _ = _only(SNAP_LANES, commands, "step 3")
+    lanes_at, _ = _only(COMPARE_LANES, commands, "step 3")
+    assert recon_at < snap_at < dispatch < lanes_at, "lanes must be snapshot before dispatch, compared after"
 
-    allowed = step3[recon.start():lanes_snap.start()]
-    assert "--allow" in allowed
-    for path in PROFILE_PATHS:
-        assert re.search(re.escape(path) + r"(?![\w/.-])", allowed), path
+    allows = re.findall(r"--allow (\S+)", recon.group("allows"))
+    assert sorted(allows) == sorted(PROFILE_PATHS), allows
+
+    stop = re.compile(_sentence("If it exits 1 or 2, dispatch nobody and go to step 7."))
+    assert stop.search(step3[snap_at:dispatch]), "a failed recon comparison must stop dispatch"
+    returned = re.compile(_sentence("When every lane has returned, compare again"))
+    assert returned.search(step3[dispatch:lanes_at])
+    fails = re.compile(_sentence("Exit 1 or 2 fails the run."))
+    assert fails.search(step3, lanes_at), "a failed lanes comparison must fail the run"
 
 
 def test_run_integrity_authoring():
-    text = SKILL_PATH.read_text()
+    text = _live(SKILL_PATH.read_text())
     step6 = _flat(_section(text, "### 6. Author, if the profile assigns it", "### 7. Report"))
-    assert "a target comparison in step 3 did not exit 0" in step6
-    assert re.search(r"\b(never|neither)\b[^.]*\bruns?\b[^.]*\brestore\b", _flat(text), re.I)
+    assert re.search(_sentence(SKIP_SENTENCE), step6), "step 6 does not skip after a failed comparison"
+    assert len(re.findall(r"\bcompar", step6, re.I)) == 1, "step 6 qualifies the comparison skip"
+
+    step3 = _flat(_section(text, "### 3. Dispatch the armed specialists", "### 4. Audit the statuses"))
+    assert re.search(_sentence(RESTORE_BAN), step3), "step 3 does not ban running a restore"
+    assert not re.search(r"\bgit\s+restore\b|\bupdate-ref\b", text), "the skill runs a restore"
 
 
 def test_run_integrity_contract():
