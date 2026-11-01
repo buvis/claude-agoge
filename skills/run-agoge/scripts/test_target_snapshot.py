@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -477,6 +478,29 @@ def test_restore_commands_put_refs_back(tmp_path):
     code, report = _compare(tmp_path, target, before, env)
     assert code == 0
     assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+
+def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = target / "sub"
+    sub.mkdir()
+    (sub / "child.txt").write_text("child v1\n")
+    _git(target, env, "add", "-A")
+    _git(target, env, "commit", "-q", "-m", "add sub/child.txt")
+    before = _snap(tmp_path, target, env)
+
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "child.txt").write_text("not the real child\n")
+    _git(target, env, "rm", "-q", "-r", "--cached", "sub")
+    shutil.rmtree(sub)
+    sub.symlink_to(outside)
+
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    violations = {v["path"]: v for v in report["violations"] if v["kind"] == "tracked"}
+    assert violations["sub/child.txt"]["after"] != f" D {_sha((outside / 'child.txt').read_bytes())}"
+    assert "external-symlink" in violations["sub/child.txt"]["after"]
 
 
 def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):

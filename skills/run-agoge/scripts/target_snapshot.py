@@ -53,10 +53,26 @@ def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _external_symlink_ancestor(repo: str, path: str) -> bool:
+    """True when a directory component of `path` is a symlink escaping `repo`."""
+    check = repo
+    for part in os.path.dirname(path).split(os.sep):
+        if not part:
+            continue
+        check = os.path.join(check, part)
+        if os.path.islink(check):
+            real = os.path.realpath(check)
+            if os.path.commonpath([real, repo]) != repo:
+                return True
+    return False
+
+
 def _fingerprint(repo: str, path: str) -> str:
+    if _external_symlink_ancestor(repo, path):
+        return "external-symlink"
     full = os.path.join(repo, path)
     if os.path.islink(full):
-        return "link:" + _sha(os.readlink(full).encode())
+        return "link:" + _sha(os.fsencode(os.readlink(full)))
     if not os.path.exists(full):
         return "absent"
     if os.path.isdir(full):
@@ -75,15 +91,16 @@ def _resolve_repo(repo_arg: str) -> str:
 
 def _dirty(repo: str) -> dict[str, str]:
     out = _git(repo, "status", "--porcelain=v1", "-z", "--untracked-files=no").stdout
-    fields = out.decode().split("\0")
+    fields = out.split(b"\0")
     dirty: dict[str, str] = {}
     i = 0
     while i < len(fields) and fields[i]:
-        xy, path = fields[i][:2], fields[i][3:]
+        entry = fields[i]
+        xy, path = entry[:2].decode(), os.fsdecode(entry[3:])
         suffix = ""
         if "R" in xy or "C" in xy:
             i += 1
-            suffix = f" from {fields[i]}"
+            suffix = f" from {os.fsdecode(fields[i])}"
         dirty[path] = f"{xy} {_fingerprint(repo, path)}{suffix}"
         i += 1
     return dirty
@@ -101,11 +118,11 @@ def take_snapshot(repo: str) -> dict:
         name, oid = line.split("\0")
         refs[name] = oid
     worktrees = [
-        line[len("worktree "):]
-        for line in _git(repo, "worktree", "list", "--porcelain").stdout.decode().splitlines()
-        if line.startswith("worktree ")
+        os.fsdecode(line[len(b"worktree "):])
+        for line in _git(repo, "worktree", "list", "--porcelain").stdout.splitlines()
+        if line.startswith(b"worktree ")
     ]
-    untracked = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout.decode()
+    untracked = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout
     return {
         "version": VERSION,
         "repo": repo,
@@ -115,7 +132,7 @@ def take_snapshot(repo: str) -> dict:
         "worktrees": worktrees,
         "index": _sha(_git(repo, "ls-files", "--stage", "-z").stdout),
         "dirty": _dirty(repo),
-        "untracked": sorted(p for p in untracked.split("\0") if p),
+        "untracked": sorted(os.fsdecode(p) for p in untracked.split(b"\0") if p),
     }
 
 
