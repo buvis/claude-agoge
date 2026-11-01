@@ -36,6 +36,8 @@ the API returns.
   driving it, and never invent findings to justify the dispatch. An honest skip
   is the correct result, and a fabricated one poisons every number downstream.
 - Do not modify the product.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 

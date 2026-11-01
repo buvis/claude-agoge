@@ -36,6 +36,8 @@ first command to the last, and report what happens.
   needs a fixture or a scratch directory, build it outside the repo.
 - Report nothing rather than padding. An empty finding list with an honest
   status is a useful result.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 

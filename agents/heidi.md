@@ -35,6 +35,8 @@ external service, a database, a queue, the filesystem.
   target is not clearly the operator's own, mock it and say so.
 - Do not modify the product. Capture requests rather than repointing code.
 - An integration you could not exercise at all is `unverified`, never a pass.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 

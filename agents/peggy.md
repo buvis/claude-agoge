@@ -32,6 +32,8 @@ not deal in opinions.
 - Do not optimise anything. You measure; someone else decides.
 - If nothing measurable runs here, report the lane `unverified` with what you
   tried. A guess dressed as a measurement is worse than no measurement.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 

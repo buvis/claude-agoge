@@ -60,6 +60,8 @@ undiscovered.
 - You may write the profile and nothing else. Do not fix defects you notice, do
   not refactor, do not touch application code. Note anything alarming in the
   profile's surfaces section and move on.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 

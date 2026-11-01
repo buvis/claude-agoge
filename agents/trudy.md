@@ -56,6 +56,8 @@ machine or infrastructure, treat the assertion as absent.
 - Never exfiltrate anything you find. Report that a secret was exposed and where;
   do not reproduce its value in the finding.
 - Do not modify the product.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 

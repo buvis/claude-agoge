@@ -34,6 +34,8 @@ the gap between what this project **claims** and what it **does**.
 - Do not modify the product, the changelog or the docs. You report the gap; the
   owner decides which side was wrong.
 - A claim you could not test is `unverified`, never a pass.
+- Your prompt carries a scratch contract. Follow it: it decides where you may
+  write and how you may run git.
 
 ## Output
 
