@@ -111,6 +111,12 @@ Never run `git commit`, `git tag <name>`, `git checkout`, `git switch`,
 `git reset`, `git stash`, `git worktree`, `git remote`, `git config` or
 `git update-ref` against the target.
 
+**The master checks.** It snapshots the target's HEAD, refs, index, tracked
+files, worktrees and local git config before recon and again before the lanes,
+and compares after each. Any change fails the whole run, and the report names
+it. Files the product itself writes into its checkout when you run it are
+listed, not failed.
+
 ## Report contract
 
 One run writes two files into the target repo's `docs/dev/project-management/audit-results/`:
@@ -127,6 +133,13 @@ One run writes two files into the target repo's `docs/dev/project-management/aud
    two was overruled (the invocation names its token; the profile line does
    not). A reader must be able to tell those apart without opening the
    profile, so state the route, never just "authorized".
+   It also states the **target's integrity** from step 3 of the skill:
+   `Target integrity: unchanged`, or `Target integrity: changed` (`unknown`
+   when a comparison could not run) followed by each violation with its
+   `restore` command, the lanes that were dispatched, and the line
+   **Do not push this repository until you have run or rejected the restore
+   commands above.** Then it lists the comparisons' `touched` paths: the files
+   this run left in the target.
 2. **Findings**, each as a walkthrough packet in the shape below.
 3. **How-to-proceed block**, verbatim, at the end.
 
@@ -213,6 +226,32 @@ line instead. A veto only overrules an assertion that was actually made:
 with no assertion at all there is nothing to overrule, so that run reads
 `none`, not `vetoed`, and `source` stays absent there too. The scorer
 ignores it.
+
+The sidecar also carries the target's integrity, the result of step 3's two
+comparisons:
+
+```json
+{"target_integrity": {
+  "status": "changed",
+  "violations": [
+    {"phase": "lanes", "kind": "ref", "ref": "refs/tags/v1.0.0",
+     "before": null, "after": "<new oid>",
+     "commit": {"author": "agoge-heidi <agoge-heidi@example.invalid>",
+                "committer": "agoge-heidi <agoge-heidi@example.invalid>",
+                "date": "2026-10-25T12:09:20+01:00",
+                "subject": "chore(probe): seed scratch dotfiles"},
+     "reflog": null,
+     "restore": "git -C /absolute/target/repo update-ref -d refs/tags/v1.0.0 <new oid>"}
+  ],
+  "touched": []
+}}
+```
+
+`status` is `"unchanged"` when both comparisons exited 0, `"changed"` when either
+exited 1, and `"unknown"` when one could not run and neither exited 1.
+`violations` and `touched` are the comparisons' own, each violation tagged with
+the `phase` it was found in, `recon` or `lanes`. The scorer ignores this key,
+and only the operator runs a `restore` command.
 
 `fixture` names the target the run was pointed at. The scorer requires it: two
 targets can share a relative path (both gym fixtures ship a root `CHANGELOG.md`)
