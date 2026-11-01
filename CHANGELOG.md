@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   failed inside the target once committed, tagged and moved a remote-tracking
   ref in the product.
 
+### Added
+
+- **run-agoge**: the master snapshots the target before recon and again before
+  the lanes, with the new `scripts/target_snapshot.py`, and compares after
+  each. A moved HEAD or ref, a changed index, tracked file, worktree list or
+  local git config, or a removed untracked file fails the run; the report and
+  the sidecar's `target_integrity` list each change, with a restore command for
+  the operator.
+
 ## [0.2.0] - 2026-11-01
 
 ### Changed
