@@ -145,12 +145,20 @@ tacticsless row anyway and trudy probes blind while the report claims the lane
 ran armed. If the row's tactics are empty, do not dispatch her: report the lane
 `skipped` for the same reason given above.
 
-**Check the target, then snapshot it, before the first dispatch:**
+**Check the target, then snapshot it, before the first dispatch.** Run the
+compare as its own Bash call and read its exit code before running the
+snapshot — a shared bash block reports only the last command's status, which
+would mask the compare's exit 1 or 2 behind the snapshot's exit 0:
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" compare /absolute/target/repo <master scratch root>/start.json \
   --allow docs/dev/project-management/meta/agoge-profile.md \
   --allow docs/dev/project-management/agoge-profile.md
+```
+
+Only on exit 0, run the snapshot as a separate Bash call:
+
+```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" snapshot /absolute/target/repo <master scratch root>/lanes.json
 ```
 
