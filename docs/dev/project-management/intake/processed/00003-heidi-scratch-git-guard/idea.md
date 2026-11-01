@@ -1,6 +1,6 @@
 # run-agoge: a lane's scratch git commands ran in the target repo
 
-Status: intake, not yet specced. Recorded 2026-10-25.
+Status: processed, specced as PRDs 00003 and 00005. Recorded 2026-10-25.
 
 ## What happened
 
