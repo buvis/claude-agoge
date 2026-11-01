@@ -46,5 +46,45 @@
     "issue": "Recon item 7 sits after a blank line that separates it from item 6, so the numbered list is split in two. This follows A3 literally (insert before \"She writes...\", followed by a blank line) and is cosmetic.",
     "file": "skills/run-agoge/SKILL.md:337",
     "reason": "single-voice"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The `## Scratch contract` section deviates from appendix A2's verbatim text. It adds \"except the one file your dispatch prompt names you to write (recon's strategy profile)\" to the \"Nothing goes inside the target\" rule. The carve-out is sensible, because olivia must write the profile into the target. But it is an unspecified exception to a fence the PRD makes absolute, and no test pins it. It is in the section that is pasted verbatim into every lane, so non-recon lanes also read the exception text.",
+    "file": "skills/run-agoge/references/finding-contract.md:81",
+    "reason": "single-voice; and the carve-out is the cycle-1 R1 fix itself ([2/4], ALICE and BOB), applied by task 7 to resolve the conflict between the absolute fence and recon's mandated profile write. Alice and Carl both verified it this cycle against the recon prompt's named profile path. Removing it would restore the cycle-1 finding."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The stderr assertion depends on git's English message text; a localized git could fail it spuriously. Optional: set `LC_ALL=C` in the test env",
+    "file": "skills/run-agoge/scripts/test_scratch_contract.py:139",
+    "reason": "single-voice; and the test env already pins GIT_CONFIG_GLOBAL=/dev/null, GIT_CONFIG_NOSYSTEM=1 and HOME, so git runs without user config. Raised by its own finder as optional."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`test_scratch_contract_mechanisms` checks the tokens against the whole of `finding-contract.md`, not the `## Scratch contract` section. `read-only` or `--git-dir` could be satisfied by text elsewhere in the file, which weakens the test.",
+    "file": "skills/run-agoge/scripts/test_scratch_contract.py:109",
+    "reason": "single-voice; and the whole-file token check is what the PRD's own contract for test 1 specifies (\"reads CONTRACT_PATH, asserts the text contains each of ...\"). Narrowing it would depart from the spec, not satisfy it."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Test 2 adds an assertion the PRD did not ask for, `\"not a git repository\" in result.stderr`. It makes the test stricter and is harmless. The control test (test 3) ignores the exit code, which matches the spec.",
+    "file": "skills/run-agoge/scripts/test_scratch_contract.py:139",
+    "reason": "single-voice; and the assertion is the cycle-1 R2 fix ([2/4], ALICE and BLAKE), added by task 8 so the test pins the ceiling mechanism instead of any non-zero exit. Its own finder calls it harmless."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "1 touched test(s) pass against the pre-change code: test_scratch_contract_incident_preamble",
+    "file": "skills/run-agoge/scripts/test_scratch_contract.py",
+    "reason": "single-voice (mech-check); and the replay's base is the cycle-1 head c37b74be, where the scratch contract and this test already existed and already passed. Cycle 2's rework only tightened an assertion that already held there, so passing at that base is expected and does not mean the test fails to pin the change. The behavior it pins was pinned by cycle 1's own fail-first run."
   }
 ]
