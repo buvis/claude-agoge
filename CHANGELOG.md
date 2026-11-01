@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **run-agoge**: every finding in the JSON sidecar carries `lanes`, the lanes
+  merged into it, so `agoge-gym`'s scorer can tell a lane's own catch from
+  another lane's by-catch, and a `title` that names the defect, which that
+  scorer now matches. The gym notes point at the arm `bin/arm` prints, outside
+  the gym, and say to copy a run's report out before re-arming.
+
 ## [0.1.4] - 2026-08-26
 
 ### Changed
