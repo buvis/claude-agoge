@@ -1,6 +1,7 @@
 # run-agoge: emit per-finding lanes and score at the arm `bin/arm` prints
 
-Status: intake, not yet specced. Recorded 2026-11-01.
+Status: processed, done directly in 729795c without a PRD (all four pack
+changes below; `symbols` is documented as optional). Recorded 2026-11-01.
 
 ## Why
 
