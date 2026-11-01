@@ -84,11 +84,11 @@ never be mistaken for a hand-edited profile.
 
 ## What intentionally stays out
 
-- **Batch-drain wiring.** The author's shell wrapper fires one unattended run per
-  drained batch of work. That is dotfiles glue, not plugin material — a plugin
-  cannot install shell functions. If you want the same thing, invoke
-  `/run-agoge <repo> --authorized <your runner's name>` (a single token: letters,
-  digits, dash, underscore) from your own automation.
+- **Batch-drain wiring.** The pack does not run itself. The autopilot plugin's
+  loop runs one unattended pass after each batch that completes work, as
+  `/run-agoge <repo> --authorized autoclaude-drain`. To do the same from your
+  own automation, invoke `/run-agoge <repo> --authorized <your runner's name>`
+  (a single token: letters, digits, dash, underscore).
 - **The fixture gym.** The pack is calibrated against
   [buvis/agoge-gym](https://github.com/buvis/agoge-gym), a repo of deliberately
   seeded applications with a known defect manifest. It is the pack's eval, not
