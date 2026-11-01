@@ -25,6 +25,9 @@ never a pass.** Every result carries `verified`, `unverified`, `mocked` or
   `Agent type 'olivia' not found`.
 - Path: `references/finding-contract.md` in this skill's directory — the
   finding, scratch, report and profile contracts. Read it before step 2.
+- Path: `scripts/target_snapshot.py` in this skill's directory — the snapshot
+  and comparison that prove a run left the target as it found it. Steps 1
+  and 3.
 - Path: `references/{browser,data,perf,security}-playbook.md` in this skill's
   directory — per-lane execution doctrine, pasted into the dispatch that needs
   it. `references/authoring-playbook.md` is the master's own, never dispatched.
@@ -73,6 +76,18 @@ its HEAD:
 git -C /absolute/target/repo rev-parse HEAD
 ```
 
+Then make the master's own scratch root and snapshot the target:
+
+```bash
+mktemp -d "${TMPDIR:-/tmp}/agoge-master.XXXXXX"
+python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" snapshot /absolute/target/repo <master scratch root>/start.json
+```
+
+When `CLAUDE_SKILL_DIR` is unset, use the absolute directory this skill was
+loaded from, as `references/prd-emission.md` explains for its own script. If
+the snapshot exits 2, stop before recon and report why: a run that cannot
+check the target dispatches nobody.
+
 Everything downstream uses absolute paths. Never `cd`.
 
 Read `references/finding-contract.md` from this skill's directory now. You will
@@ -95,7 +110,7 @@ the other one.
 After a refresh, before anything else, prove the human-owned section survived.
 **Do not rely only on `git diff`** — the audit target may include uncommitted or ignored temporary files, so
 that diff comes back empty whatever recon did, and a check that cannot fail is
-worse than none. Copy `## Pins and vetoes` to a scratch file outside the target *before* the
+worse than none. Copy `## Pins and vetoes` to a file in the master's scratch root *before* the
 dispatch, extract it again afterwards, and compare the bytes (`cksum` on both).
 
 **If the section changed, stop the run and report it.** Recon rewriting a
@@ -129,6 +144,18 @@ specialist's row — its tactics and the exact commands recon established. Arm a
 tacticsless row anyway and trudy probes blind while the report claims the lane
 ran armed. If the row's tactics are empty, do not dispatch her: report the lane
 `skipped` for the same reason given above.
+
+**Check the target, then snapshot it, before the first dispatch:**
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" compare /absolute/target/repo <master scratch root>/start.json \
+  --allow docs/dev/project-management/meta/agoge-profile.md \
+  --allow docs/dev/project-management/agoge-profile.md
+python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" snapshot /absolute/target/repo <master scratch root>/lanes.json
+```
+
+The comparison allows the profile, which recon may write, and nothing else. If
+it exits 1 or 2, dispatch nobody and go to step 7.
 
 Dispatch every armed specialist **in one message**, one Agent call each naming
 `subagent_type: agoge:<persona>`, so they run concurrently. One that fails
@@ -184,6 +211,19 @@ Each prompt is assembled from five parts, in this order:
 Keep each prompt under 50 000 bytes — measure it, do not estimate. Recon output
 and one playbook are small; this only binds if you paste files in, so do not.
 
+**When every lane has returned, compare again**, allowing nothing:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" compare /absolute/target/repo <master scratch root>/lanes.json
+```
+
+Exit 1 or 2 fails the run. Keep going through steps 4, 5 and 7 so the findings
+are not lost, skip step 6, and carry both comparisons into the report. The
+lanes ran at once, so a comparison cannot say which one made a change: the
+report lists every dispatched lane, and the identities the comparison quotes
+are the evidence. **Never run a `restore` command the comparison prints.** It
+changes the operator's repository, and only the operator decides.
+
 ### 4. Audit the statuses
 
 Before anything is merged or written, check every finding that arrived
@@ -212,7 +252,8 @@ tree stays byte-identical while the lanes work. Read
 tests only, return to the branch you started on.
 
 Skip the step, and say so in the report, when the profile assigns no authoring,
-no finding survived step 4 as `verified`, or the target's tree is dirty.
+no finding survived step 4 as `verified`, the target's tree is dirty,
+or a target comparison in step 3 did not exit 0.
 
 ### 7. Report
 
@@ -220,7 +261,7 @@ Write both files into the target repo's `docs/dev/project-management/audit-resul
 
 - `agoge-<YYYY-MM-DD>.md` — the human report, in the report contract's shape:
   summary header with per-lane verified / unverified / mocked / skipped counts
-  and who was armed, unarmed or vetoed; then one walkthrough packet per finding;
+  who was armed, unarmed or vetoed, and the target's integrity; then one walkthrough packet per finding;
   then the how-to-proceed block.
 - `agoge-<YYYY-MM-DD>.json` — the sidecar, in the contract's shape. `fixture` is
   the target directory's basename. Every finding needs a non-empty `paths`; a
@@ -228,6 +269,7 @@ Write both files into the target repo's `docs/dev/project-management/audit-resul
   finding also needs a `title` that names the defect as a user meets it, and
   `lanes`: every contributing lane's name kept in step 5, so a scorer can tell
   a lane's own catch from another lane's by-catch.
+  It also carries `target_integrity`, step 3's result, in the contract's shape.
 
 **Never overwrite a report.** If that date is taken, suffix yours (`-2`, `-3`).
 Two drained batches land on one day often enough, and the report you would
