@@ -45,3 +45,43 @@
 {"id":"3c4c2a1e","ended_at":1793569940,"elapsed_s":173,"outcome":"ok","detail":null}
 {"id":"949248f4","ended_at":1793570226,"elapsed_s":721,"outcome":"ok","detail":"closed-by: commit 4b7a9b57ceba7016c27fc9155a2c855d93e06a68"}
 {"kind":"handoff","site":"build","edge":"leave","at":1793570226,"phase":"build","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1793570236,"phase":"build","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
+{"id":"ac87aad8","kind":"ivan","task":"2","queued_at":1793570289,"prompt_bytes":26900}
+{"id":"14f9b2ea","kind":"ivan","task":"2","queued_at":1793570324,"prompt_bytes":33724}
+{"id":"14f9b2ea","ended_at":1793570566,"elapsed_s":242,"outcome":"ok","detail":null}
+{"id":"3c4252c6","kind":"pat","task":"2","queued_at":1793570674,"prompt_bytes":20273}
+{"id":"d50e5387","kind":"ivan","task":"3","queued_at":1793570811,"prompt_bytes":52328}
+{"id":"1371bf22","kind":"ivan","task":"3","queued_at":1793570859,"prompt_bytes":50114}
+{"id":"97720c12","kind":"ivan","task":"3","queued_at":1793570885,"prompt_bytes":11069}
+{"id":"e4a5e046","kind":"ivan","task":"3","queued_at":1793570891,"prompt_bytes":11069}
+{"id":"e4a5e046","ended_at":1793571043,"elapsed_s":152,"outcome":"ok","detail":null}
+{"id":"d1d15a02","kind":"devon","task":"4","queued_at":1793571211,"prompt_bytes":4248}
+{"id":"d1d15a02","ended_at":1793571413,"elapsed_s":202,"outcome":"ok","detail":null}
+{"id":"d5bc0a21","kind":"ivan","task":"3","queued_at":1793571454,"prompt_bytes":7319}
+{"id":"d5bc0a21","ended_at":1793571723,"elapsed_s":269,"outcome":"ok","detail":null}
+{"id":"6c36194b","kind":"ivan","task":"4","queued_at":1793571814,"prompt_bytes":10333}
+{"id":"807affbb","kind":"ivan","task":"4","queued_at":1793571820,"prompt_bytes":10333}
+{"id":"807affbb","ended_at":1793571908,"elapsed_s":88,"outcome":"ok","detail":null}
+{"id":"eabd3e00","kind":"pat","task":"4","queued_at":1793571969,"prompt_bytes":23126}
+{"id":"3e31f63a","kind":"ivan","task":"5","queued_at":1793572089,"prompt_bytes":8136}
+{"id":"e6868aa5","kind":"ivan","task":"5","queued_at":1793572096,"prompt_bytes":8136}
+{"id":"e6868aa5","ended_at":1793572154,"elapsed_s":58,"outcome":"ok","detail":null}
+{"id":"205b989e","kind":"pat","task":"5","queued_at":1793572210,"prompt_bytes":11760}
+{"id":"48e8a40f","kind":"ivan","task":"6","queued_at":1793572276,"prompt_bytes":6142}
+{"id":"a3bd8e12","kind":"ivan","task":"6","queued_at":1793572284,"prompt_bytes":6142}
+{"id":"a3bd8e12","ended_at":1793572330,"elapsed_s":46,"outcome":"ok","detail":null}
+{"id":"d231ff45","kind":"ivan","task":"7","queued_at":1793572435,"prompt_bytes":6293}
+{"id":"aa3909e7","kind":"ivan","task":"7","queued_at":1793572441,"prompt_bytes":6293}
+{"id":"aa3909e7","ended_at":1793572484,"elapsed_s":43,"outcome":"ok","detail":null}
+{"id":"ac87aad8","ended_at":1793572592,"elapsed_s":285,"outcome":"ok","detail":"closed-by: commit b4ab450e214572c3d4d02cdf3dd29180afca5001"}
+{"id":"3c4252c6","ended_at":1793572592,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"d50e5387","ended_at":1793572592,"elapsed_s":251,"outcome":"ok","detail":"closed-by: commit cdca80042e58e14bda71166a22e23d6361c2b537"}
+{"id":"1371bf22","ended_at":1793572592,"elapsed_s":203,"outcome":"ok","detail":"closed-by: commit cdca80042e58e14bda71166a22e23d6361c2b537"}
+{"id":"97720c12","ended_at":1793572592,"elapsed_s":177,"outcome":"ok","detail":"closed-by: commit cdca80042e58e14bda71166a22e23d6361c2b537"}
+{"id":"6c36194b","ended_at":1793572592,"elapsed_s":106,"outcome":"ok","detail":"closed-by: commit e7e8d951b6a5d13a7382ba80dea36c2b747428c9"}
+{"id":"eabd3e00","ended_at":1793572592,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"3e31f63a","ended_at":1793572592,"elapsed_s":72,"outcome":"ok","detail":"closed-by: commit 36195e8bc589fdfe3e922e5dffbb3ca008cb9881"}
+{"id":"205b989e","ended_at":1793572592,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"48e8a40f","ended_at":1793572592,"elapsed_s":66,"outcome":"ok","detail":"closed-by: commit 968729edc0dd934fc4284e1538139f18389e4376"}
+{"id":"d231ff45","ended_at":1793572592,"elapsed_s":64,"outcome":"ok","detail":"closed-by: commit f8b40dfa6906f08d862aad7809173f77538b67d8"}
+{"kind":"handoff","site":"build","edge":"leave","at":1793572592,"phase":"review","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
