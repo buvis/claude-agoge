@@ -24,7 +24,7 @@ never a pass.** Every result carries `verified`, `unverified`, `mocked` or
   namespace only. Naming a persona bare fails outright with
   `Agent type 'olivia' not found`.
 - Path: `references/finding-contract.md` in this skill's directory — the
-  finding, report and profile contracts. Read it before step 2.
+  finding, scratch, report and profile contracts. Read it before step 2.
 - Path: `references/{browser,data,perf,security}-playbook.md` in this skill's
   directory — per-lane execution doctrine, pasted into the dispatch that needs
   it. `references/authoring-playbook.md` is the master's own, never dispatched.
@@ -95,7 +95,7 @@ the other one.
 After a refresh, before anything else, prove the human-owned section survived.
 **Do not rely only on `git diff`** — the audit target may include uncommitted or ignored temporary files, so
 that diff comes back empty whatever recon did, and a check that cannot fail is
-worse than none. Copy `## Pins and vetoes` to a scratch file *before* the
+worse than none. Copy `## Pins and vetoes` to a scratch file outside the target *before* the
 dispatch, extract it again afterwards, and compare the bytes (`cksum` on both).
 
 **If the section changed, stop the run and report it.** Recon rewriting a
@@ -155,7 +155,7 @@ Each prompt is assembled from five parts, in this order:
    A lane never authors. If the profile assigns authoring, that is the master's
    job in step 6 — say so in the prompt so the specialist puts its test in the
    finding's `fix` field instead of on disk.
-4. The `## Finding contract` section, pasted verbatim.
+4. The `## Finding contract` and `## Scratch contract` sections, pasted verbatim.
 5. For **trudy** only: the authorization, and the human act it came from. A
    vetoed trudy never reaches this resolution at all: step 3 already refused
    her before part 5 runs, so every row below resolves only for a lane that
@@ -333,6 +333,9 @@ Dispatch `subagent_type: agoge:olivia` with:
    arm her and stage her tactics like any other lane; if it is not, mark her
    `unarmed` with the surface reason. Recon deciding her on authorization writes
    a row with no tactics in it, which is how an armed lane gets dispatched blind.
+
+7. The `## Scratch contract` section from `references/finding-contract.md`,
+   pasted verbatim.
 
 She writes the profile and returns a summary. She writes nothing else.
 
