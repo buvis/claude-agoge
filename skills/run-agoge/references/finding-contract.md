@@ -78,8 +78,9 @@ mktemp -d "${TMPDIR:-/tmp}/agoge-<lane>.XXXXXX"
 
 Everything you create goes under the path it prints: scripts, data, databases,
 clones and scratch repositories. Nothing goes inside the target, not even into
-a directory the target ignores. If the printed path is inside the target, stop
-and report the lane `unverified`.
+a directory the target ignores, except the one file your dispatch prompt
+names you to write (recon's strategy profile). If the printed path is inside
+the target, stop and report the lane `unverified`.
 
 **Open every Bash call that writes with this preamble**, with the path written
 out in full. Do not rely on a variable set by an earlier call:
