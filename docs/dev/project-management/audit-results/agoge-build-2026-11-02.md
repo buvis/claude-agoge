@@ -63,3 +63,24 @@ score fresh CLI/web arms with the released plugin. No scored run was attempted.
 PRD 00371 must not run in the now-frozen `buvis/claude-autopilot` repository.
 Route that follow-up through `buvis/agent-plugins/plugins/autopilot` and its port
 inventory. No other session's changes were edited.
+
+## Approved release continuation
+
+The user approved publication. `dev/bin/release minor` published **0.3.0** at
+`e628771` and updated the central marketplace at `170be79`. Its release checks
+passed: 163 tests. The user-scoped plugin was updated to 0.3.0; both subsequent
+fresh fixture sessions confirmed that version in their init records.
+
+The startup failure above was resolved by removing only the redundant invalid
+`Write(**/dev/local/**)` deny entry from `~/.claude/settings.json`. The existing
+equivalent `Edit(**/dev/local/**)` deny remained in place.
+
+The three documentation files and changelog were mirrored to agent-skills on
+the pushed branch `docs/agoge-0.3.0`, commit `56ba216`, preserving the closeout
+checkout. Validation: 4,258 passed, 9 skipped; the skill validator passed;
+`bin/braid --check` reported zero drift. The temporary worktree was removed.
+
+Fresh CLI and web runs completed successfully. Their original reports,
+sidecars, scorer output and scorecard are preserved in agoge-gym under
+`docs/dev/project-management/audit-results/agoge-score-0.3.0-2026-11-02.md`.
+The held PRD 00006 remains unresolved; this release did not fix it.
