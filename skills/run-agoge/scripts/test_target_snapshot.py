@@ -18,9 +18,12 @@ TEST_ENV = {
     "GIT_COMMITTER_EMAIL": "test@test.local",
 }
 
-NOTES_V1 = b"notes v1\n"
-NOTES_V2 = b"notes v2\n"
-STAGED = b"staged edit\n"
+# A shared 20-byte prefix: the versions differ only after byte 16, so a
+# fingerprint that hashes a prefix instead of the whole file cannot pass.
+SHARED_PREFIX = b"x" * 20
+NOTES_V1 = SHARED_PREFIX + b"v1\n"
+NOTES_V2 = SHARED_PREFIX + b"v2\n"
+STAGED = SHARED_PREFIX + b"staged edit\n"
 
 
 def _env_for(tmp_path):
@@ -138,9 +141,18 @@ def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path)
         "GIT_COMMITTER_EMAIL": "cy@example.test",
         "GIT_COMMITTER_DATE": "2026-03-04T05:06:07+02:00",
     }
-    _git(target, commit_env, "commit", "-q", "--allow-empty",
-         "-m", "feat: second change", "-m", "body line")
-    new = _git(target, env, "rev-parse", "HEAD")
+    new = _git(target, commit_env, "commit-tree", "HEAD^{tree}", "-p", "HEAD",
+               "-m", "feat: second change", "-m", "body line")
+    # The reflog entry carries its own identity and message, distinct from the
+    # commit's metadata, so a reflog value derived from the commit cannot match.
+    reflog_env = {
+        **env,
+        "GIT_COMMITTER_NAME": "Rex Reflogger",
+        "GIT_COMMITTER_EMAIL": "rex@example.test",
+    }
+    _git(target, reflog_env, "update-ref", "-m", "custom reflog message",
+         "refs/heads/master", new, old)
+    assert _git(target, env, "rev-parse", "HEAD") == new
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     assert report["status"] == "changed"
@@ -156,7 +168,7 @@ def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path)
             "date": "2026-03-04T05:06:07+02:00",
             "subject": "feat: second change",
         },
-        "reflog": "Cy Committer <cy@example.test> | commit: feat: second change",
+        "reflog": "Rex Reflogger <rex@example.test> | custom reflog message",
         "restore": f"git -C {repo} update-ref refs/heads/master {old} {new}",
     }]
     assert report["touched"] == []
@@ -187,7 +199,8 @@ def test_moved_remote_tracking_ref_is_ref_violation(tmp_path):
     old = _git(target, env, "rev-parse", "refs/remotes/origin/master")
     before = _snap(tmp_path, target, env)
     new = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "remote work")
-    _git(target, env, "update-ref", "refs/remotes/origin/master", new)
+    _git(target, env, "update-ref", "-m", "fetch origin: fast-forward",
+         "refs/remotes/origin/master", new)
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     repo = shlex.quote(os.path.realpath(target))
@@ -197,6 +210,7 @@ def test_moved_remote_tracking_ref_is_ref_violation(tmp_path):
     assert violation["before"] == old
     assert violation["after"] == new
     assert violation["commit"]["subject"] == "remote work"
+    assert violation["reflog"] == "Test User <test@test.local> | fetch origin: fast-forward"
     assert violation["restore"] == (
         f"git -C {repo} update-ref refs/remotes/origin/master {old} {new}"
     )
@@ -215,6 +229,58 @@ def test_branch_switch_is_head_violation(tmp_path):
         "before": {"ref": "refs/heads/master", "commit": head},
         "after": {"ref": "refs/heads/feature", "commit": head},
     }]
+
+
+def test_moved_detached_head_is_head_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    head = _git(target, env, "rev-parse", "HEAD")
+    _git(target, env, "checkout", "-q", "--detach", "HEAD")
+    before = _snap(tmp_path, target, env)
+    other = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "detached work")
+    _git(target, env, "checkout", "-q", "--detach", other)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["violations"] == [{
+        "kind": "head",
+        "before": {"ref": None, "commit": head},
+        "after": {"ref": None, "commit": other},
+    }]
+
+
+def test_deleted_ref_is_ref_violation_with_recreating_restore(tmp_path):
+    target, env = _build_target(tmp_path)
+    head = _git(target, env, "rev-parse", "HEAD")
+    _git(target, env, "branch", "gone")
+    before = _snap(tmp_path, target, env)
+    _git(target, env, "branch", "-q", "-D", "gone")
+    _git(target, env, "tag", "-d", "v1.0")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["status"] == "changed"
+    real = os.path.realpath(target)
+    violations = report["violations"]
+    assert [v["ref"] for v in violations] == ["refs/heads/gone", "refs/tags/v1.0"]
+    for v in violations:
+        restore = v.pop("restore")
+        assert v == {
+            "kind": "ref",
+            "ref": v["ref"],
+            "before": head,
+            "after": None,
+            "reflog": None,
+        }
+        assert shlex.split(restore) == [
+            "git", "-C", real, "update-ref", v["ref"], head, "",
+        ]
+        outside = tmp_path / "elsewhere"
+        outside.mkdir(exist_ok=True)
+        subprocess.run(["bash", "-c", restore], cwd=outside, env=env, check=True)
+    assert _git(target, env, "rev-parse", "refs/heads/gone") == head
+    assert _git(target, env, "rev-parse", "refs/tags/v1.0") == head
+
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
 def test_staged_change_is_index_violation(tmp_path):
@@ -341,6 +407,17 @@ def test_added_remote_is_config_violation_without_url(tmp_path):
     assert "secret-repo-token" not in result.stdout + result.stderr
 
 
+def test_changed_config_value_is_config_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    _git(target, env, "config", "user.email", "cy@example.test")
+    before = _snap(tmp_path, target, env)
+    # Same key, same number of entries, only the value differs.
+    _git(target, env, "config", "user.email", "ada@example.test")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["violations"] == [{"kind": "config"}]
+
+
 def test_added_worktree_is_worktrees_violation(tmp_path):
     target, env = _build_target(tmp_path)
     before = _snap(tmp_path, target, env)
@@ -355,6 +432,26 @@ def test_added_worktree_is_worktrees_violation(tmp_path):
     ]
     assert sorted(os.path.realpath(p) for p in violation["after"]) == sorted(
         [os.path.realpath(target), os.path.realpath(worktree)]
+    )
+
+
+def test_swapped_worktree_is_worktrees_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    first = tmp_path / "wt-first"
+    second = tmp_path / "wt-second"
+    _git(target, env, "worktree", "add", "-q", "--detach", str(first), "HEAD")
+    before = _snap(tmp_path, target, env)
+    _git(target, env, "worktree", "remove", str(first))
+    _git(target, env, "worktree", "add", "-q", "--detach", str(second), "HEAD")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    [violation] = report["violations"]
+    assert violation["kind"] == "worktrees"
+    assert sorted(os.path.realpath(p) for p in violation["before"]) == sorted(
+        [os.path.realpath(target), os.path.realpath(first)]
+    )
+    assert sorted(os.path.realpath(p) for p in violation["after"]) == sorted(
+        [os.path.realpath(target), os.path.realpath(second)]
     )
 
 
@@ -388,6 +485,11 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     _assert_exit2(_run(tmp_path, env, "snapshot", str(target), str(inside)))
     assert not inside.exists()
 
+    (target / "sub").mkdir()
+    nested = target / "sub" / "snap.json"
+    _assert_exit2(_run(tmp_path, env, "snapshot", str(target), str(nested)))
+    assert not nested.exists()
+
     sibling = tmp_path / "target-out" / "snap.json"
     sibling.parent.mkdir()
     assert _run(tmp_path, env, "snapshot", str(target), str(sibling)).returncode == 0
@@ -397,6 +499,27 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     result = _run(tmp_path, env, "compare", str(target), str(other_snap))
     _assert_exit2(result)
     assert result.stdout == ""
+
+    # Same basename, different real path: still another repo.
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    twin_a, _ = _build_target(tmp_path, name="a/target")
+    twin_b, _ = _build_target(tmp_path, name="b/target")
+    twin_snap = _snap(tmp_path, twin_a, env, name="twin-a.json")
+    result = _run(tmp_path, env, "compare", str(twin_b), str(twin_snap))
+    _assert_exit2(result)
+    assert result.stdout == ""
+
+    missing = tmp_path / "snaps" / "missing.json"
+    not_json = tmp_path / "snaps" / "not-json.json"
+    not_json.write_text("{not json\n")
+    wrong_version = tmp_path / "snaps" / "wrong-version.json"
+    snapshot = json.loads(sibling.read_text())
+    wrong_version.write_text(json.dumps({**snapshot, "version": 2}))
+    for bad in (missing, not_json, wrong_version):
+        result = _run(tmp_path, env, "compare", str(target), str(bad))
+        _assert_exit2(result)
+        assert result.stdout == ""
 
     unborn = tmp_path / "unborn"
     unborn.mkdir()
