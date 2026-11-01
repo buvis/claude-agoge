@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **run-agoge**: a lane can no longer fall through into the target's own git
+  repository. Every dispatch and the recon prompt carry a scratch contract: one
+  scratch root outside the target, a `set -eu` and `GIT_CEILING_DIRECTORIES`
+  preamble, explicit `--git-dir` on scratch git writes, a per-command lane
+  identity, and a read-only target. A heidi lane whose scratch `git init`
+  failed inside the target once committed, tagged and moved a remote-tracking
+  ref in the product.
+
 ## [0.2.0] - 2026-11-01
 
 ### Changed
