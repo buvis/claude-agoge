@@ -25,10 +25,11 @@ Generated: 2026-11-01
 
 ## Active Work
 
-- Branch: `master`. Autopilot batch `202611012029`, PRD 1 of this batch: `00003-fence-lane-scratch-work-out-of-target-v1.md` (in `wip/`).
-- Goal: add a `## Scratch contract` section to `finding-contract.md`, wire it into the dispatch/recon prompts in `SKILL.md`, point every one of the seven agent charters at it, add a regression test (`test_scratch_contract.py`) proving the documented preamble stops the 2026-10-25 incident (a lane's scratch `git init` failing inside the target, then falling through and committing/tagging/moving refs in the product itself), and a CHANGELOG entry.
-- Companion PRD 00005 (not yet started) adds the master's own snapshot/compare check of the target as a second line of defense — explicitly out of scope here.
-- No PRs or open issues on the repo currently; CI is green (no failing workflow runs).
+### Batch 202611012029
+- [x] 00003-fence-lane-scratch-work-out-of-target-v1.md (2 cycles)
+- [ ] 00005-check-run-leaves-target-unchanged-v1.md
+
+Observations: PRD 00003 added a `## Scratch contract` section to `finding-contract.md`, wired it into the dispatch/recon prompts in `SKILL.md`, pointed every agent charter at it, and added a regression test (`test_scratch_contract.py`) pinning the documented preamble against the 2026-10-25 incident (a lane's scratch `git init` failing inside the target, then committing/tagging/moving refs in the product itself). Cycle 1 rework fixed a recon-vs-contract instruction conflict and a loose test assertion; cycle 2 found only single-voice findings, discarded per the gate. Companion PRD 00005 (the master's own snapshot/compare check of the target as a second line of defense) is still in `backlog/`.
 
 ## Related context
 
