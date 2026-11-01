@@ -1,11 +1,12 @@
 # Agoge Contracts
 
-Three contracts every agoge run obeys: what a specialist returns, what the run
-writes, and what the strategy profile holds.
+Four contracts every agoge run obeys: what a specialist returns, where it may
+write and how it may use git, what the run writes, and what the strategy
+profile holds.
 
-The seven agent bodies carry none of this. They receive the finding contract in
-their dispatch prompt, so the personas stay portable and the skill owns every
-path — an agent file names no path at all.
+The seven agent bodies carry none of this. They receive the finding and scratch
+contracts in their prompts, so the personas stay portable and the skill owns
+every path — an agent file names no path at all.
 
 ## Finding contract
 
@@ -61,6 +62,53 @@ summary header counts post-downgrade statuses, so a lane that argued its way to
 
 This is the master's job precisely because it cannot be delegated to the lane
 that made the claim.
+
+## Scratch contract
+
+Every specialist, recon included, works under these rules. A lane once
+committed, tagged and moved a remote-tracking ref in the product itself: its
+scratch `git init` failed inside the product's checkout, the script carried on,
+and git found the product's repository instead of the scratch one.
+
+**One scratch root, outside the target.** Make it once, first:
+
+```bash
+mktemp -d "${TMPDIR:-/tmp}/agoge-<lane>.XXXXXX"
+```
+
+Everything you create goes under the path it prints: scripts, data, databases,
+clones and scratch repositories. Nothing goes inside the target, not even into
+a directory the target ignores. If the printed path is inside the target, stop
+and report the lane `unverified`.
+
+**Open every Bash call that writes with this preamble**, with the path written
+out in full. Do not rely on a variable set by an earlier call:
+
+```bash
+set -eu
+SCRATCH=<the path mktemp printed>
+export GIT_CEILING_DIRECTORIES="$SCRATCH"
+```
+
+`set -eu` stops the call at the first failed step. The ceiling stops git from
+looking above the root for a repository, so a scratch repository that failed to
+initialize is an error instead of whichever repository sits above it. When a
+probe expects a command to fail, capture it: `cmd || rc=$?`.
+
+**Name the scratch repository in every git command that writes**:
+`git --git-dir="$SCRATCH/<repo>/.git" --work-tree="$SCRATCH/<repo>" <command>`,
+never `git -C <dir> <command>`. Give each such command your lane's identity,
+`-c user.name=agoge-<lane> -c user.email=agoge-<lane>@example.invalid`, and
+never `export` one: a commit or ref move that escapes then names your lane.
+
+**The target is read-only, git included.** Read it with `git log`,
+`git show`, `git diff`, `git status`, `git tag --list`, `git for-each-ref` and
+`git rev-parse`. To run another version, `git clone <target> "$SCRATCH/<name>"`
+and check it out there, or
+`mkdir -p "$SCRATCH/<dir>" && git -C <target> archive <rev> | tar -x -C "$SCRATCH/<dir>"`.
+Never run `git commit`, `git tag <name>`, `git checkout`, `git switch`,
+`git reset`, `git stash`, `git worktree`, `git remote`, `git config` or
+`git update-ref` against the target.
 
 ## Report contract
 
