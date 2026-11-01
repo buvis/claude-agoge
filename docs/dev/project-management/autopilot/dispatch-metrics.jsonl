@@ -96,3 +96,7 @@
 {"id":"e45c629a","kind":"pat","task":"8","queued_at":1793573471,"prompt_bytes":9677}
 {"id":"e45c629a","ended_at":1793573691,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
 {"kind":"handoff","site":"review","edge":"leave","at":1793573691,"phase":"review","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
+{"kind":"handoff","site":"review","edge":"resume","at":1793573726,"phase":"review","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
+{"id":"bc3f66ed","kind":"bob","task":"review-00005c2","queued_at":1793573872,"prompt_bytes":18869}
+{"id":"bc3f66ed","ended_at":1793574025,"elapsed_s":153,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"review","edge":"leave","at":1793574290,"phase":"done","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
