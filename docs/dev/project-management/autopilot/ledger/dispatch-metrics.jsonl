@@ -1,0 +1,18 @@
+{"kind":"handoff","site":"build","edge":"resume","at":1793564975,"phase":"build","prd":"00003-fence-lane-scratch-work-out-of-target-v1.md"}
+{"id":"63e32750","kind":"ivan","task":"1","queued_at":1793565963,"prompt_bytes":17032}
+{"id":"c079be3d","kind":"ivan","task":"2","queued_at":1793566241,"prompt_bytes":11428}
+{"id":"68572c12","kind":"pat","task":"2","queued_at":1793566346,"prompt_bytes":7784}
+{"id":"fb7cd348","kind":"ivan","task":"3","queued_at":1793566404,"prompt_bytes":5920}
+{"id":"b916222b","kind":"pat","task":"3","queued_at":1793566475,"prompt_bytes":4852}
+{"id":"d3253eb3","kind":"ivan","task":"4","queued_at":1793566538,"prompt_bytes":6968}
+{"id":"3f350097","kind":"ivan","task":"5","queued_at":1793566641,"prompt_bytes":6587}
+{"id":"b3cb2414","kind":"ivan","task":"6","queued_at":1793566728,"prompt_bytes":6305}
+{"id":"63e32750","ended_at":1793566855,"elapsed_s":162,"outcome":"ok","detail":"closed-by: commit 9b3f2551d147138becf5884a7f6c6a37d24f9d68"}
+{"id":"c079be3d","ended_at":1793566855,"elapsed_s":54,"outcome":"ok","detail":"closed-by: commit bd67848c045d30783c1ae92ffb4945882b133b4f"}
+{"id":"fb7cd348","ended_at":1793566855,"elapsed_s":51,"outcome":"ok","detail":"closed-by: commit 47e9ae874187036486810fa2f8eb25523ef0f4ad"}
+{"id":"d3253eb3","ended_at":1793566855,"elapsed_s":48,"outcome":"ok","detail":"closed-by: commit 99071ce91475bcf76d7cdd801a5c5bd04df2faa8"}
+{"id":"3f350097","ended_at":1793566855,"elapsed_s":50,"outcome":"ok","detail":"closed-by: commit 17c4346b15ed4568c21b662421b6f2c6e8cfe11c"}
+{"id":"b3cb2414","ended_at":1793566855,"elapsed_s":36,"outcome":"ok","detail":"closed-by: commit c9d4259bf51234fb3ef0fd802e0b28719530f8c3"}
+{"id":"68572c12","ended_at":1793566855,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
+{"id":"b916222b","ended_at":1793566855,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
+{"kind":"handoff","site":"build","edge":"leave","at":1793566855,"phase":"review","prd":"00003-fence-lane-scratch-work-out-of-target-v1.md"}
