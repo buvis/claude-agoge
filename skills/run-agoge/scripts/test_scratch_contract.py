@@ -136,6 +136,7 @@ def test_scratch_contract_incident_preamble(tmp_path):
     after = fixture["snapshot"]()
 
     assert result.returncode != 0
+    assert "not a git repository" in result.stderr
     assert before == after
 
 
