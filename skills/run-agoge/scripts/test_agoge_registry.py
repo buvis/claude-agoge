@@ -160,7 +160,7 @@ def test_olivia_alone_may_write_and_only_the_profile(registry) -> None:
 def test_body_carries_no_personal_paths(registry, name: str) -> None:
     """Extraction-clean: PRD 00103 lifts these files into a released plugin."""
     _, body = registry[name]
-    for forbidden in ("/Users/", "~/.claude", "dev/local"):
+    for forbidden in ("/Users/", "~/.claude", "docs/dev/project-management"):
         assert forbidden not in body, f"{name}.md body names {forbidden}"
 
 
@@ -218,7 +218,7 @@ def test_every_shipped_file_is_extraction_clean(path: Path) -> None:
     sibling personal skill for the roster conventions. Both are now inlined, so
     the whole shipped surface can hold the line the playbooks already held.
 
-    `dev/local/` is deliberately NOT forbidden here. It is a repo-relative
+    `docs/dev/project-management/` is deliberately NOT forbidden here. It is a repo-relative
     contract path - where the profile and the reports live inside the TARGET
     repo - so it travels correctly to any installer. What does not travel is a
     path only the author's machine has.

@@ -32,20 +32,20 @@ def test_first_number_in_an_empty_repo_is_one(tmp_path: Path) -> None:
 
 def test_scan_covers_every_lifecycle_directory_and_discovery(tmp_path: Path) -> None:
     """A parked PRD keeps its number, so hold/ must count as claimed."""
-    seed(tmp_path, "dev/local/prds/backlog/00003-a-v1.md")
-    seed(tmp_path, "dev/local/prds/wip/00007-b-v1.md")
-    seed(tmp_path, "dev/local/prds/done/00011-c-v1.md")
-    seed(tmp_path, "dev/local/prds/hold/00042-d-v1.md")
-    seed(tmp_path, "dev/local/discovery/00099-e.md")
+    seed(tmp_path, "docs/dev/project-management/prds/backlog/00003-a-v1.md")
+    seed(tmp_path, "docs/dev/project-management/prds/wip/00007-b-v1.md")
+    seed(tmp_path, "docs/dev/project-management/prds/done/00011-c-v1.md")
+    seed(tmp_path, "docs/dev/project-management/prds/hold/00042-d-v1.md")
+    seed(tmp_path, "docs/dev/project-management/discovery/00099-e.md")
     assert claimed_numbers(tmp_path) == {3, 7, 11, 42, 99}
     assert claim(tmp_path, "next-one").name == "00100-next-one-v1.md"
 
 
 def test_a_taken_filename_pushes_the_claim_to_the_next_number(tmp_path: Path) -> None:
     """The exclusive create is the guard; this is it firing."""
-    seed(tmp_path, "dev/local/prds/backlog/00005-taken-v1.md")
+    seed(tmp_path, "docs/dev/project-management/prds/backlog/00005-taken-v1.md")
     # Same slug, so the scan's max+1 lands on a name that already exists.
-    seed(tmp_path, "dev/local/prds/backlog/00006-collide-v1.md")
+    seed(tmp_path, "docs/dev/project-management/prds/backlog/00006-collide-v1.md")
     assert claim(tmp_path, "collide").name == "00007-collide-v1.md"
 
 
@@ -65,9 +65,9 @@ def test_the_claimed_file_exists_and_is_empty(tmp_path: Path) -> None:
 
 
 def test_non_prd_filenames_are_ignored(tmp_path: Path) -> None:
-    seed(tmp_path, "dev/local/prds/backlog/README.md")
-    seed(tmp_path, "dev/local/prds/backlog/FASTTRACK-PLAN-v5.md")
-    seed(tmp_path, "dev/local/prds/backlog/0042-too-short-v1.md")
+    seed(tmp_path, "docs/dev/project-management/prds/backlog/README.md")
+    seed(tmp_path, "docs/dev/project-management/prds/backlog/FASTTRACK-PLAN-v5.md")
+    seed(tmp_path, "docs/dev/project-management/prds/backlog/0042-too-short-v1.md")
     assert claimed_numbers(tmp_path) == set()
 
 

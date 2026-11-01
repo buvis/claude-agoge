@@ -3,7 +3,7 @@
 
     allocate_prd_number.py <repo> <slug>
 
-Scans every `dev/local/prds/` subdirectory plus `dev/local/discovery/` for
+Scans every `docs/dev/project-management/prds/` subdirectory plus `docs/dev/project-management/discovery/` for
 `NNNNN-` prefixes, then creates an EMPTY file at the next free number and prints
 its path. The caller writes the body into that file.
 
@@ -33,7 +33,7 @@ MAX_ATTEMPTS = 200
 
 def claimed_numbers(repo: Path) -> set[int]:
     """Every sequence number already spoken for anywhere in the repo."""
-    roots = [repo / "dev" / "local" / "prds", repo / "dev" / "local" / "discovery"]
+    roots = [repo / "docs" / "dev" / "project-management" / "prds", repo / "docs" / "dev" / "project-management" / "discovery"]
     numbers: set[int] = set()
     for root in roots:
         if not root.is_dir():
@@ -50,7 +50,7 @@ def claim(repo: Path, slug: str) -> Path:
     if not SLUG_RE.match(slug):
         raise SystemExit(f"slug must be kebab-case, got {slug!r}")
 
-    backlog = repo / "dev" / "local" / "prds" / "backlog"
+    backlog = repo / "docs" / "dev" / "project-management" / "prds" / "backlog"
     backlog.mkdir(parents=True, exist_ok=True)
 
     number = max(claimed_numbers(repo), default=0) + 1

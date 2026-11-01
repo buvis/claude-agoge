@@ -26,8 +26,8 @@ Triggers on "run agoge", "product QA", "QA this project", or `/run-agoge`.
 
 ## How a run goes
 
-1. **Recon** writes a strategy profile to `dev/local/meta/agoge-profile.md` in
-   the target repo (an existing profile at the older `dev/local/agoge-profile.md`
+1. **Recon** writes a strategy profile to `docs/dev/project-management/meta/agoge-profile.md` in
+   the target repo (an existing profile at the older `docs/dev/project-management/agoge-profile.md`
    is still read and refreshed in place), naming the runnable surfaces and which
    lanes are worth arming.
 2. **Only armed lanes dispatch.** An unarmed lane is reported, never run — that
@@ -37,7 +37,7 @@ Triggers on "run agoge", "product QA", "QA this project", or `/run-agoge`.
    `skipped`. Only `verified` is a defect. The master audits those claims against
    their own evidence and downgrades any that reason from the source instead of
    quoting a command and its output.
-4. **One report** lands in `dev/local/audit-results/`, with a walkthrough packet
+4. **One report** lands in `docs/dev/project-management/audit-results/`, with a walkthrough packet
    per finding, plus a JSON sidecar.
 5. **You decide.** An interactive run walks the packets one at a time. An
    unattended run writes them and stops — it never files its own findings as

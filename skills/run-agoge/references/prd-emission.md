@@ -32,7 +32,7 @@ your own invocation names, and run the same script from there. Do not fall back
 to picking a number yourself: that is the one thing this script exists to
 prevent.
 
-It scans every `dev/local/prds/` lifecycle directory plus `dev/local/discovery/`,
+It scans every `docs/dev/project-management/prds/` lifecycle directory plus `docs/dev/project-management/discovery/`,
 creates an **empty** file at the next free number with an exclusive create, and
 prints the path. Write the body into that path.
 

@@ -643,7 +643,7 @@ def test_vetoed_route_source_is_absent_when_both_the_profile_and_invocation_asse
 
 def test_the_profile_resolves_meta_first_with_a_root_fallback() -> None:
     """The profile is what the `profile` route asserts from, so where step 2
-    looks for it is a gate fact (PRD 00001). `dev/local/meta/` is canonical
+    looks for it is a gate fact (PRD 00001). `docs/dev/project-management/meta/` is canonical
     since the 2026-08-23 keeper move; the root path stays readable because
     unmigrated repos still keep the profile there. Drop either half and one
     class of target repo loses its authorization source silently.
@@ -652,9 +652,9 @@ def test_the_profile_resolves_meta_first_with_a_root_fallback() -> None:
     step = text[text.find("### 2. Profile") : text.find("### 3.")]
     assert step, "step 2 moved or was renamed"
 
-    meta_idx = step.find("dev/local/meta/agoge-profile.md")
+    meta_idx = step.find("docs/dev/project-management/meta/agoge-profile.md")
     assert meta_idx != -1, "step 2 stopped naming the canonical meta/ profile path"
-    root_idx = step.find("dev/local/agoge-profile.md", meta_idx + 1)
+    root_idx = step.find("docs/dev/project-management/agoge-profile.md", meta_idx + 1)
     assert root_idx != -1, (
         "step 2 stopped naming the root fallback; an unmigrated target repo "
         "then has no profile and every armed lane loses its authorization"

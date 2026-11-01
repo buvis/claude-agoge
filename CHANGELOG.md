@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **run-agoge**: read and write durable project-management artifacts under
+  `docs/dev/project-management/`, with temporary assets under `docs/dev/tmp/`.
+  Nothing under `dev/local/` is read any more: move an existing profile and any
+  unwalked report to the new location.
 - **run-agoge**: every finding in the JSON sidecar carries `lanes`, the lanes
   merged into it, so `agoge-gym`'s scorer can tell a lane's own catch from
   another lane's by-catch, and a `title` that names the defect, which that
