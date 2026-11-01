@@ -39,3 +39,9 @@
 {"kind":"handoff","site":"review","edge":"leave","at":1793568123,"phase":"done","prd":"00003-fence-lane-scratch-work-out-of-target-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1793568152,"phase":"done","prd":"00003-fence-lane-scratch-work-out-of-target-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1793568220,"phase":"build","prd":"00003-fence-lane-scratch-work-out-of-target-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1793568227,"phase":"build","prd":"00005-check-run-leaves-target-unchanged-v1.md"}
+{"id":"949248f4","kind":"tess","task":"1","queued_at":1793569421,"prompt_bytes":24579}
+{"id":"3c4c2a1e","kind":"devon","task":"1","queued_at":1793569767,"prompt_bytes":18863}
+{"id":"3c4c2a1e","ended_at":1793569940,"elapsed_s":173,"outcome":"ok","detail":null}
+{"id":"949248f4","ended_at":1793570226,"elapsed_s":721,"outcome":"ok","detail":"closed-by: commit 4b7a9b57ceba7016c27fc9155a2c855d93e06a68"}
+{"kind":"handoff","site":"build","edge":"leave","at":1793570226,"phase":"build","prd":"00005-check-run-leaves-target-unchanged-v1.md"}

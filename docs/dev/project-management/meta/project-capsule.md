@@ -27,9 +27,9 @@ Generated: 2026-11-01
 
 ### Batch 202611012029
 - [x] 00003-fence-lane-scratch-work-out-of-target-v1.md (2 cycles)
-- [ ] 00005-check-run-leaves-target-unchanged-v1.md
+- [ ] 00005-check-run-leaves-target-unchanged-v1.md (in progress, build gate, full lane)
 
-Observations: PRD 00003 added a `## Scratch contract` section to `finding-contract.md`, wired it into the dispatch/recon prompts in `SKILL.md`, pointed every agent charter at it, and added a regression test (`test_scratch_contract.py`) pinning the documented preamble against the 2026-10-25 incident (a lane's scratch `git init` failing inside the target, then committing/tagging/moving refs in the product itself). Cycle 1 rework fixed a recon-vs-contract instruction conflict and a loose test assertion; cycle 2 found only single-voice findings, discarded per the gate. Companion PRD 00005 (the master's own snapshot/compare check of the target as a second line of defense) is still in `backlog/`.
+Observations: PRD 00003 added a `## Scratch contract` section to `finding-contract.md`, wired it into the dispatch/recon prompts in `SKILL.md`, pointed every agent charter at it, and added a regression test (`test_scratch_contract.py`) pinning the documented preamble against the 2026-10-25 incident (a lane's scratch `git init` failing inside the target, then committing/tagging/moving refs in the product itself). Cycle 1 rework fixed a recon-vs-contract instruction conflict and a loose test assertion; cycle 2 found only single-voice findings, discarded per the gate. PRD 00005 (the master's own snapshot/compare check of the target as a second line of defense, via a new `target_snapshot.py`) now entered build: it depends on 00003's scratch contract (its `eligibility:` check waits for `## Scratch contract` in `finding-contract.md`, which 00003 already landed) and wires snapshot/compare calls into `SKILL.md` steps 1 and 3.
 
 ## Related context
 
