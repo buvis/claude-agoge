@@ -1,0 +1,50 @@
+[
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "test_scratch_contract_prompt slices run from the `### 3. Dispatch` heading to `## The recon prompt` (steps 3-9) and from `## The recon prompt` to the end of the file (including `## Notes`). The `\"## Scratch contract\"` check therefore does not pin dispatch part 4 or recon item 7 specifically. Any stray mention elsewhere in those wide slices satisfies it. Narrow the slices, for example to the \"4. The `## Finding contract`\" line and the \"7. The `## Scratch contract`\" list item",
+    "file": "skills/run-agoge/scripts/test_scratch_contract.py:920",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "test_scratch_contract_incident_control passes against the pre-change code (the replay's [MECH] line). It is the PRD-mandated control proving the fixture reproduces the incident, so it is not a defect. Noted for the record",
+    "file": "skills/run-agoge/scripts/test_scratch_contract.py:881",
+    "reason": "PRD-mandated control test: it exists to prove the fixture reproduces the incident against the pre-change code, so passing there is its purpose, not an unpinned behavior. Raised by its own finder as not a defect."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The edits to SKILL.md (Dependencies line 27, step 2 line 98), browser-playbook.md:44 and CHANGELOG.md have no test pinning them. They are one-phrase doc edits verified by rg in the PRD, so the gap is acceptable. Line 98 now runs well past the file's wrap width (\"scratch file outside the target *before* the\"). Optionally re-wrap",
+    "file": "skills/run-agoge/SKILL.md:98",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The diff includes autopilot housekeeping that does not trace to the PRD: docs/dev/project-management/.gitignore, the duplicated dispatch-metrics.jsonl and loop-metrics.jsonl under both autopilot/ and autopilot/ledger/, assumptions.md and project-capsule.md. These are tooling artifacts, not product scope. Confirm they are meant to be committed",
+    "file": "docs/dev/project-management/.gitignore",
+    "reason": "single-voice; and the named paths are autopilot's own durable work-management store, which the retention rules require to be tracked"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The contract's \"name the scratch repository in every git command that writes\" does not say how to run `git init` itself. The `--git-dir` form does not obviously fit it. Optionally add an example such as `git init \"$SCRATCH/<repo>\"` under the preamble, so the `set -eu` plus ceiling failure mode is the documented one for init",
+    "file": "skills/run-agoge/references/finding-contract.md:716",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Recon item 7 sits after a blank line that separates it from item 6, so the numbered list is split in two. This follows A3 literally (insert before \"She writes...\", followed by a blank line) and is cosmetic.",
+    "file": "skills/run-agoge/SKILL.md:337",
+    "reason": "single-voice"
+  }
+]
