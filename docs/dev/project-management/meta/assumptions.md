@@ -16,3 +16,11 @@
 - A snapshot JSON that is not a dict maps to exit 2 together with the version check.
 - `_fingerprint` uses `os.path.islink` / `exists` / `isdir` on `repo/path` without resolving parent-directory symlinks. Git does not track paths beyond a symlink.
 - Compare prints its JSON with `indent=2`, and the snapshot file is also written with `indent=2`.
+
+## Task 3: Write test_run_integrity.py (fails: SKILL.md/finding-contract.md not wired yet)
+
+- The test imports the fixture and helpers from `test_scratch_contract` by module name. This relies on pytest's default `prepend` import mode putting the scripts dir on `sys.path`. Pytest config was not read, as it is outside the allowlist.
+- Wiring matches each command as `target_snapshot.py` + `snapshot`/`compare`, then `start.json` or `lanes.json` within 300 characters. The exact PRD appendix wording for SKILL.md was not available.
+- The never-run-`restore` check is a regex over the whole SKILL.md, not only step 3 or step 6. This follows "the skill text says never to run a `restore`".
+- The incident fixture keeps the lane dir from `_build_incident_fixture`. It does not change the asserted ref set.
+- "Working restore command" means: run via `shlex.split`, it succeeds and the refs end up equal to `start.json`'s `refs`.
