@@ -1,0 +1,23 @@
+{
+  "batch_id": "202611012029",
+  "items": [
+    {
+      "type": "cap-overflow",
+      "issue": "_text() in skills/run-agoge/scripts/target_snapshot.py:49 still uses a strict .decode() on git output that is not a tracked path: rev-parse --show-toplevel (line 86), for-each-ref refnames (line 117) and symbolic-ref (line 129). A non-UTF-8 repository directory path or refname raises an uncaught UnicodeDecodeError, so the script exits 1 with a traceback instead of 2 with a single target_snapshot: line. Fix: use os.fsdecode in _text.",
+      "severity": "high",
+      "consensus": "1/3",
+      "reason": "rework cap reached with this finding unresolved",
+      "prd": "00005-check-run-leaves-target-unchanged-v1.md",
+      "cycle": 2
+    },
+    {
+      "type": "cap-overflow",
+      "issue": "_text (skills/run-agoge/scripts/target_snapshot.py:49) still does a strict .decode() on rev-parse --show-toplevel, for-each-ref and symbolic-ref output; use os.fsdecode in _text for consistency. Same defect as the high-severity cap-overflow record above, raised at low severity by Alice and Blake.",
+      "severity": "low",
+      "consensus": "2/3",
+      "reason": "rework cap reached with this finding unresolved",
+      "prd": "00005-check-run-leaves-target-unchanged-v1.md",
+      "cycle": 2
+    }
+  ]
+}
