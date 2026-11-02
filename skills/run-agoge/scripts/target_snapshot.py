@@ -13,8 +13,8 @@ from tracked, untracked-removed and touched only.
 
 Exit 0 when unchanged, 1 when changed, 2 when the check cannot run (one
 `target_snapshot: <reason>` line on stderr, no JSON). Any other unexpected
-error also exits 2. Every git call runs with
-`--no-optional-locks` and nothing is ever written inside <repo>.
+error also exits 2. Every git call runs with `--no-optional-locks` and nothing
+is ever written inside <repo>.
 """
 
 from __future__ import annotations
@@ -238,7 +238,7 @@ def main(argv: list[str]) -> int:
         print(f"target_snapshot: {exc}", file=sys.stderr)
         return 2
     except Exception as exc:
-        print(f"target_snapshot: unexpected {exc!r}", file=sys.stderr)
+        print(f"target_snapshot: unexpected {type(exc).__name__}: {str(exc)!r}", file=sys.stderr)
         return 2
 
 

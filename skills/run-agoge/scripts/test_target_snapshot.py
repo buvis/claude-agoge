@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+import target_snapshot
+
 SCRIPT = Path(__file__).resolve().parent / "target_snapshot.py"
 
 TEST_ENV = {
@@ -556,13 +558,17 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
 
 
 def test_text_keeps_filesystem_bytes_and_trailing_space():
-    sys.path.insert(0, str(SCRIPT.parent))
-    import target_snapshot
-
     result = subprocess.CompletedProcess([], 0, stdout=b"/a/\xff b \n")
     assert target_snapshot._text(result) == "/a/\udcff b "
-    other = subprocess.CompletedProcess([], 0, stdout=b"/z/\xfe c  \n")
-    assert target_snapshot._text(other) == "/z/\udcfe c  "
+
+
+def test_repo_dir_with_trailing_space_round_trips(tmp_path):
+    target, env = _build_target(tmp_path, name="target ")
+    before = _snap(tmp_path, target, env)
+    assert json.loads(before.read_text())["repo"] == os.path.realpath(target)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
 def _write_packed_refs(target, sha, *names):
@@ -638,6 +644,7 @@ def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path):
         out.parent.mkdir()
         result = _run(tmp_path, env, "snapshot", str(target), str(out))
         _assert_exit2(result)
+        assert "notes.txt" in result.stderr
         assert result.stdout == ""
         assert not out.exists()
     finally:
