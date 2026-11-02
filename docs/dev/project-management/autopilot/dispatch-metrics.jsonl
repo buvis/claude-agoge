@@ -120,3 +120,4 @@
 {"id":"2fd23416","ended_at":1793611855,"elapsed_s":337,"outcome":"ok","detail":null}
 {"id":"0819c28c","ended_at":1793612074,"elapsed_s":558,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1793612239,"phase":"done","prd":"00006-decode-git-output-as-filesystem-bytes-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1793652090,"phase":"done","prd":"00006-decode-git-output-as-filesystem-bytes-v1.md"}

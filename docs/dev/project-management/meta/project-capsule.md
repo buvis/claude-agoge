@@ -25,6 +25,11 @@ Generated: 2026-11-01
 
 ## Active Work
 
+### Batch 202611021020
+- [x] 00006-decode-git-output-as-filesystem-bytes-v1.md (fast-track lane, 1 review pass)
+
+Observations: card-sized PRD ran in the fast-track lane (one task, one review). Closes the residual strict `.decode()` deferred from PRD 00005.
+
 ### Batch 202611012029
 - [x] 00003-fence-lane-scratch-work-out-of-target-v1.md (2 cycles)
 - [x] 00005-check-run-leaves-target-unchanged-v1.md (2 cycles)
