@@ -26,15 +26,15 @@ Reconciled by inspection, not edited. The branch mirrors SKILL.md and references
 
 Integration blocked, and I did not integrate: the agent-skills closeout plan is still at Stage 1 (`repository-closeout-execution.md` records blocked/retry entries), the branch is not in its integration order, and the working tree carries five uncommitted closeout paths from another session (preserved untouched). The branch can only enter through the plan's review, approval and Stage 3 gates; add it to the plan's integration order when Stage 3 opens.
 
-## 3. Push protection (old claude-autopilot PRD 00371 to Tower 00060)
+## 3. Push protection (old claude-autopilot PRD 00371 to OVCAQ 00060)
 
 Carried by ownership map (requirements only; `claude-autopilot` is frozen and untouched):
 
-- Loop arm, run and settle around the final agoge pass: supervision (source loop rows R13/R14) -> Tower (OVCAQ) PRD 00060. Added to `ovcaq/docs/dev/project-management/prds/backlog/00060-autopilot-supervisor-sync-v1.md`: a new feature "Agoge push hold around final QA", two files in the structure tree, a Phase 1 task, seven named scenarios (protection during the run, release when unchanged, repository change, failed comparison, interrupted run, old agoge without sidecar, undecodable path), two risks, and the dependency note.
-- The guard that denies `git push` while a hold exists: plugin hook `guard_push_on_critical.py` (inventory UTIL-042, R01/R16) -> AP 00014 (`custody_push_denied`). Not edited here (peer PRD, 00013 still in review). Needs one line there: read `agoge-hold` entries beside custody. Tower writes the hold file shape; the real guard's denial is 00014's acceptance.
-- Tower owns the check: its own snapshot comparison, independent of the agoge version or sidecar. Findings are kept; no restore command is ever run automatically.
+- Loop arm, run and settle around the final agoge pass: supervision (source loop rows R13/R14) -> OVCAQ PRD 00060 (the orchestrator; Tower is the separate, planned watching layer and owns none of this). Added to `ovcaq/docs/dev/project-management/prds/backlog/00060-autopilot-supervisor-sync-v1.md`: a new feature "Agoge push hold around final QA", two files in the structure tree, a Phase 1 task, seven named scenarios (protection during the run, release when unchanged, repository change, failed comparison, interrupted run, old agoge without sidecar, undecodable path), two risks, and the dependency note.
+- The guard that denies `git push` while a hold exists: plugin hook `guard_push_on_critical.py` (inventory UTIL-042, R01/R16) -> AP 00014 (`custody_push_denied`). Not edited here (peer PRD, 00013 still in review). Needs one line there: read `agoge-hold` entries beside custody. OVCAQ writes the hold file shape; the real guard's denial is 00014's acceptance.
+- OVCAQ owns the check: its own snapshot comparison, independent of the agoge version or sidecar. Findings are kept; no restore command is ever run automatically.
 
-Caveat: Tower's `docs/dev/project-management/` is gitignored (`.gitignore:13`), so 00060 is an untracked local file. The edit is **uncommitted and unrecoverable from git**. That contradicts the global working-documents rule (never gitignore this tree). Un-ignoring it is a separate decision I did not make.
+Caveat: the `ovcaq` repo's `docs/dev/project-management/` is gitignored (`.gitignore:13`), so 00060 is an untracked local file. The edit is **uncommitted and unrecoverable from git**. That contradicts the global working-documents rule (never gitignore this tree). Un-ignoring it is a separate decision I did not make.
 
 ## 4. Verification counts (AP 00015, `agent-plugins`)
 
