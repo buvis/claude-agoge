@@ -12,7 +12,8 @@ plus newly `touched` untracked paths. `--allow` exempts a repo-relative path
 from tracked, untracked-removed and touched only.
 
 Exit 0 when unchanged, 1 when changed, 2 when the check cannot run (one
-`target_snapshot: <reason>` line on stderr, no JSON). Every git call runs with
+`target_snapshot: <reason>` line on stderr, no JSON). Any other unexpected
+error also exits 2. Every git call runs with
 `--no-optional-locks` and nothing is ever written inside <repo>.
 """
 
@@ -46,7 +47,7 @@ def _git(repo: str, *args: str, allow_fail: bool = False) -> subprocess.Complete
 
 
 def _text(result: subprocess.CompletedProcess) -> str:
-    return result.stdout.decode().strip()
+    return os.fsdecode(result.stdout).rstrip("\n")
 
 
 def _sha(data: bytes) -> str:
@@ -235,6 +236,9 @@ def main(argv: list[str]) -> int:
         return run(args)
     except Fail as exc:
         print(f"target_snapshot: {exc}", file=sys.stderr)
+        return 2
+    except Exception as exc:
+        print(f"target_snapshot: unexpected {exc!r}", file=sys.stderr)
         return 2
 
 
