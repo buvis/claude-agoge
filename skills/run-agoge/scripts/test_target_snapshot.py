@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 SCRIPT = Path(__file__).resolve().parent / "target_snapshot.py"
 
 TEST_ENV = {
@@ -551,3 +553,92 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     unborn_out = tmp_path / "snaps" / "unborn.json"
     _assert_exit2(_run(tmp_path, env, "snapshot", str(unborn), str(unborn_out)))
     assert not unborn_out.exists()
+
+
+def test_text_keeps_filesystem_bytes_and_trailing_space():
+    sys.path.insert(0, str(SCRIPT.parent))
+    import target_snapshot
+
+    result = subprocess.CompletedProcess([], 0, stdout=b"/a/\xff b \n")
+    assert target_snapshot._text(result) == "/a/\udcff b "
+    other = subprocess.CompletedProcess([], 0, stdout=b"/z/\xfe c  \n")
+    assert target_snapshot._text(other) == "/z/\udcfe c  "
+
+
+def _write_packed_refs(target, sha, *names):
+    header = b"# pack-refs with: peeled fully-peeled sorted \n"
+    lines = b"".join(sha.encode() + b" " + name + b"\n" for name in sorted(names))
+    (target / ".git" / "packed-refs").write_bytes(header + lines)
+
+
+def test_non_utf8_refs_round_trip_through_snapshot(tmp_path):
+    target, env = _build_target(tmp_path)
+    sha = _git(target, env, "rev-parse", "HEAD")
+    first, second = b"refs/heads/\xff", b"refs/heads/\xfe"
+    _write_packed_refs(target, sha, first)
+    (target / ".git" / "HEAD").write_bytes(b"ref: " + first + b"\n")
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    assert snapshot["head"] == {"ref": os.fsdecode(first), "commit": sha}
+    assert snapshot["refs"][os.fsdecode(first)] == sha
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+    _write_packed_refs(target, sha, first, second)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    [violation] = report["violations"]
+    assert violation["kind"] == "ref"
+    assert violation["ref"] == os.fsdecode(second)
+    assert violation["before"] is None
+    assert violation["after"] == sha
+
+
+def test_non_utf8_paths_round_trip(tmp_path):
+    repo_name = os.fsdecode(b"target-\xff")
+    tracked_name = os.fsdecode(b"tracked-\xfe.txt")
+    untracked_name = os.fsdecode(b"untracked-\xfd.txt")
+    later_name = os.fsdecode(b"later-\xfc.txt")
+    try:
+        target, env = _build_target(tmp_path, name=repo_name)
+        (target / tracked_name).write_bytes(NOTES_V1)
+        _git(target, env, "add", "-A")
+        _git(target, env, "commit", "-q", "-m", "add tracked")
+        (target / tracked_name).write_bytes(NOTES_V2)
+        (target / untracked_name).write_text("u\n")
+    except OSError as exc:
+        pytest.skip(f"filesystem rejects non-UTF-8 names: {exc}")
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    assert snapshot["repo"] == os.path.realpath(target)
+    assert tracked_name in snapshot["dirty"]
+    assert snapshot["untracked"] == [untracked_name]
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+    (target / tracked_name).write_bytes(STAGED)
+    (target / later_name).write_text("l\n")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [("tracked", tracked_name)]
+    assert report["touched"] == [later_name]
+
+
+def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path):
+    if os.geteuid() == 0:
+        pytest.skip("root reads files regardless of mode")
+    target, env = _build_target(tmp_path)
+    notes = target / "notes.txt"
+    notes.write_bytes(NOTES_V1)
+    notes.chmod(0o000)
+    try:
+        out = tmp_path / "snaps" / "unreadable.json"
+        out.parent.mkdir()
+        result = _run(tmp_path, env, "snapshot", str(target), str(out))
+        _assert_exit2(result)
+        assert result.stdout == ""
+        assert not out.exists()
+    finally:
+        notes.chmod(0o644)
