@@ -1,6 +1,6 @@
 # Project Capsule: claude-agoge
 
-Generated: 2026-11-01
+Generated: 2026-11-03
 
 ## Key Invariants
 
@@ -9,44 +9,59 @@ Generated: 2026-11-01
 - An unarmed lane never dispatches — recon (`olivia`) decides armed/unarmed per specialist and that decision is the cost gate.
 - Trudy (security lane) refuses to run without an explicit authorization assertion in the profile's `## Pins and vetoes` section or a `--authorized <source>` flag on invocation; recon itself can never assert authorization.
 - The profile's `## Pins and vetoes` section is human-owned; a profile refresh must copy it through byte-identically.
+- `target_snapshot.py` exit contract: 0 unchanged, 1 changed, 2 cannot run (one `target_snapshot: <reason>` stderr line). Any unexpected error must map to 2, never 1, so a crash cannot read as "target changed". Git output is decoded with `os.fsdecode` (filesystem bytes), not strict UTF-8.
 
 ## Architecture Decisions
 
-- Prompts, not code, carry the contracts (finding contract, and as of this PRD a scratch contract) — this is why `skills/run-agoge/references/finding-contract.md` is injected verbatim into both the dispatch and recon prompts rather than referenced by path.
+- Prompts, not code, carry the contracts (finding contract and scratch contract) — this is why `skills/run-agoge/references/finding-contract.md` is injected verbatim into both the dispatch and recon prompts rather than referenced by path.
 - Intake docs under `docs/dev/project-management/intake/processed/` record the originating incident/idea per PRD; PRD 00003 and PRD 00005 both derive from `00003-heidi-scratch-git-guard/idea.md` (00003 = contract/doctrine, 00005 = master's own verification check of the target).
+- The scratch contract plus the master's snapshot/compare is a deliberate two-layer defence (doctrine in prompts, mechanical check in code).
 
 ## Component Boundaries
 
 - `skills/run-agoge/SKILL.md` — master orchestration: recon dispatch, specialist dispatch, dedup, one report. Owns all paths referenced by prompts.
-- `skills/run-agoge/references/finding-contract.md` — the contract text pasted into prompts (finding contract today; scratch contract added by this PRD).
-- `skills/run-agoge/references/browser-playbook.md` — browser-probe guidance, references the scratch root.
-- `agents/{walter,heidi,judy,wendy,peggy,trudy,olivia}.md` — seven specialist charters, each with a `## Rules` section; each must point at the scratch contract once this PRD lands.
-- `skills/run-agoge/scripts/test_*.py` — pytest suites run via `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q ...`.
+- `skills/run-agoge/references/finding-contract.md` — the contract text pasted into prompts (finding + scratch contract).
+- `skills/run-agoge/references/*-playbook.md` — browser, data, perf, security, authoring playbooks; `prd-emission.md`.
+- `skills/run-agoge/scripts/{target_snapshot,allocate_prd_number}.py` — the only executable code; stdlib-only, `git` binary dependency. `allocate_prd_number.py` WRITES into its repo arg (scratch repos only).
+- `agents/{walter,heidi,judy,wendy,peggy,trudy,olivia}.md` — seven charters, each with a `## Rules` section pointing at the scratch contract.
+- `skills/run-agoge/scripts/test_*.py` — 7 pytest suites; `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q` (also the release gate, `dev/bin/release-checks`). Last known: 167 passed, 1 skipped (non-UTF-8 path round trip skips on macOS APFS, Errno 92).
+- `dev/bin/release` needs sibling `../claude-plugins`, pulls, tags, pushes. Never run from a session.
 
 ## Active Work
 
-### Batch 202611021020
-- [x] 00006-decode-git-output-as-filesystem-bytes-v1.md (fast-track lane, 1 review pass)
+No PRD in `wip/`, `backlog/` or `hold/`. `done/`: 00001, 00002, 00003, 00005, 00006.
 
-Observations: card-sized PRD ran in the fast-track lane (one task, one review). Closes the residual strict `.decode()` deferred from PRD 00005.
+### Batch 202611021020 (closed)
+- [x] 00006-decode-git-output-as-filesystem-bytes-v1.md (fast-track lane, 1 review pass; finalized in 2b9b475)
 
-### Batch 202611012029
-- [x] 00003-fence-lane-scratch-work-out-of-target-v1.md (2 cycles)
-- [x] 00005-check-run-leaves-target-unchanged-v1.md (2 cycles)
+Fix is **unreleased**: `CHANGELOG [Unreleased]` carries one Fixed entry after `[0.3.0] - 2026-11-02`; tags go v0.1.0..v0.3.0.
 
-Observations: PRD 00003 added a `## Scratch contract` section to `finding-contract.md`, wired it into the dispatch/recon prompts in `SKILL.md`, pointed every agent charter at it, and added a regression test (`test_scratch_contract.py`) pinning the documented preamble against the 2026-10-25 incident (a lane's scratch `git init` failing inside the target, then committing/tagging/moving refs in the product itself). Cycle 1 rework fixed a recon-vs-contract instruction conflict and a loose test assertion; cycle 2 found only single-voice findings, discarded per the gate. PRD 00005 (the master's own snapshot/compare check of the target as a second line of defense, via a new `target_snapshot.py`) landed the same way: cycle 1 rework fixed three highs (missing `os.fsdecode`, a masked compare exit code from a combined bash block, and fingerprinting following symlinked parent directories outside the target). Cycle 2 reached the rework cap with one unresolved high (a residual strict `.decode()` in `_text`, no regression per `git blame`) and deferred it rather than stalling; it is recorded in the batch deferred JSON and a hold triage stub (`00006-triage-text-in-skills-run-agoge-scripts-target-v1.md`) was minted for it. Carl (Gemini) was unavailable for cycle 1 and stayed latched unavailable for the rest of the batch.
+### Batch 202611012029 (closed)
+- [x] 00003 (2 cycles), 00005 (2 cycles). 00005 deferred a residual strict `.decode()` at the rework cap; that became PRD 00006.
+
+### Open items from `audit-results/agoge-followups-2026-11-02.md` (item 1 resolved; round trip verified 2026-11-04)
+- Non-UTF-8 path round trip: passes on Linux CI (run 41791600904, 168 passed, 0 skipped). Still skips on macOS APFS.
+- One full-suite run showed 6 git subprocess SIGKILLs (exit -9) in an agent session. Not reproduced: 5 local runs (4 in parallel) and 2 CI runs all clean. Likely environmental (sandbox), not code; reopen if it recurs.
+- Docs branch `docs/agoge-0.3.0` (agent-skills `56ba216`) is blocked on that repo's closeout plan; the 00006 fix needs its own mirror line at the next release.
+- Cross-repo carries (OVCAQ 00060 push hold; AP 00015 verification counts) live in other repos, not here.
+
+Working tree: `docs/dev/project-management/meta/agoge-profile.md` is untracked (recon output, last recon 2026-11-03 at HEAD 035f5d2; `Authorization: not asserted`, so trudy will not run without `--authorized`). Local master == origin/master.
 
 ## Related context
 
-engram not invoked this pass (no topic query run yet — PRD title and branch name are available but engram step was skipped during catchup to keep this pass fast; nothing suggests prior related work beyond the sibling PRD 00005 and the processed intake doc already read above).
+No topic this session: on master with no wip PRD, so the engram queries were skipped. The repo was not gita-registered, so `engram harvest` returned `no_repo`; after `gita add` (2026-11-04) it upserted the 5 review files. The 3 `*-audit.md` files have no frontmatter and are not harvestable. Staleness stamp not taken.
 
 ## GitHub State
 
 - 0 open issues, 0 open PRs.
-- Active branches (14d): `origin`, `origin/master` only.
-- No releases listed via `gh` (repo likely tags releases via git tags consumed by CHANGELOG/release tooling rather than GitHub Releases — `chore: release v0.2.0` is the latest commit).
-- No failing workflow runs on master; no recent runs shown.
+- Active branches (14d): `origin/master` only.
+- No GitHub releases; versions are git tags v0.1.0..v0.3.0.
+- CI: `.github/workflows/test.yml` (e95d42f) runs pytest on ubuntu and macOS for every push and PR. First run green on both.
 
 ## Project Health
 
-CI green, no open PRs/issues, single active branch. Backlog has at least PRD 00003 (this one) and PRD 00005 queued in `wip`/`backlog`.
+Healthy and idle. CI green on both OSes. Backlog is empty. Remaining risks: unreleased 00006 fix, SIGKILL flake seen once and not reproduced, trudy needs a human authorization assertion.
+
+## Project Memories
+
+- Whole-file python reformatting (probably a loupe autofix hook) can leave AST-identical churn in `target_snapshot.py` and its test after edits or test runs. Before committing or reviewing, `git status`; if dirty without your edits, AST-compare against HEAD, then `git checkout -- <file>`. Never commit the churn.
