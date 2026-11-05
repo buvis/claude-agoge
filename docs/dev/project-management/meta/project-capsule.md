@@ -45,7 +45,7 @@ Fix is **unreleased**: `CHANGELOG [Unreleased]` carries one Fixed entry after `[
 - Docs branch `docs/agoge-0.3.0` (agent-skills `56ba216`) is blocked on that repo's closeout plan; the 00006 fix needs its own mirror line at the next release.
 - Cross-repo carries (OVCAQ 00060 push hold; AP 00015 verification counts) live in other repos, not here.
 
-Working tree: `docs/dev/project-management/meta/agoge-profile.md` is untracked (recon output, last recon 2026-11-03 at HEAD 035f5d2; `Authorization: not asserted`, so trudy will not run without `--authorized`). Local master == origin/master.
+Working tree: `docs/dev/project-management/meta/agoge-profile.md` is untracked (recon output, last recon 2026-11-03 at HEAD 035f5d2; `Authorization:` asserted by the operator 2026-11-05). Local master == origin/master.
 
 ## Related context
 
@@ -60,7 +60,7 @@ No topic this session: on master with no wip PRD, so the engram queries were ski
 
 ## Project Health
 
-Healthy and idle. CI green on both OSes. Backlog is empty. Remaining risks: unreleased 00006 fix, SIGKILL flake seen once and not reproduced, trudy needs a human authorization assertion.
+Healthy and idle. CI green on both OSes. Backlog is empty. Remaining risks: unreleased 00006 fix, SIGKILL flake seen once and not reproduced, none on authorization: the operator asserted it in the profile on 2026-11-05, so trudy can run.
 
 ## Project Memories
 

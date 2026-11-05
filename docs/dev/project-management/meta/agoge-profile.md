@@ -70,7 +70,7 @@ No external service is called by the code, so there is nothing to mock for the p
 
 ## Pins and vetoes
 
-Authorization: not asserted
+Authorization: this project is the operator's own or explicitly authorized.
 
 ## Freshness stamp
 
