@@ -166,3 +166,5 @@
 {"id":"5a347a53","ended_at":1794180497,"elapsed_s":393,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794180615,"phase":"done","prd":"00008-integrity-check-misses-git-hooks-v1-v1.md"}
 {"kind":"handoff","site":"build","edge":"leave","at":1794180623,"phase":"done","prd":"00008-integrity-check-misses-git-hooks-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794180658,"phase":"done","prd":"00008-integrity-check-misses-git-hooks-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794180736,"phase":"build","prd":"00008-integrity-check-misses-git-hooks-v1.md"}

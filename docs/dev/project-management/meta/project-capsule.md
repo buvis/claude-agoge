@@ -31,7 +31,7 @@ Generated: 2026-11-03
 
 ### Batch 202611082330
 - [x] 00007-parallel-claims-share-prd-number-v1.md (1 cycle)
-- [ ] 00008-integrity-check-misses-git-hooks-v1.md
+- [x] 00008-integrity-check-misses-git-hooks-v1.md (1 cycle)
 - [ ] 00009-integrity-check-misses-untracked-edits-v1.md
 - [ ] 00010-snapshot-runs-repo-configured-programs-v1.md
 - [ ] 00011-snapshot-hangs-on-fifo-v1.md
@@ -48,7 +48,7 @@ Generated: 2026-11-03
 - [ ] 00022-readme-gym-link-404-v1.md
 - [ ] 00023-ci-release-checks-suite-drift-v1.md
 
-Observations: 00007 fixed parallel PRD-number claims with a directory flock (fast-track lane, 1 review pass).
+Observations: 00007 fixed parallel PRD-number claims with a directory flock (fast-track lane, 1 review pass). 00008 fixed the integrity check missing git hooks and .git/info changes (fast-track lane escalated to full, 1 review pass).
 
 ### Batch 202611021020 (closed)
 - [x] 00006-decode-git-output-as-filesystem-bytes-v1.md (fast-track lane, 1 review pass; finalized in 2b9b475)
