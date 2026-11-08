@@ -108,7 +108,7 @@ def test_untouched_target_compares_unchanged(tmp_path):
     head = _git(target, env, "rev-parse", "HEAD")
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
-    assert snapshot["version"] == 1
+    assert snapshot["version"] == target_snapshot.VERSION
     assert snapshot["repo"] == os.path.realpath(target)
     assert snapshot["head"] == {"ref": "refs/heads/master", "commit": head}
     assert snapshot["refs"]["refs/heads/master"] == head
@@ -543,7 +543,7 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     not_json.write_text("{not json\n")
     wrong_version = tmp_path / "snaps" / "wrong-version.json"
     snapshot = json.loads(sibling.read_text())
-    wrong_version.write_text(json.dumps({**snapshot, "version": 2}))
+    wrong_version.write_text(json.dumps({**snapshot, "version": target_snapshot.VERSION + 1}))
     for bad in (missing, not_json, wrong_version):
         result = _run(tmp_path, env, "compare", str(target), str(bad))
         _assert_exit2(result)
@@ -649,3 +649,54 @@ def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path):
         assert not out.exists()
     finally:
         notes.chmod(0o644)
+
+
+def test_new_hook_is_gitdir_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    hooks = target / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    hook = hooks / "pre-commit"
+    hook.write_text("#!/bin/sh\necho pwned\n")
+    hook.chmod(0o755)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert any(v["kind"] == "gitdir" for v in report["violations"])
+
+
+def test_changed_info_exclude_is_gitdir_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    info = target / ".git" / "info"
+    info.mkdir(exist_ok=True)
+    (info / "exclude").write_text("# seed\n")
+    before = _snap(tmp_path, target, env)
+    (info / "exclude").write_text("*.secret\n")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert any(v["kind"] == "gitdir" for v in report["violations"])
+
+
+def test_changed_info_attributes_is_gitdir_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    info = target / ".git" / "info"
+    info.mkdir(exist_ok=True)
+    (info / "attributes").write_text("# seed\n")
+    before = _snap(tmp_path, target, env)
+    (info / "attributes").write_text("*.txt text\n")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert any(v["kind"] == "gitdir" for v in report["violations"])
+
+
+def test_every_gitdir_entry_is_checked_or_listed(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    gitdir = snapshot["gitdir"]
+    git_dir = target / ".git"
+    for root, _dirs, files in os.walk(git_dir):
+        for name in files:
+            path = Path(root) / name
+            rel = str(path.relative_to(git_dir))
+            top = rel.split(os.sep)[0]
+            assert rel in gitdir or top in target_snapshot.GITDIR_UNCHECKED, rel
