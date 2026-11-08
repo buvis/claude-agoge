@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **run-agoge**: target snapshot handles non-UTF-8 repository paths and refnames and keeps trailing spaces in paths. Any other unexpected error, such as an unreadable file, now exits 2 with one diagnostic line, not 1 with a traceback
+- **run-agoge**: emitted PRDs follow create-prd's minimal template, with module and dependency blocks, a phase heading and an acceptance check on every task, so an unattended autopilot loop can plan them without guessing
 
 ## [0.3.0] - 2026-11-02
 

@@ -65,7 +65,7 @@ All 17 PRDs came from the 2026-11-08 agoge run (`audit-results/agoge-2026-11-08.
 
 ## Gaps
 
-- **Emitter drift (root cause of the systemic Blocking finding):** `skills/run-agoge/references/prd-emission.md` maps findings onto RPG-style section names (Problem Statement, Target Users, Functional Decomposition...). These 17 PRDs follow neither that mapping nor `create-prd`'s `minimal.md`. The next agoge run will emit the same non-compliant shape. Candidate PRD: align the emission mapping with `minimal.md`, including Module, Dependencies, phase headings, per-task Acceptance and `default_model`. Not created here (this gate does not invent PRDs).
+- **Emitter drift (root cause of the systemic Blocking finding):** `skills/run-agoge/references/prd-emission.md` maps findings onto RPG-style section names (Problem Statement, Target Users, Functional Decomposition...). These 17 PRDs follow neither that mapping nor `create-prd`'s `minimal.md`. The next agoge run would have emitted the same non-compliant shape. **Resolved 2026-11-08 at the user's request:** `prd-emission.md` now carries a `## The PRD shape` skeleton on `minimal.md` headings plus Test Strategy, pinned by `skills/run-agoge/scripts/test_prd_emission_contract.py`.
 - Snapshot `VERSION` moves 1 -> 4 across 00008, 00009, 00013. That is fine for ephemeral per-run snapshots. No migration is needed.
 - 00009 hashes untracked files. An untracked FIFO hangs until 00011 lands one PRD later in the same batch. This is safe because the batch runs in order.
 
