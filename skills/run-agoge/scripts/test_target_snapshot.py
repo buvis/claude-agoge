@@ -688,6 +688,21 @@ def test_changed_info_attributes_is_gitdir_violation(tmp_path):
     assert any(v["kind"] == "gitdir" for v in report["violations"])
 
 
+def test_new_hook_on_linked_worktree_is_gitdir_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    worktree = tmp_path / "wt"
+    _git(target, env, "worktree", "add", "-q", "--detach", str(worktree), "HEAD")
+    before = _snap(tmp_path, worktree, env)
+    hooks = target / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    hook = hooks / "pre-commit"
+    hook.write_text("#!/bin/sh\necho pwned\n")
+    hook.chmod(0o755)
+    code, report = _compare(tmp_path, worktree, before, env)
+    assert code == 1
+    assert any(v["kind"] == "gitdir" for v in report["violations"])
+
+
 def test_every_gitdir_entry_is_checked_or_listed(tmp_path):
     target, env = _build_target(tmp_path)
     before = _snap(tmp_path, target, env)

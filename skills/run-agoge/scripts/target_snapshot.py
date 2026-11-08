@@ -116,7 +116,7 @@ def _dirty(repo: str) -> dict[str, str]:
 
 
 def _gitdir_files(repo: str) -> dict[str, str]:
-    git_dir = os.path.join(repo, ".git")
+    git_dir = _text(_git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir"))
     files: dict[str, str] = {}
     for root, _dirs, names in os.walk(git_dir):
         for name in names:
