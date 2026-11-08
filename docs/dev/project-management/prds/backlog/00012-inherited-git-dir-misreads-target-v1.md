@@ -1,3 +1,9 @@
+---
+lane: fast-track
+design: skip
+default_model: sonnet
+model_tier_rationale: exact variable list given; one regression test
+---
 # An inherited GIT_DIR makes the snapshot record another repository under the target's name
 
 Source: agoge run 2026-11-08, finding 6 of 18 (MEDIUM, verified, lane heidi), `docs/dev/project-management/audit-results/agoge-2026-11-08.md`.
@@ -8,7 +14,7 @@ Source: agoge run 2026-11-08, finding 6 of 18 (MEDIUM, verified, lane heidi), `d
 
 ## Solution
 
-In `_git`, pass an `env` copy with `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_COMMON_DIR` and `GIT_NAMESPACE` removed.
+In `_git`, pass `env=` a copy of `os.environ` with `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, `GIT_OBJECT_DIRECTORY`, `GIT_ALTERNATE_OBJECT_DIRECTORIES`, `GIT_COMMON_DIR` and `GIT_NAMESPACE` removed. Leave every other variable (including `GIT_CONFIG_*`, which the test suite uses for isolation) untouched.
 
 ## Requirements
 
@@ -16,10 +22,20 @@ In `_git`, pass an `env` copy with `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`,
 - With `GIT_DIR` pointing at a second repo, `snapshot <target>` records the target's refs.
 - `CHANGELOG.md` `[Unreleased]` `### Fixed`: `- **run-agoge**: target snapshot ignores an inherited GIT_DIR and related variables`.
 
+### Nice to have
+- None.
+
 ## Implementation
 
+### Module: target_snapshot
 - **Location**: `skills/run-agoge/scripts/target_snapshot.py`, `skills/run-agoge/scripts/test_target_snapshot.py`, `CHANGELOG.md`
+- **Responsibility**: run git against the named repo whatever the caller's environment.
+- **Exports**: none new
+- New symbols: `test_inherited_git_dir_does_not_redirect_snapshot`
 - **Risk**: hides from the caller that its environment had a stray `GIT_DIR`.
+
+### Dependencies
+- target_snapshot: No dependencies (foundation)
 
 ## Test Strategy
 
@@ -33,10 +49,11 @@ hk really has: refs/heads/master, refs/stash
 
 ## Tasks
 
-- [ ] Add the regression test; watch it fail.
-- [ ] Strip the variables in `_git`.
-- [ ] Add the CHANGELOG entry.
+### Phase 0: Fix
+- [ ] Add `test_inherited_git_dir_does_not_redirect_snapshot` - Acceptance: `pytest -k inherited_git_dir` fails on the unmodified script.
+- [ ] Strip the variables in `_git` (depends on: previous task) - Acceptance: `pytest -k inherited_git_dir` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "ignores an inherited GIT_DIR" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- New test passes; the full suite passes under `dev/bin/release-checks`.
+- `pytest -k inherited_git_dir` passes; the full suite passes under `dev/bin/release-checks`.

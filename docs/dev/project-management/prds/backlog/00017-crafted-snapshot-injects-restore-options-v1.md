@@ -1,3 +1,9 @@
+---
+lane: fast-track
+design: skip
+default_model: sonnet
+model_tier_rationale: exact validation rule given; one regression test
+---
 # A crafted before.json puts git options into the printed restore command
 
 Source: agoge run 2026-11-08, finding 11 of 18 (LOW, verified, lane trudy), `docs/dev/project-management/audit-results/agoge-2026-11-08.md`.
@@ -8,7 +14,7 @@ Source: agoge run 2026-11-08, finding 11 of 18 (LOW, verified, lane trudy), `doc
 
 ## Solution
 
-In `_load`, validate the snapshot: every ref name is `HEAD` or starts with `refs/`, and every ref value is a hex object id (40 or 64 characters) or null. Otherwise exit 2 with one line.
+In `_load`, validate the snapshot's `refs` map: every key starts with `refs/` (that is all `git for-each-ref` emits; `HEAD` lives under the separate `head` key), and every value matches `^[0-9a-f]{40}$` or `^[0-9a-f]{64}$`. Otherwise raise `Fail(f"snapshot {path} has a malformed ref")`, which exits 2 with one line.
 
 ## Requirements
 
@@ -17,10 +23,20 @@ In `_load`, validate the snapshot: every ref name is `HEAD` or starts with `refs
 - Valid snapshots load as before.
 - `CHANGELOG.md` `[Unreleased]` `### Fixed`: `- **run-agoge**: target compare rejects a snapshot file with malformed ref names or ids`.
 
+### Nice to have
+- None.
+
 ## Implementation
 
+### Module: target_snapshot
 - **Location**: `skills/run-agoge/scripts/target_snapshot.py`, `skills/run-agoge/scripts/test_target_snapshot.py`, `CHANGELOG.md`
-- **Risk**: a valid but unusual ref could be rejected; check what `for-each-ref` can emit (for example `refs/stash`, notes) against the rule.
+- **Responsibility**: reject malformed refs when loading a snapshot.
+- **Exports**: none new
+- New symbols: `test_malformed_ref_name_in_snapshot_exits_2`, `test_malformed_ref_value_in_snapshot_exits_2`
+- **Risk**: none expected; `refs/stash`, notes and remote refs all start with `refs/`.
+
+### Dependencies
+- target_snapshot: No dependencies (foundation)
 
 ## Test Strategy
 
@@ -34,10 +50,11 @@ restore = … update-ref 'refs/heads/$(echo TRUDY)' --no-deref ''
 
 ## Tasks
 
-- [ ] Add the regression test; watch it fail.
-- [ ] Add the validation in `_load`.
-- [ ] Add the CHANGELOG entry.
+### Phase 0: Fix
+- [ ] Add `test_malformed_ref_name_in_snapshot_exits_2` and `test_malformed_ref_value_in_snapshot_exits_2` - Acceptance: `pytest -k malformed_ref` fails on the unmodified script.
+- [ ] Add the validation in `_load` (depends on: previous task) - Acceptance: `pytest -k "malformed_ref or restore_commands or non_utf8_refs"` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "rejects a snapshot file with malformed ref" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- New test passes; the full suite passes under `dev/bin/release-checks`.
+- `pytest -k malformed_ref` passes; the full suite passes under `dev/bin/release-checks`.

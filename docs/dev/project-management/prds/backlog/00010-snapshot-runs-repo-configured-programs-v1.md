@@ -1,3 +1,9 @@
+---
+lane: fast-track
+design: skip
+default_model: sonnet
+model_tier_rationale: exact git flags given; marker-file test fails loudly
+---
 # Taking a snapshot runs programs the repo's own git config names
 
 Source: agoge run 2026-11-08, finding 4 of 18 (MEDIUM, verified, lane trudy), `docs/dev/project-management/audit-results/agoge-2026-11-08.md`.
@@ -8,7 +14,7 @@ The `git status` call inside `target_snapshot.py` honours the target's `core.fsm
 
 ## Solution
 
-In `_git`, pass `-c core.fsmonitor=false`. Read the local filter names (`git config --local --get-regexp '^filter\.'`, itself run with fsmonitor off) and pass `-c filter.<x>.clean= -c filter.<x>.process=` for each. Add a regression test with marker scripts.
+In `_git`, always pass `-c core.fsmonitor=false`. Read every filter name visible to the repo with `git -c core.fsmonitor=false -C <repo> config --get-regexp '^filter\.'` (all scopes, includes followed), and pass `-c filter.<x>.clean= -c filter.<x>.process=` for each name. Compute the list once per process.
 
 ## Requirements
 
@@ -17,14 +23,24 @@ In `_git`, pass `-c core.fsmonitor=false`. Read the local filter names (`git con
 - Snapshot output for an ordinary repo is unchanged.
 - `CHANGELOG.md` `[Unreleased]` `### Fixed`: `- **run-agoge**: target snapshot no longer runs the repo's fsmonitor or clean filter programs`.
 
+### Nice to have
+- None.
+
 ## Implementation
 
+### Module: target_snapshot
 - **Location**: `skills/run-agoge/scripts/target_snapshot.py`, `skills/run-agoge/scripts/test_target_snapshot.py`, `CHANGELOG.md`
-- **Risk**: closes the known vectors (fsmonitor, filters), not unknown config-driven executables. Disabling the clean filter can make status report a filtered file as modified; the snapshot then records more dirty paths, which is safe.
+- **Responsibility**: neutralize config-driven programs in every git call.
+- **Exports**: none new
+- New symbols: `test_snapshot_does_not_run_fsmonitor`, `test_snapshot_does_not_run_clean_filter`
+- **Risk**: closes the known vectors (fsmonitor, filters), not unknown config-driven executables. Disabling a clean filter (git-lfs included) can make status report a filtered file as modified; the snapshot then records more dirty paths, which is safe.
+
+### Dependencies
+- target_snapshot: No dependencies (foundation)
 
 ## Test Strategy
 
-Regression test with marker scripts in a temp dir. Reproduction from the run:
+Regression test with marker scripts in a temp dir outside the repo. Reproduction from the run:
 
 ```
 scratch repo r1, local core.fsmonitor = marker script
@@ -37,10 +53,11 @@ core.hooksPath (reference-transaction hook) and core.pager: not triggered
 
 ## Tasks
 
-- [ ] Add the marker regression test; watch it fail.
-- [ ] Add the config overrides in `_git`.
-- [ ] Add the CHANGELOG entry.
+### Phase 0: Fix
+- [ ] Add `test_snapshot_does_not_run_fsmonitor` and `test_snapshot_does_not_run_clean_filter` - Acceptance: `pytest -k "does_not_run"` fails on the unmodified script (marker file written).
+- [ ] Add the config overrides in `_git` (depends on: previous task) - Acceptance: `pytest -k "does_not_run or untouched_target"` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "no longer runs the repo's fsmonitor" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- Marker test passes; the full suite passes under `dev/bin/release-checks`.
+- `pytest -k does_not_run` passes; the full suite passes under `dev/bin/release-checks`.

@@ -1,3 +1,8 @@
+---
+lane: fast-track
+design: skip
+model_tier_rationale: one-token change with its regression case; haiku acceptable, so default_model is omitted
+---
 # A slug ending in a newline is accepted and creates a file name split across two lines
 
 Source: agoge run 2026-11-08, finding 10 of 18 (LOW, verified, lanes walter and trudy), `docs/dev/project-management/audit-results/agoge-2026-11-08.md`.
@@ -8,7 +13,7 @@ Source: agoge run 2026-11-08, finding 10 of 18 (LOW, verified, lanes walter and 
 
 ## Solution
 
-Validate with `SLUG_RE.fullmatch(slug)`.
+In `claim`, replace `SLUG_RE.match(slug)` with `SLUG_RE.fullmatch(slug)`.
 
 ## Requirements
 
@@ -16,14 +21,23 @@ Validate with `SLUG_RE.fullmatch(slug)`.
 - Slug `"ab\n"` is rejected like other bad slugs.
 - `CHANGELOG.md` `[Unreleased]` `### Fixed`: `- **run-agoge**: PRD allocator rejects a slug with a trailing newline`.
 
+### Nice to have
+- None.
+
 ## Implementation
 
+### Module: allocator
 - **Location**: `skills/run-agoge/scripts/allocate_prd_number.py`, `skills/run-agoge/scripts/test_allocate_prd_number.py`, `CHANGELOG.md`
+- **Responsibility**: reject slugs with a trailing newline.
+- **Exports**: none new
 - **Risk**: none expected.
+
+### Dependencies
+- allocator: No dependencies (foundation)
 
 ## Test Strategy
 
-Reproduction from the run:
+Add `"ab\n"` to the parametrized slugs of `test_a_bad_slug_is_refused_rather_than_normalized`. Reproduction from the run:
 
 ```
 slug='x\n' rc= 0 out= .../00053-x
@@ -34,10 +48,11 @@ rejected as expected: ../x, /etc/x, UP, a\nb, café, a-, empty string
 
 ## Tasks
 
-- [ ] Add the regression test; watch it fail.
-- [ ] Switch to `fullmatch`.
-- [ ] Add the CHANGELOG entry.
+### Phase 0: Fix
+- [ ] Add `"ab\n"` to the bad-slug parameters - Acceptance: `pytest -k bad_slug_is_refused` fails on the unmodified script.
+- [ ] Switch to `fullmatch` (depends on: previous task) - Acceptance: `pytest -k bad_slug_is_refused` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "rejects a slug with a trailing newline" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- New test passes; the full suite passes under `dev/bin/release-checks`.
+- `pytest -k bad_slug_is_refused` passes; the full suite passes under `dev/bin/release-checks`.
