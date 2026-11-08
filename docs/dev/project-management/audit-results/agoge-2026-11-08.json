@@ -1,0 +1,25 @@
+{
+  "fixture": "claude-agoge",
+  "authorization": {"route": "profile"},
+  "target_integrity": {"status": "unchanged", "violations": [], "touched": []},
+  "findings": [
+    {"domain": "journey", "severity": "HIGH", "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"], "status": "verified", "title": "Two PRD claims made at the same time with different slugs get the same number", "lanes": ["walter"]},
+    {"domain": "integration", "severity": "HIGH", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A lane can install a git hook or edit .git/info in the target and the integrity check still says unchanged", "lanes": ["heidi"]},
+    {"domain": "integration", "severity": "HIGH", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Overwriting an existing untracked file or deleting an ignored file in the target goes undetected", "lanes": ["heidi", "walter"]},
+    {"domain": "security", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Taking a snapshot runs programs the repo's own git config names (fsmonitor, clean filter)", "lanes": ["trudy"]},
+    {"domain": "security", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Snapshot hangs forever when a tracked file has been replaced by a FIFO", "lanes": ["trudy"]},
+    {"domain": "integration", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "An inherited GIT_DIR makes the snapshot record another repository under the target's name", "lanes": ["heidi"]},
+    {"domain": "integration", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Changes inside linked worktrees and submodules of the target go unseen", "lanes": ["heidi"]},
+    {"domain": "journey", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/allocate_prd_number.py", "skills/run-agoge/references/prd-emission.md"], "status": "verified", "title": "A mistyped or non-repo path to the PRD allocator succeeds and builds a PRD tree in the wrong place", "lanes": ["walter", "heidi"]},
+    {"domain": "security", "severity": "LOW", "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"], "status": "verified", "title": "PRD allocation writes outside the repo through a symlinked prds directory", "lanes": ["trudy"]},
+    {"domain": "journey", "severity": "LOW", "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"], "status": "verified", "title": "A slug ending in a newline is accepted and creates a file name split across two lines", "lanes": ["walter", "trudy"]},
+    {"domain": "security", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A crafted before.json puts git options into the printed restore command", "lanes": ["trudy"]},
+    {"domain": "release", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py", "CHANGELOG.md"], "status": "mocked", "title": "The restore command printed for a moved non-UTF-8 ref fails when run", "lanes": ["wendy"]},
+    {"domain": "performance", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Snapshot peak memory grows with the largest dirty file because it is read whole", "lanes": ["peggy"]},
+    {"domain": "performance", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Compare takes about 27 seconds when a lane creates 1000 refs (3 git calls per changed ref)", "lanes": ["peggy"]},
+    {"domain": "integration", "severity": "LOW", "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"], "status": "verified", "title": "PRD allocator errors print a traceback and exit 1 instead of one line and exit 2", "lanes": ["heidi"]},
+    {"domain": "integration", "severity": "LOW", "paths": ["skills/run-agoge/references/finding-contract.md"], "status": "verified", "title": "A lane's git identity is overridden by the launcher's GIT_AUTHOR_NAME, so a leaked commit does not name the lane", "lanes": ["walter", "heidi", "wendy"]},
+    {"domain": "release", "severity": "LOW", "paths": ["README.md"], "status": "verified", "title": "The README link to the agoge-gym repo is a 404", "lanes": ["wendy"]},
+    {"domain": "release", "severity": "LOW", "paths": [".github/workflows/test.yml", "dev/bin/release-checks"], "status": "verified", "title": "CI claims to run the same suite as release-checks but uses another Python, and release-checks hides the macOS skip", "lanes": ["wendy"]}
+  ]
+}
