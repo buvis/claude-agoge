@@ -27,7 +27,15 @@ import shlex
 import subprocess
 import sys
 
-VERSION = 1
+VERSION = 2
+
+GITDIR_UNCHECKED = frozenset({
+    "HEAD", "config", "index", "packed-refs",
+    "COMMIT_EDITMSG", "FETCH_HEAD", "ORIG_HEAD", "MERGE_HEAD", "MERGE_MSG",
+    "MERGE_MODE", "SQUASH_MSG", "BISECT_LOG", "shallow", "gc.log",
+    "objects", "refs", "logs", "worktrees",
+    "description", "branches", "modules",
+})
 
 
 class Fail(Exception):
@@ -107,6 +115,21 @@ def _dirty(repo: str) -> dict[str, str]:
     return dirty
 
 
+def _gitdir_files(repo: str) -> dict[str, str]:
+    git_dir = os.path.join(repo, ".git")
+    files: dict[str, str] = {}
+    for root, _dirs, names in os.walk(git_dir):
+        for name in names:
+            path = os.path.join(root, name)
+            rel = os.path.relpath(path, git_dir)
+            top = rel.split(os.sep)[0]
+            if top in GITDIR_UNCHECKED:
+                continue
+            with open(path, "rb") as handle:
+                files[rel] = _sha(handle.read())
+    return files
+
+
 def take_snapshot(repo: str) -> dict:
     ref = _git(repo, "symbolic-ref", "-q", "HEAD", allow_fail=True)
     if ref.returncode not in (0, 1):
@@ -134,6 +157,7 @@ def take_snapshot(repo: str) -> dict:
         "index": _sha(_git(repo, "ls-files", "--stage", "-z").stdout),
         "dirty": _dirty(repo),
         "untracked": sorted(os.fsdecode(p) for p in untracked.split(b"\0") if p),
+        "gitdir": _gitdir_files(repo),
     }
 
 
@@ -178,6 +202,10 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
         )
     if before["index"] != after["index"]:
         violations.append({"kind": "index"})
+    for path in sorted(set(before["gitdir"]) | set(after["gitdir"])):
+        old, new = before["gitdir"].get(path), after["gitdir"].get(path)
+        if old != new:
+            violations.append({"kind": "gitdir", "path": path, "before": old, "after": new})
     for path in sorted(set(before["dirty"]) | set(after["dirty"])):
         old, new = before["dirty"].get(path), after["dirty"].get(path)
         if old != new and path not in allow:
