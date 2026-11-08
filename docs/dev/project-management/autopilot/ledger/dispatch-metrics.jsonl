@@ -121,3 +121,21 @@
 {"id":"0819c28c","ended_at":1793612074,"elapsed_s":558,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1793612239,"phase":"done","prd":"00006-decode-git-output-as-filesystem-bytes-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1793652090,"phase":"done","prd":"00006-decode-git-output-as-filesystem-bytes-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794177061,"phase":"build","prd":"00007-parallel-claims-share-prd-number-v1.md"}
+{"id":"565966ad","kind":"fast-track:tess","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177203,"prompt_bytes":17110}
+{"id":"565966ad","ended_at":1794177307,"elapsed_s":104,"outcome":"ok","detail":null}
+{"id":"1616a575","kind":"fast-track:ivan","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177346,"prompt_bytes":9377}
+{"id":"1616a575","ended_at":1794177419,"elapsed_s":73,"outcome":"ok","detail":null}
+{"id":"95c17242","kind":"fast-track:alice","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177617,"prompt_bytes":6241}
+{"id":"dd4365ee","kind":"fast-track:blake","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177622,"prompt_bytes":7260}
+{"id":"9e6a4ebf","kind":"fast-track:eve","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177625,"prompt_bytes":5725}
+{"id":"3b39d7ba","kind":"fast-track:bob","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177629,"prompt_bytes":8775}
+{"id":"beb0d867","kind":"fast-track:carl","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794177633,"prompt_bytes":6597}
+{"id":"3b39d7ba","ended_at":1794177854,"elapsed_s":225,"outcome":"ok","detail":null}
+{"id":"beb0d867","ended_at":1794177854,"elapsed_s":221,"outcome":"ok","detail":null}
+{"id":"95c17242","ended_at":1794177872,"elapsed_s":255,"outcome":"ok","detail":null}
+{"id":"dd4365ee","ended_at":1794177950,"elapsed_s":328,"outcome":"ok","detail":null}
+{"id":"9e6a4ebf","ended_at":1794177987,"elapsed_s":362,"outcome":"ok","detail":null}
+{"id":"42cec200","kind":"fast-track:bob","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794178082,"prompt_bytes":8775}
+{"id":"42cec200","ended_at":1794178087,"elapsed_s":5,"outcome":"error","detail":"codex sandbox tool init failed twice: sandbox_apply: Operation not permitted"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794178221,"phase":"done","prd":"00007-parallel-claims-share-prd-number-v1.md"}
