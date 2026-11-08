@@ -139,3 +139,5 @@
 {"id":"42cec200","kind":"fast-track:bob","task":"00007-parallel-claims-share-prd-number-v1-c1","queued_at":1794178082,"prompt_bytes":8775}
 {"id":"42cec200","ended_at":1794178087,"elapsed_s":5,"outcome":"error","detail":"codex sandbox tool init failed twice: sandbox_apply: Operation not permitted"}
 {"kind":"handoff","site":"build","edge":"leave","at":1794178221,"phase":"done","prd":"00007-parallel-claims-share-prd-number-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794178317,"phase":"build","prd":"00008-integrity-check-misses-git-hooks-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794178326,"phase":"build","prd":"00007-parallel-claims-share-prd-number-v1.md"}
