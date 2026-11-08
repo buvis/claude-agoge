@@ -19,6 +19,7 @@ why the scan covers every lifecycle directory rather than just `backlog/`.
 from __future__ import annotations
 
 import errno
+import fcntl
 import os
 import re
 import sys
@@ -53,19 +54,27 @@ def claim(repo: Path, slug: str) -> Path:
     backlog = repo / "docs" / "dev" / "project-management" / "prds" / "backlog"
     backlog.mkdir(parents=True, exist_ok=True)
 
-    number = max(claimed_numbers(repo), default=0) + 1
-    for _ in range(MAX_ATTEMPTS):
-        target = backlog / f"{number:05d}-{slug}-v1.md"
-        try:
-            # The whole point: exclusive create, so a concurrent writer that
-            # scanned the same maximum loses the race here instead of silently
-            # sharing our number.
-            os.close(os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644))
-            return target
-        except OSError as exc:
-            if exc.errno != errno.EEXIST:
-                raise
-            number += 1
+    # Writers with different slugs never collide on a file name, so the
+    # exclusive create alone cannot keep them off one number. Serialize the
+    # scan-and-create on a lock held on the prds/ directory itself, which
+    # leaves no lock file behind.
+    lock_fd = os.open(backlog.parent, os.O_RDONLY)
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        number = max(claimed_numbers(repo), default=0) + 1
+        for _ in range(MAX_ATTEMPTS):
+            target = backlog / f"{number:05d}-{slug}-v1.md"
+            try:
+                # Exclusive create still guards against a writer that does not
+                # take the lock (a hand-made file, another tool).
+                os.close(os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644))
+                return target
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+                number += 1
+    finally:
+        os.close(lock_fd)
     raise SystemExit(f"no free PRD number after {MAX_ATTEMPTS} attempts from {number}")
 
 
