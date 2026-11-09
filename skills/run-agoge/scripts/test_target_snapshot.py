@@ -494,6 +494,84 @@ def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path):
     ]
 
 
+def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, "vault/")
+    (target / "vault").mkdir()
+    (target / "vault/a.txt").write_text("a\n")
+    (target / "vault/b.txt").write_text("b\n")
+    before = _snap(tmp_path, target, env)
+    (target / "vault/a.txt").unlink()
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/a.txt"}]
+
+
+def test_deleted_empty_ignored_dir_is_ignored_removed_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, "empty/")
+    (target / "empty").mkdir()
+    before = _snap(tmp_path, target, env)
+    assert "empty/" in json.loads(before.read_text())["ignored"]
+    (target / "empty").rmdir()
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["violations"] == [{"kind": "ignored-removed", "path": "empty/"}]
+
+
+def test_ignored_fifo_does_not_hang(tmp_path):
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("os.mkfifo unavailable")
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, "*.pipe")
+    os.mkfifo(target / "x.pipe")
+    out = tmp_path / "snaps" / "fifo.json"
+    out.parent.mkdir()
+    result = _run(tmp_path, env, "snapshot", str(target), str(out), timeout=10)
+    assert result.returncode == 0, result.stderr
+    result = _run(tmp_path, env, "compare", str(target), str(out), timeout=10)
+    assert result.returncode == 0, result.stderr
+    assert json.loads(result.stdout)["violations"] == []
+
+
+def test_ignored_contents_are_never_read(tmp_path):
+    if os.geteuid() == 0:
+        pytest.skip("root reads mode-000 files")
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, "secret.key", "vault/")
+    (target / "secret.key").write_text("s\n")
+    (target / "vault").mkdir()
+    (target / "vault/a.txt").write_text("a\n")
+    os.chmod(target / "secret.key", 0)
+    try:
+        before = _snap(tmp_path, target, env)
+        code, report = _compare(tmp_path, target, before, env)
+    finally:
+        os.chmod(target / "secret.key", 0o600)
+    assert code == 0
+    assert report["violations"] == []
+    snapshot = json.loads(before.read_text())
+    assert isinstance(snapshot["ignored"], list)
+    assert snapshot["ignored"] == ["secret.key", "vault/", "vault/a.txt"]
+    assert set(snapshot["untracked_fingerprints"]) == set(snapshot["untracked"])
+
+
+def test_allow_exempts_ignored_children_by_exact_path(tmp_path):
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, "vault/", "empty/")
+    (target / "vault").mkdir()
+    (target / "vault/a.txt").write_text("a\n")
+    (target / "vault/b.txt").write_text("b\n")
+    (target / "empty").mkdir()
+    before = _snap(tmp_path, target, env)
+    (target / "vault/a.txt").unlink()
+    (target / "vault/b.txt").unlink()
+    (target / "empty").rmdir()
+    code, report = _compare(tmp_path, target, before, env, allow=("vault/a.txt", "empty/"))
+    assert code == 1
+    assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/b.txt"}]
+
+
 def test_added_remote_is_config_violation_without_url(tmp_path):
     target, env = _build_target(tmp_path)
     before = _snap(tmp_path, target, env)
