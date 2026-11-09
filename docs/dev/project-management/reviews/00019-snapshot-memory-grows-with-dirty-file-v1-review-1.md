@@ -70,10 +70,8 @@ R11: pass
 R12: pass
 R13: pass
 
-## Bob (codex)
+Bob (codex): missing lens. Codex failed on both the initial dispatch and the one retry with `sandbox_apply: Operation not permitted` before reading any context or diff (sandbox runtime failure, not a finding). No codex output is included in the consolidated table.
 
-Missing lens: codex failed on both the initial dispatch and the one retry with `sandbox_apply: Operation not permitted` before reading any context or diff (sandbox runtime failure, not a finding). No codex output is included in the consolidated table.
-
-Verdict: 7 findings (5 MEDIUM, 2 LOW; no CRITICAL or HIGH). No row required adversarial verification under the fast-track rule (only CRITICAL/HIGH earn it); none reworked, none block the exit.
+Verdict: 7 findings
 Tests: 43 passed, 0 failed, 2 skipped (fast-track batch suite)
 codex_rung_guard: not fired
