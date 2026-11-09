@@ -52,6 +52,8 @@ D1: pass, D2: pass, D3: pass, D4: pass, D5: pass
 - 🟡 Refusal regression tests assert 'returncode != 0' instead of exit code 2 and do not verify stderr diagnostic | File: skills/run-agoge/scripts/test_allocate_prd_number.py:230 | Task: 1
 - R1: pass, R2: fail, R3: pass, R4: pass, R6: pass, R7: pass, R8: pass, R9: pass, R10: pass, R11: pass, R12: fail, R13: pass
 
-Verdict: N findings (7 MEDIUM/LOW, 0 CRITICAL, 0 HIGH — none required victor verification; no rework)
+Verdict: 7 findings
+
+All MEDIUM/LOW; 0 CRITICAL, 0 HIGH, none required victor verification, no rework.
 Tests: 191 passed, 1 skipped, 0 failed (fast-track batch suite)
 codex_rung_guard: not fired
