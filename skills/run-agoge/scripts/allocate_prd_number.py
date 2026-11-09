@@ -86,17 +86,38 @@ def main(argv: list[str]) -> int:
 
     repo = Path(argv[1]).resolve()
     if not repo.is_dir():
-        print(f"error: {repo} does not exist", file=sys.stderr)
-        return 1
+        print(
+            f"allocate_prd_number: {repo} is not the top level of a git work tree",
+            file=sys.stderr,
+        )
+        return 2
 
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key
+        not in {
+            "GIT_DIR",
+            "GIT_WORK_TREE",
+            "GIT_INDEX_FILE",
+            "GIT_OBJECT_DIRECTORY",
+            "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+            "GIT_COMMON_DIR",
+            "GIT_NAMESPACE",
+        }
+    }
     result = subprocess.run(
         ["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
         capture_output=True,
         text=True,
+        env=env,
     )
     if result.returncode != 0 or Path(result.stdout.strip()).resolve() != repo:
-        print(f"error: {repo} is not a git work-tree top level", file=sys.stderr)
-        return 1
+        print(
+            f"allocate_prd_number: {repo} is not the top level of a git work tree",
+            file=sys.stderr,
+        )
+        return 2
 
     print(claim(repo, argv[2]))
     return 0

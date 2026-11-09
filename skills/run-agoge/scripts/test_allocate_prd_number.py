@@ -10,6 +10,7 @@ walk away believing they own the same one.
 from __future__ import annotations
 
 import multiprocessing
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -163,8 +164,11 @@ def test_cli_refuses_missing_path(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0
-    assert result.stderr.strip() != ""
+    assert result.returncode == 2
+    assert (
+        result.stderr
+        == f"allocate_prd_number: {missing.resolve()} is not the top level of a git work tree\n"
+    )
     assert not missing.exists()
 
 
@@ -174,8 +178,11 @@ def test_cli_refuses_non_repo_dir(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0
-    assert "git work-tree top level" in result.stderr
+    assert result.returncode == 2
+    assert (
+        result.stderr
+        == f"allocate_prd_number: {tmp_path.resolve()} is not the top level of a git work tree\n"
+    )
     assert not (tmp_path / "docs").exists()
 
 
@@ -193,6 +200,36 @@ def test_cli_refuses_repo_subdirectory(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    assert result.returncode != 0
-    assert "git work-tree top level" in result.stderr
+    assert result.returncode == 2
+    assert (
+        result.stderr
+        == f"allocate_prd_number: {subdir.resolve()} is not the top level of a git work tree\n"
+    )
     assert not (subdir / "docs").exists()
+
+
+def test_cli_ignores_inherited_git_dir_from_unrelated_repo(tmp_path: Path) -> None:
+    """An inherited GIT_DIR must not let the check pass for a plain directory."""
+    decoy = tmp_path / "decoy-repo"
+    decoy.mkdir()
+    subprocess.run(
+        ["git", "init", str(decoy)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    plain = tmp_path / "plain-dir"
+    plain.mkdir()
+    env = {**os.environ, "GIT_DIR": str(decoy / ".git")}
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(plain), "a-slug"],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert result.returncode == 2
+    assert (
+        result.stderr
+        == f"allocate_prd_number: {plain.resolve()} is not the top level of a git work tree\n"
+    )
+    assert not (plain / "docs").exists()
