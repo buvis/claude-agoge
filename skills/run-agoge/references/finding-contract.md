@@ -98,9 +98,12 @@ probe expects a command to fail, capture it: `cmd || rc=$?`.
 
 **Name the scratch repository in every git command that writes**:
 `git --git-dir="$SCRATCH/<repo>/.git" --work-tree="$SCRATCH/<repo>" <command>`,
-never `git -C <dir> <command>`. Give each such command your lane's identity,
-`-c user.name=agoge-<lane> -c user.email=agoge-<lane>@example.invalid`, and
-never `export` one: a commit or ref move that escapes then names your lane.
+never `git -C <dir> <command>`. Give each such command your lane's identity
+with a one-shot `env` prefix, never a shell export (an exported variable
+beats `-c user.name`/`-c user.email` on the command line, so `-c` alone lets
+an inherited identity win):
+`env GIT_AUTHOR_NAME=agoge-<lane> GIT_AUTHOR_EMAIL=agoge-<lane>@example.invalid GIT_COMMITTER_NAME=agoge-<lane> GIT_COMMITTER_EMAIL=agoge-<lane>@example.invalid git --git-dir="$SCRATCH/<repo>/.git" --work-tree="$SCRATCH/<repo>" <command>`,
+and never `export` one: a commit or ref move that escapes then names your lane.
 
 **The target is read-only, git included.** Read it with `git log`,
 `git show`, `git diff`, `git status`, `git tag --list`, `git for-each-ref` and

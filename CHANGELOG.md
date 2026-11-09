@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **run-agoge**: lane commits name the lane even when the launcher exports a git identity
 - **run-agoge**: restore commands for non-UTF-8 refs quote the raw bytes so they run
 - **run-agoge**: target compare rejects a snapshot file with malformed ref names or ids
 - **run-agoge**: PRD number allocation now refuses a path that is not a git work-tree top level, and refuses a missing path, instead of silently creating `docs/` in the wrong place; refusal exits 2 with one diagnostic line and ignores an inherited GIT_DIR and related variables
