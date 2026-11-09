@@ -131,7 +131,14 @@ def main(argv: list[str]) -> int:
         )
         return 2
 
-    print(claim(repo, argv[2]))
+    try:
+        print(claim(repo, argv[2]))
+    except SystemExit as exc:
+        print(f"allocate_prd_number: {exc.code}", file=sys.stderr)
+        return 2
+    except OSError as exc:
+        print(f"allocate_prd_number: {exc}", file=sys.stderr)
+        return 2
     return 0
 
 

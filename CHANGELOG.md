@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: target snapshot now detects changes in linked worktrees and submodules, reporting a moved HEAD in a linked worktree (`worktree-head`) and any commit, edit or new file inside a checked-out submodule (`submodule`); an uninitialized submodule is still unchecked
 - **run-agoge**: PRD number allocation now rejects a slug with a trailing newline instead of silently accepting it
 - **run-agoge**: target snapshot now hashes dirty files in chunks instead of loading the whole file into memory, keeping peak memory bounded for large dirty files
+- **run-agoge**: PRD allocator reports errors as one line with exit 2
 
 ## [0.3.0] - 2026-11-02
 
