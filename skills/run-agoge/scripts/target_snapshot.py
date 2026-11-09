@@ -90,7 +90,7 @@ def _fingerprint(repo: str, path: str) -> str:
     if stat.S_ISDIR(st.st_mode):
         return "dir"
     if not stat.S_ISREG(st.st_mode):
-        return "special"
+        return f"special:{stat.S_IFMT(st.st_mode):o}"
     with open(full, "rb") as handle:
         return _sha(handle.read())
 
