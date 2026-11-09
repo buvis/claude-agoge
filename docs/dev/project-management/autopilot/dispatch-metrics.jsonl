@@ -503,3 +503,12 @@
 {"id":"74673108","ended_at":1794262555,"elapsed_s":632,"outcome":"ok","detail":null}
 {"id":"72475409","ended_at":1794262555,"elapsed_s":632,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"review","edge":"leave","at":1794262623,"phase":"review","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
+{"id":"6ca42a33","kind":"pat","task":"6","queued_at":1794262775,"prompt_bytes":7254}
+{"id":"4e0356f2","kind":"pat","task":"6","queued_at":1794262792,"prompt_bytes":7254}
+{"id":"4e0356f2","ended_at":1794262796,"elapsed_s":4,"outcome":"error","detail":null}
+{"id":"c7031733","kind":"pat","task":"7","queued_at":1794262884,"prompt_bytes":6565}
+{"id":"b4dfcc75","kind":"pat","task":"7","queued_at":1794262898,"prompt_bytes":6565}
+{"id":"b4dfcc75","ended_at":1794262902,"elapsed_s":4,"outcome":"error","detail":null}
+{"id":"6ca42a33","ended_at":1794263060,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"c7031733","ended_at":1794263060,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"kind":"handoff","site":"review","edge":"leave","at":1794263060,"phase":"done","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
