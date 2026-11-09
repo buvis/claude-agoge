@@ -240,3 +240,5 @@
 {"id":"2e66f91e","kind":"fast-track:delta","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794186367,"prompt_bytes":4717}
 {"id":"2e66f91e","ended_at":1794186674,"elapsed_s":307,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794186793,"phase":"done","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794186828,"phase":"done","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794186916,"phase":"build","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
