@@ -208,6 +208,83 @@ def test_cli_refuses_repo_subdirectory(tmp_path: Path) -> None:
     assert not (subdir / "docs").exists()
 
 
+def test_cli_refuses_prds_symlink_leaving_repo(
+    tmp_path: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """A `prds` symlink pointing outside the repo must not be followed into a write."""
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    outside = tmp_path_factory.mktemp("outside-prds")
+    (tmp_path / "docs" / "dev" / "project-management").mkdir(parents=True)
+    (tmp_path / "docs" / "dev" / "project-management" / "prds").symlink_to(
+        outside, target_is_directory=True
+    )
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "escaping-slug"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert list(outside.rglob("*")) == []
+
+
+def test_cli_refuses_backlog_symlink_leaving_repo(
+    tmp_path: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """A `backlog` symlink pointing outside the repo must not be followed into a write."""
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    outside = tmp_path_factory.mktemp("outside-backlog")
+    (tmp_path / "docs" / "dev" / "project-management" / "prds").mkdir(parents=True)
+    (tmp_path / "docs" / "dev" / "project-management" / "prds" / "backlog").symlink_to(
+        outside, target_is_directory=True
+    )
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "escaping-slug"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert list(outside.rglob("*")) == []
+
+
+def test_cli_follows_symlink_inside_repo(tmp_path: Path) -> None:
+    """A symlink that stays inside the repo (e.g. a shared prds dir) is not a traversal and must still work."""
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    real_backlog_parent = tmp_path / "shared" / "prds"
+    real_backlog_parent.mkdir(parents=True)
+    (tmp_path / "docs" / "dev" / "project-management").mkdir(parents=True)
+    (tmp_path / "docs" / "dev" / "project-management" / "prds").symlink_to(
+        real_backlog_parent, target_is_directory=True
+    )
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "inside-slug"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    claimed = Path(result.stdout.strip())
+    assert claimed.is_file()
+    assert claimed.name == "00001-inside-slug-v1.md"
+    assert (
+        claimed.resolve()
+        == (real_backlog_parent / "backlog" / "00001-inside-slug-v1.md").resolve()
+    )
+
+
 def test_cli_ignores_inherited_git_dir_from_unrelated_repo(tmp_path: Path) -> None:
     """An inherited GIT_DIR must not let the check pass for a plain directory."""
     decoy = tmp_path / "decoy-repo"
