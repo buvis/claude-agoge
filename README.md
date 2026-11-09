@@ -94,10 +94,10 @@ never be mistaken for a hand-edited profile.
   `/run-agoge <repo> --authorized autoclaude-drain`. To do the same from your
   own automation, invoke `/run-agoge <repo> --authorized <your runner's name>`
   (a single token: letters, digits, dash, underscore).
-- **The fixture gym.** The pack is calibrated against
-  [buvis/agoge-gym](https://github.com/buvis/agoge-gym), a repo of deliberately
-  seeded applications with a known defect manifest. It is the pack's eval, not
-  part of the pack: seeds are answer-key vocabulary a real run must never see.
+- **The fixture gym.** The pack is calibrated against `buvis/agoge-gym`, a
+  private, local fixture gym (not published) of deliberately seeded
+  applications with a known defect manifest. It is the pack's eval, not part
+  of the pack: seeds are answer-key vocabulary a real run must never see.
 
 ## Development
 
