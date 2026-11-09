@@ -9,4 +9,4 @@
 # untrue.
 set -euo pipefail
 
-uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q
+uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q -rs

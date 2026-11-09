@@ -1,7 +1,7 @@
 name: test
 
-# Same suite as dev/bin/release-checks. Linux runs the non-UTF-8 path round
-# trip that macOS (APFS) skips.
+# Same tests as dev/bin/release-checks (interpreter may differ). Linux runs
+# the non-UTF-8 path round trip that macOS (APFS) skips.
 on:
   push:
   pull_request:
