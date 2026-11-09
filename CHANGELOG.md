@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: PRD number allocation now rejects a slug with a trailing newline instead of silently accepting it
 - **run-agoge**: target snapshot now hashes dirty files in chunks instead of loading the whole file into memory, keeping peak memory bounded for large dirty files
 - **run-agoge**: PRD allocator reports errors as one line with exit 2
+- **run-agoge**: target integrity check detects overwritten untracked files and deleted ignored files
 
 ## [0.3.0] - 2026-11-02
 

@@ -5,12 +5,15 @@
     target_snapshot.py compare <repo> <before.json> [--allow <path>]...
 
 `snapshot` records HEAD, refs, local config, worktrees, the index, dirty
-tracked paths and untracked paths into <out.json>, which must lie outside
-<repo>. `compare` takes a fresh snapshot and prints a JSON report of
-violations (head, ref, config, worktrees, worktree-head, submodule, index,
-gitdir, tracked, untracked-removed)
+tracked paths, untracked paths with fingerprints and ignored paths by name
+only into <out.json>, which must lie outside <repo>. `compare` takes a fresh
+snapshot and prints a JSON report of violations (head, ref, config,
+worktrees, worktree-head, submodule, index, gitdir, tracked,
+untracked-removed, untracked-modified, ignored-removed)
 plus newly `touched` untracked paths. `--allow` exempts a repo-relative path
-from tracked, untracked-removed and touched only.
+from tracked, untracked-removed, untracked-modified, ignored-removed and
+touched only. Edits inside ignored files are not checked; only the removal of
+an ignored file or directory is.
 
 Each linked worktree's HEAD and each initialized submodule's full state
 (commit, refs, config, dirty tree) are checked recursively; an uninitialized
@@ -35,7 +38,7 @@ import stat
 import subprocess
 import sys
 
-VERSION = 3
+VERSION = 4
 
 GITDIR_UNCHECKED = frozenset({
     "HEAD", "config", "index", "packed-refs",
@@ -185,7 +188,12 @@ def take_snapshot(repo: str) -> dict:
             path = os.fsdecode(entry.split(b"\t", 1)[1])
             if os.path.exists(os.path.join(repo, path, ".git")):
                 submodules[path] = take_snapshot(os.path.join(repo, path))
-    untracked = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout
+    untracked_out = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout
+    untracked = sorted(os.fsdecode(p) for p in untracked_out.split(b"\0") if p)
+    ignored: set[str] = set()
+    for extra in ([], ["--directory"]):
+        out = _git(repo, "ls-files", "-o", "-i", "--exclude-standard", *extra, "-z").stdout
+        ignored.update(os.fsdecode(p) for p in out.split(b"\0") if p)
     return {
         "version": VERSION,
         "repo": repo,
@@ -197,7 +205,9 @@ def take_snapshot(repo: str) -> dict:
         "submodules": submodules,
         "index": _sha(_git(repo, "ls-files", "--stage", "-z").stdout),
         "dirty": _dirty(repo),
-        "untracked": sorted(os.fsdecode(p) for p in untracked.split(b"\0") if p),
+        "untracked": untracked,
+        "untracked_fingerprints": {path: _fingerprint(repo, path) for path in untracked},
+        "ignored": sorted(ignored),
         "gitdir": _gitdir_files(repo),
     }
 
@@ -274,6 +284,11 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
     current = set(after["untracked"])
     for path in sorted(set(before["untracked"]) - current - allow):
         violations.append({"kind": "untracked-removed", "path": path})
+    for path in sorted(set(before["untracked"]) & current - allow):
+        if before["untracked_fingerprints"][path] != after["untracked_fingerprints"][path]:
+            violations.append({"kind": "untracked-modified", "path": path})
+    for path in sorted(set(before["ignored"]) - set(after["ignored"]) - allow):
+        violations.append({"kind": "ignored-removed", "path": path})
     touched = sorted(current - set(before["untracked"]) - allow)
     status = "changed" if violations else "unchanged"
     return {"status": status, "violations": violations, "touched": touched}
