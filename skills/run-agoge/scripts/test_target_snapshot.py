@@ -1366,3 +1366,368 @@ def test_snapshot_does_not_run_clean_filter(tmp_path):
         f"compare ran the target's clean filter: {log.read_text()!r}"
     )
     assert code == 0, report
+
+
+# One setup per configuration source. Each takes the freshly built target and
+# its environment, declares a clean filter for `driver` through its own scope,
+# and returns the environment the snapshot must run with plus the repository
+# whose config now declares the driver (the submodule, for the last one).
+def _source_local(tmp_path, target, env, driver, script):
+    _configure_filter(target, env, ["--local"], driver, script)
+    return env, target
+
+
+def _source_global(tmp_path, target, env, driver, script):
+    # TEST_ENV pins GIT_CONFIG_GLOBAL at /dev/null; point it at a real file so
+    # `git config --global` has somewhere to write.
+    env = {**env, "GIT_CONFIG_GLOBAL": str(tmp_path / "gitconfig-global")}
+    _configure_filter(target, env, ["--global"], driver, script)
+    return env, target
+
+
+def _source_include_path(tmp_path, target, env, driver, script):
+    included = tmp_path / "included.cfg"
+    _configure_filter(target, env, ["--file", str(included)], driver, script)
+    _git(target, env, "config", "--local", "include.path", str(included))
+    return env, target
+
+
+def _source_include_if(tmp_path, target, env, driver, script):
+    included = tmp_path / "conditional.cfg"
+    _configure_filter(target, env, ["--file", str(included)], driver, script)
+    # Build the gitdir: pattern from the resolved path. git matches the
+    # unresolved gitdir and then retries against the realpath, so both forms
+    # work here, but the realpath is the deterministic one: on macOS pytest's
+    # tmp_path sits under /var/folders, which resolves to /private/var/folders.
+    real = os.path.realpath(str(target))
+    _git(target, env, "config", "--local", f"includeIf.gitdir:{real}/.path", str(included))
+    return env, target
+
+
+def _source_worktree(tmp_path, target, env, driver, script):
+    _git(target, env, "config", "--local", "extensions.worktreeConfig", "true")
+    _configure_filter(target, env, ["--worktree"], driver, script)
+    return env, target
+
+
+def _source_submodule(tmp_path, target, env, driver, script):
+    sub = _add_submodule(tmp_path, target, env)
+    _configure_filter(sub, env, ["--local"], driver, script)
+    return env, sub
+
+
+_FILTER_SOURCES = {
+    "local": _source_local,
+    "global": _source_global,
+    "include-path": _source_include_path,
+    "include-if": _source_include_if,
+    "worktree": _source_worktree,
+    "submodule": _source_submodule,
+}
+
+
+@pytest.mark.parametrize("source", list(_FILTER_SOURCES))
+def test_snapshot_does_not_run_clean_filter_from_any_source(tmp_path, source):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, "trudy", script)
+    # Same-size edit with a newer mtime, so git must run the clean filter to
+    # decide whether the content changed.
+    (declaring / "notes.txt").write_bytes(b"notes v1\n")
+
+    # Positive control first, in the repository that declares the driver: an
+    # inert fixture (wrong scope flag, non-matching includeIf) would otherwise
+    # make the assertions below pass vacuously.
+    _git(declaring, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        f"fixture is inert: the {source} clean filter never ran"
+    )
+    log.unlink()
+
+    before = _snap(tmp_path, target, env)
+    assert not log.exists(), (
+        f"snapshot ran the {source} clean filter: {log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, env)
+    assert not log.exists(), (
+        f"compare ran the {source} clean filter: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+@pytest.mark.parametrize("driver", ["trudy", "a=b", "dots.in.name"])
+def test_snapshot_does_not_run_clean_filter_named(tmp_path, driver):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    _configure_filter(target, env, ["--local"], driver, script)
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+
+    # Positive control first: the marker must fire for this exact driver name,
+    # which is what proves the override has to round trip the name.
+    _git(target, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        f"fixture is inert: the clean filter named {driver!r} never ran"
+    )
+    log.unlink()
+
+    before = _snap(tmp_path, target, env)
+    assert not log.exists(), (
+        f"snapshot ran the clean filter named {driver!r}: {log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, env)
+    assert not log.exists(), (
+        f"compare ran the clean filter named {driver!r}: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_snapshot_handles_clean_filter_named_with_a_space(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    _configure_filter(target, env, ["--local"], "has space", script)
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+
+    # This name cannot have a marker control. A .gitattributes value ends at
+    # the first whitespace, so `*.txt filter=has space` sets the attribute to
+    # `has` and git never reaches the space-named driver; measured on git
+    # 2.56.0, `filter=has\ space` yields `has\` and `filter='has space'` is
+    # rejected as an invalid attribute name. The controls that do exist: the
+    # key really is set under the exact name, and the discovery command the
+    # module relies on sees it.
+    assert _git(target, env, "check-attr", "filter", "--", "notes.txt").endswith(": has")
+    names = _git(
+        target, env, "config", "--includes", "--name-only",
+        "--get-regexp", r"^filter\..*\.(clean|process|required)$",
+    )
+    assert "filter.has space.clean" in names.splitlines()
+
+    before = _snap(tmp_path, target, env)
+    code, report = _compare(tmp_path, target, before, env)
+    assert not log.exists(), (
+        f"the clean filter named 'has space' ran: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_snapshot_does_not_run_required_process_filter(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path, name="process.sh")
+    (target / ".gitattributes").write_text("*.txt filter=procy\n")
+    _git(target, env, "add", ".gitattributes")
+    _git(target, env, "commit", "-q", "-m", "map *.txt to a process filter")
+    _git(target, env, "config", "--local", "filter.procy.process", str(script))
+    _git(target, env, "config", "--local", "filter.procy.required", "true")
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+
+    # Positive control: the marker cannot speak git's long-running filter
+    # protocol, so git fails - but only after launching it, which is what the
+    # log line proves.
+    with pytest.raises(subprocess.CalledProcessError):
+        _git(target, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        "fixture is inert: the target's process filter never launched"
+    )
+    log.unlink()
+
+    out = tmp_path / "snaps" / "before.json"
+    out.parent.mkdir(exist_ok=True)
+    result = _run(tmp_path, env, "snapshot", str(target), str(out))
+    assert not log.exists(), (
+        f"snapshot ran the target's process filter: {log.read_text()!r}"
+    )
+    # A `required` driver whose command is disabled must not make status fail:
+    # exit 0 or 1, never 2.
+    assert result.returncode == 0, result.stderr
+    code, report = _compare(tmp_path, target, out, env)
+    assert not log.exists(), (
+        f"compare ran the target's process filter: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = _add_submodule(tmp_path, target, env)
+    sub_script, sub_log = _marker(tmp_path, name="sub-filter.sh")
+    parent_script, parent_log = _marker(tmp_path, name="parent-filter.sh")
+    _configure_filter(sub, env, ["--local"], "subonly", sub_script)
+    _configure_filter(target, env, ["--local"], "parentonly", parent_script)
+    (sub / "notes.txt").write_bytes(b"notes v1\n")
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+
+    # Positive control, in the submodule itself: its own driver fires there,
+    # and the parent's driver does not - a submodule reads neither its
+    # parent's config nor its parent's attributes.
+    _git(sub, env, "status", "--porcelain")
+    assert sub_log.exists() and sub_log.read_text().strip(), (
+        "fixture is inert: the submodule's own clean filter never ran"
+    )
+    assert not parent_log.exists(), (
+        f"git applied the parent's filter inside the submodule: {parent_log.read_text()!r}"
+    )
+    _git(target, env, "status", "--porcelain")
+    assert parent_log.exists() and parent_log.read_text().strip(), (
+        "fixture is inert: the parent's own clean filter never ran"
+    )
+    sub_log.unlink()
+    parent_log.unlink()
+
+    before = _snap(tmp_path, target, env)
+    assert not sub_log.exists(), (
+        f"snapshot ran the submodule's clean filter: {sub_log.read_text()!r}"
+    )
+    assert not parent_log.exists(), (
+        f"snapshot ran the parent's clean filter: {parent_log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, env)
+    assert not sub_log.exists(), (
+        f"compare ran the submodule's clean filter: {sub_log.read_text()!r}"
+    )
+    assert not parent_log.exists(), (
+        f"compare ran the parent's clean filter: {parent_log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = _add_submodule(tmp_path, target, env)
+    script, log = _marker(tmp_path, name="sub-fsmonitor.sh")
+    _git(sub, env, "config", "--local", "core.fsmonitor", str(script))
+
+    # Positive control: command-scope config is process-wide, so the
+    # submodule's hook fires during the PARENT's own status, not only during
+    # the recursion into the submodule.
+    _git(target, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        "fixture is inert: the submodule's core.fsmonitor never ran"
+    )
+    log.unlink()
+
+    before = _snap(tmp_path, target, env)
+    assert not log.exists(), (
+        f"snapshot ran the submodule's fsmonitor hook: {log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, env)
+    assert not log.exists(), (
+        f"compare ran the submodule's fsmonitor hook: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    (target / ".gitattributes").write_text("*.txt filter=x\n")
+    _git(target, env, "add", ".gitattributes")
+    _git(target, env, "commit", "-q", "-m", "map *.txt to a filter")
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+    # The driver lives nowhere in the target's config: the caller's own
+    # command-scope environment declares it.
+    hijack_env = {
+        **env,
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "filter.x.clean",
+        "GIT_CONFIG_VALUE_0": str(script),
+    }
+
+    _git(target, hijack_env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        "fixture is inert: the inherited filter.x.clean never ran"
+    )
+    log.unlink()
+
+    before = _snap(tmp_path, target, hijack_env)
+    assert not log.exists(), (
+        f"snapshot ran an inherited command-scope filter: {log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, hijack_env)
+    assert not log.exists(), (
+        f"compare ran an inherited command-scope filter: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = _add_submodule(tmp_path, target, env)
+    _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
+
+    # `diff.ignoreSubmodules=all` is observable through _dirty's own
+    # `status --porcelain=v1 -z --untracked-files=no`: it suppresses the
+    # ` M sub` entry the no-pair baseline records.
+    baseline = _snap(tmp_path, target, env, name="baseline.json")
+    assert "sub" in json.loads(baseline.read_text())["dirty"]
+
+    pair_env = {
+        **env,
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "diff.ignoreSubmodules",
+        "GIT_CONFIG_VALUE_0": "all",
+    }
+    with_pair = _snap(tmp_path, target, pair_env, name="with-pair.json")
+    dirty = json.loads(with_pair.read_text())["dirty"]
+    assert "sub" not in dirty, (
+        f"the inherited diff.ignoreSubmodules=all was dropped: {dirty}"
+    )
+
+
+def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
+    target, env = _build_target(tmp_path)
+    big = target / "big.bin"
+    size = 200 * 1024 * 1024
+    with open(big, "wb") as handle:
+        handle.seek(size - 1)
+        handle.write(b"\0")
+    _git(target, env, "add", "big.bin")
+    _git(target, env, "commit", "-q", "-m", "add big.bin")
+    before = _snap(tmp_path, target, env)
+
+    with open(big, "r+b") as handle:
+        handle.seek(0)
+        handle.write(b"dirty")
+
+    # A careless or hostile caller sets the threshold above the file size. The
+    # module's own `-c core.bigFileThreshold=1m` is on the command line, which
+    # beats the environment transport, so PRD 00019's peak-RSS guard survives.
+    # Measured on git 2.56.0 for this fixture: ~8 MiB when 1m wins, ~207 MiB
+    # when the inherited 4g wins.
+    hostile_env = {
+        **env,
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "core.bigFileThreshold",
+        "GIT_CONFIG_VALUE_0": "4g",
+    }
+    budget = 48 * 1024 * 1024
+    peak_rss = _peak_rss(tmp_path, hostile_env, "compare", str(target), str(before))
+    assert peak_rss < budget, (
+        f"an inherited core.bigFileThreshold=4g beat the module's own 1m: "
+        f"peak RSS {peak_rss} bytes exceeded {budget} byte budget"
+    )
+    code, report = _compare(tmp_path, target, before, hostile_env)
+    assert code == 1, report
+
+
+def test_unreadable_included_config_exits_2_and_runs_nothing(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    _configure_filter(target, env, ["--local"], "trudy", script)
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+
+    unreadable = tmp_path / "unreadable.cfg"
+    unreadable.write_text('[filter "zz"]\n\tclean = /bin/false\n')
+    _git(target, env, "config", "--local", "include.path", str(unreadable))
+    unreadable.chmod(0o000)
+    if os.access(unreadable, os.R_OK):
+        pytest.skip("this user can read a mode-000 file, so the include cannot fail")
+
+    # Config discovery cannot run, which must fail closed to exit 2 with one
+    # line - never exit 1, and never a silent "no filters configured".
+    out = tmp_path / "snaps" / "before.json"
+    out.parent.mkdir(exist_ok=True)
+    result = _run(tmp_path, env, "snapshot", str(target), str(out))
+    _assert_exit2(result)
+    assert not out.exists()
+    assert not log.exists(), (
+        f"a git call ran the target's clean filter before failing: {log.read_text()!r}"
+    )
