@@ -882,10 +882,11 @@ def test_restore_command_puts_non_utf8_ref_back(tmp_path):
     assert code == 1
     [violation] = [v for v in report["violations"] if v["kind"] == "ref"]
     assert violation["ref"] == os.fsdecode(bad_ref)
+    assert violation["restore"].isascii()
 
     outside = tmp_path / "elsewhere"
     outside.mkdir(exist_ok=True)
-    subprocess.run(["bash", "-c", violation["restore"]], cwd=outside, env=env, check=True)
+    subprocess.run(["bash", "-c", violation["restore"].encode("ascii")], cwd=outside, env=env, check=True)
 
     assert _git(target, env, "rev-parse", os.fsdecode(bad_ref)) == sha
     code, report = _compare(tmp_path, target, before, env)
