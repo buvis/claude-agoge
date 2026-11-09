@@ -412,3 +412,5 @@
 {"id":"47f91186","ended_at":1794199506,"elapsed_s":450,"outcome":"ok","detail":null}
 {"id":"cab97418","ended_at":1794199605,"elapsed_s":540,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794199783,"phase":"done","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794199838,"phase":"done","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794199926,"phase":"build","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}

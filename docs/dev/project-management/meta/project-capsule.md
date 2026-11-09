@@ -40,15 +40,15 @@ Generated: 2026-11-03
 - [x] 00016-slug-trailing-newline-accepted-v1.md (1 cycle)
 - [x] 00017-crafted-snapshot-injects-restore-options-v1.md (fast-track, 1 card)
 - [x] 00018-non-utf8-ref-restore-fails-v1.md (1 cycle)
+- [x] 00019-snapshot-memory-grows-with-dirty-file-v1.md (fast-track, 1 card)
 - [ ] 00009-integrity-check-misses-untracked-edits-v1.md (parked in hold/)
 - [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (parked in hold/)
-- [ ] 00019-snapshot-memory-grows-with-dirty-file-v1.md
 - [ ] 00020-allocator-errors-print-traceback-v1.md
 - [ ] 00021-lane-git-identity-overridden-v1.md
 - [ ] 00022-readme-gym-link-404-v1.md
 - [ ] 00023-ci-release-checks-suite-drift-v1.md
 
-Observations: 00007 fixed parallel PRD-number claims with a directory flock (fast-track lane, 1 review pass). 00008 fixed the integrity check missing git hooks and .git/info changes (fast-track lane escalated to full, 1 review pass). 00011 fixed target_snapshot hanging on a named pipe (fast-track lane, override to full, 1 review pass). 00012 fixed inherited GIT_DIR/GIT_WORK_TREE env vars redirecting the snapshot target (fast-track lane, 1 review pass, no findings survived). 00013 fixed the integrity check missing worktrees and submodules (fast-track lane, 1 review pass). 00014 fixed the allocator accepting a non-repo path (fast-track lane, 1 rework cycle). 00015 fixed the PRD-number allocator following a symlinked PRD out of the repo (fast-track lane, 1 review pass, 7 MEDIUM/LOW findings did not survive, no rework). 00018 fixed non-UTF-8 ref restore quoting raw bytes (fast-track lane escalated to full on an unnamed-path signal, 1 review pass, no findings survived).
+Observations: 00007 fixed parallel PRD-number claims with a directory flock (fast-track lane, 1 review pass). 00008 fixed the integrity check missing git hooks and .git/info changes (fast-track lane escalated to full, 1 review pass). 00011 fixed target_snapshot hanging on a named pipe (fast-track lane, override to full, 1 review pass). 00012 fixed inherited GIT_DIR/GIT_WORK_TREE env vars redirecting the snapshot target (fast-track lane, 1 review pass, no findings survived). 00013 fixed the integrity check missing worktrees and submodules (fast-track lane, 1 review pass). 00014 fixed the allocator accepting a non-repo path (fast-track lane, 1 rework cycle). 00015 fixed the PRD-number allocator following a symlinked PRD out of the repo (fast-track lane, 1 review pass, 7 MEDIUM/LOW findings did not survive, no rework). 00018 fixed non-UTF-8 ref restore quoting raw bytes (fast-track lane escalated to full on an unnamed-path signal, 1 review pass, no findings survived). 00019 fixed snapshot memory growth on dirty files by hashing in chunks (fast-track lane, 1 review pass, codex lens unavailable (sandbox failure x2)).
 
 ### Batch 202611021020 (closed)
 - [x] 00006-decode-git-output-as-filesystem-bytes-v1.md (fast-track lane, 1 review pass; finalized in 2b9b475)
