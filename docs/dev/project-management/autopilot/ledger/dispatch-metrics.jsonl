@@ -392,3 +392,5 @@
 {"id":"fca8ad72","kind":"fast-track:delta","task":"00018-non-utf8-ref-restore-fails-v1-c1","queued_at":1794197466,"prompt_bytes":4837}
 {"id":"fca8ad72","ended_at":1794197796,"elapsed_s":330,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794197888,"phase":"done","prd":"00018-non-utf8-ref-restore-fails-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794197923,"phase":"done","prd":"00018-non-utf8-ref-restore-fails-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794198002,"phase":"build","prd":"00018-non-utf8-ref-restore-fails-v1.md"}
