@@ -1282,3 +1282,87 @@ def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
     )
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1, report
+
+
+def _marker(tmp_path, name="marker.sh"):
+    """Write an executable marker script; return (script, log).
+
+    The script appends one line naming its argv to the log and then copies
+    stdin to stdout, so it is also a usable (identity) clean filter. It lives
+    under `tmp_path`, never inside the target repo.
+    """
+    script = tmp_path / name
+    log = tmp_path / f"{name}.log"
+    script.write_text(
+        "#!/bin/sh\n"
+        f'echo "ran: $*" >> {shlex.quote(str(log))}\n'
+        "exec cat\n"
+    )
+    script.chmod(0o755)
+    return script, log
+
+
+def _configure_filter(target, env, scope_args, driver, program):
+    """Map `*.txt` to `driver`, then point `filter.<driver>` at `program`.
+
+    The `.gitattributes` is committed before the config is set, so no filter
+    runs while the fixture is being built.
+    """
+    (target / ".gitattributes").write_text(f"*.txt filter={driver}\n")
+    _git(target, env, "add", ".gitattributes")
+    _git(target, env, "commit", "-q", "-m", "map *.txt to a filter")
+    _git(target, env, "config", *scope_args, f"filter.{driver}.clean", str(program))
+    _git(target, env, "config", *scope_args, f"filter.{driver}.required", "true")
+
+
+def test_snapshot_does_not_run_fsmonitor(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path, name="fsmonitor.sh")
+    _git(target, env, "config", "--local", "core.fsmonitor", str(script))
+
+    # Positive control first: a bare `git status` must really run the hook.
+    # Without it an inert fixture would make the assertions below pass
+    # vacuously.
+    _git(target, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        "fixture is inert: the target's core.fsmonitor never ran"
+    )
+    log.unlink()
+
+    before = _snap(tmp_path, target, env)
+    assert not log.exists(), (
+        f"snapshot ran the target's fsmonitor hook: {log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, env)
+    assert not log.exists(), (
+        f"compare ran the target's fsmonitor hook: {log.read_text()!r}"
+    )
+    assert code == 0, report
+
+
+def test_snapshot_does_not_run_clean_filter(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    _configure_filter(target, env, ["--local"], "trudy", script)
+    # A same-size edit with a newer mtime: git cannot tell from stat alone
+    # whether the content changed, so it runs the clean filter to find out.
+    notes = target / "notes.txt"
+    assert notes.read_bytes() == b"notes v0\n"
+    notes.write_bytes(b"notes v1\n")
+
+    # Positive control first, as above.
+    _git(target, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        "fixture is inert: the target's clean filter never ran"
+    )
+    log.unlink()
+
+    before = _snap(tmp_path, target, env)
+    assert not log.exists(), (
+        f"snapshot ran the target's clean filter: {log.read_text()!r}"
+    )
+    code, report = _compare(tmp_path, target, before, env)
+    assert not log.exists(), (
+        f"compare ran the target's clean filter: {log.read_text()!r}"
+    )
+    assert code == 0, report
