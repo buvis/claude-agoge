@@ -7,6 +7,13 @@
       "detail": "fast-track/00009-integrity-check-misses-untracked-edits-v1-c1: HIGH - deleting a file inside a dir-pattern-ignored directory (vault/, .venv/, secrets/) is no longer reported after the rework's --directory fix collapsed the listing; also 1 MEDIUM (dead fingerprint I/O), 1 LOW (untracked_fp naming). Branch fast-track/00009-integrity-check-misses-untracked-edits-v1-c1 holds the 3 commits.",
       "op_id": "5b79cf4edcf0",
       "prd": "00009-integrity-check-misses-untracked-edits-v1.md"
+    },
+    {
+      "type": "stall",
+      "site": "fast_track_blocked",
+      "detail": "fast-track/00010-snapshot-runs-repo-configured-programs-v1-c1: F11 include.path/includeIf filters not enumerated, F12 equals-named filter bypass re-demonstrated reachable, F13 submodule config filters not enumerated",
+      "op_id": "230ca252d32e",
+      "prd": "00010-snapshot-runs-repo-configured-programs-v1.md"
     }
   ]
 }
