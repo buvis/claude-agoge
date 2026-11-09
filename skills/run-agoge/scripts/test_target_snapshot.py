@@ -811,6 +811,7 @@ def test_previous_version_snapshot_exits_2_with_one_line(tmp_path):
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
     assert snapshot["version"] == target_snapshot.VERSION
+    assert target_snapshot.VERSION == 4
 
     # Control: the same keys re-serialized at the current version still compare.
     current = tmp_path / "snaps" / "current-version.json"
@@ -823,11 +824,17 @@ def test_previous_version_snapshot_exits_2_with_one_line(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
     versionless = {key: value for key, value in snapshot.items() if key != "version"}
+    old_shape = {
+        key: value
+        for key, value in snapshot.items()
+        if key not in ("untracked_fingerprints", "ignored")
+    }
     for name, data in (
         ("previous", {**snapshot, "version": target_snapshot.VERSION - 1}),
         ("older", {**snapshot, "version": target_snapshot.VERSION - 2}),
         ("newer", {**snapshot, "version": target_snapshot.VERSION + 1}),
         ("versionless", versionless),
+        ("old-shape-v3", {**old_shape, "version": 3}),
     ):
         stale = tmp_path / "snaps" / f"{name}-version.json"
         stale.write_text(json.dumps(data))
