@@ -331,3 +331,21 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794193205,"phase":"done","prd":"00015-allocator-follows-symlinked-prds-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794193258,"phase":"done","prd":"00015-allocator-follows-symlinked-prds-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794193322,"phase":"build","prd":"00015-allocator-follows-symlinked-prds-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794193334,"phase":"build","prd":"00016-slug-trailing-newline-accepted-v1.md"}
+{"id":"424352b4","kind":"fast-track:tess","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193472,"prompt_bytes":40507}
+{"id":"424352b4","ended_at":1794193495,"elapsed_s":23,"outcome":"ok","detail":null}
+{"id":"4b2c5bef","kind":"fast-track:ivan","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193535,"prompt_bytes":14591}
+{"id":"4b2c5bef","ended_at":1794193617,"elapsed_s":82,"outcome":"ok","detail":null}
+{"id":"99551954","kind":"fast-track:fanout","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193750,"prompt_bytes":6237}
+{"id":"ec5f2f12","kind":"fast-track:blake","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193755,"prompt_bytes":6826}
+{"id":"9b9c229c","kind":"fast-track:eve","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193759,"prompt_bytes":5340}
+{"id":"92e5f9d9","kind":"fast-track:bob","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193763,"prompt_bytes":9404}
+{"id":"e5b02be6","kind":"fast-track:carl","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193768,"prompt_bytes":6593}
+{"id":"99551954","ended_at":1794193820,"elapsed_s":70,"outcome":"error","detail":"workflow tool gated on user opt-in, not present this session"}
+{"id":"d6e75524","kind":"fast-track:alice","task":"00016-slug-trailing-newline-accepted-v1-c1","queued_at":1794193824,"prompt_bytes":6237}
+{"id":"d6e75524","ended_at":1794193914,"elapsed_s":90,"outcome":"ok","detail":null}
+{"id":"ec5f2f12","ended_at":1794193934,"elapsed_s":179,"outcome":"ok","detail":null}
+{"id":"9b9c229c","ended_at":1794194171,"elapsed_s":412,"outcome":"ok","detail":null}
+{"id":"92e5f9d9","ended_at":1794194289,"elapsed_s":526,"outcome":"error","detail":"codex sandbox init failed twice: sandbox-exec: sandbox_apply: Operation not permitted; substituted general-purpose fallback"}
+{"id":"e5b02be6","ended_at":1794194292,"elapsed_s":524,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1794194417,"phase":"done","prd":"00016-slug-trailing-newline-accepted-v1.md"}
