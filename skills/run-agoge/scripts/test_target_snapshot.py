@@ -860,3 +860,52 @@ def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path):
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     assert "submodule" in _kinds(report)
+
+
+def test_restore_command_puts_non_utf8_ref_back(tmp_path):
+    probe = tmp_path / os.fsdecode(b"probe-\xff")
+    try:
+        probe.write_text("probe\n")
+    except OSError as exc:
+        pytest.skip(f"filesystem rejects non-UTF-8 names: {exc}")
+
+    target, env = _build_target(tmp_path)
+    sha = _git(target, env, "rev-parse", "HEAD")
+    bad_ref = b"refs/heads/bad-\xff"
+    _write_packed_refs(target, sha, bad_ref)
+    before = _snap(tmp_path, target, env)
+
+    other = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "move it")
+    _write_packed_refs(target, other, bad_ref)
+
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    [violation] = [v for v in report["violations"] if v["kind"] == "ref"]
+    assert violation["ref"] == os.fsdecode(bad_ref)
+
+    outside = tmp_path / "elsewhere"
+    outside.mkdir(exist_ok=True)
+    subprocess.run(["bash", "-c", violation["restore"]], cwd=outside, env=env, check=True)
+
+    assert _git(target, env, "rev-parse", os.fsdecode(bad_ref)) == sha
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+
+def test_utf8_restore_command_is_unchanged(tmp_path):
+    target, env = _build_target(tmp_path)
+    old = _git(target, env, "rev-parse", "HEAD")
+    before = _snap(tmp_path, target, env)
+    new = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "second change")
+    _git(target, env, "update-ref", "refs/heads/master", new, old)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    [violation] = [v for v in report["violations"] if v["kind"] == "ref"]
+    repo = shlex.quote(os.path.realpath(target))
+    expected = " ".join(
+        shlex.quote(a) for a in
+        ["git", "-C", os.path.realpath(target), "update-ref", "refs/heads/master", old, new]
+    )
+    assert violation["restore"] == expected
+    assert violation["restore"] == f"git -C {repo} update-ref refs/heads/master {old} {new}"
