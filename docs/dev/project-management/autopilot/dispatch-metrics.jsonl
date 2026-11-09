@@ -394,3 +394,21 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794197888,"phase":"done","prd":"00018-non-utf8-ref-restore-fails-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794197923,"phase":"done","prd":"00018-non-utf8-ref-restore-fails-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794198002,"phase":"build","prd":"00018-non-utf8-ref-restore-fails-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794198008,"phase":"build","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
+{"id":"24921a81","kind":"fast-track:tess","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794198139,"prompt_bytes":91003}
+{"id":"24921a81","ended_at":1794198312,"elapsed_s":173,"outcome":"ok","detail":null}
+{"id":"4f9aa097","kind":"fast-track:ivan","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794198344,"prompt_bytes":42311}
+{"id":"4f9aa097","ended_at":1794198829,"elapsed_s":485,"outcome":"ok","detail":null}
+{"id":"47f91186","kind":"fast-track:fanout","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794199056,"prompt_bytes":6251}
+{"id":"ad675a0a","kind":"fast-track:blake","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794199060,"prompt_bytes":6962}
+{"id":"cab97418","kind":"fast-track:eve","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794199065,"prompt_bytes":5416}
+{"id":"e46989d3","kind":"fast-track:bob","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794199068,"prompt_bytes":9543}
+{"id":"605393b5","kind":"fast-track:carl","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794199073,"prompt_bytes":6607}
+{"id":"ad675a0a","ended_at":1794199302,"elapsed_s":242,"outcome":"ok","detail":null}
+{"id":"e46989d3","ended_at":1794199312,"elapsed_s":244,"outcome":"error","detail":"codex sandbox_apply failed before reading context/diff"}
+{"id":"605393b5","ended_at":1794199321,"elapsed_s":248,"outcome":"ok","detail":null}
+{"id":"5e0c87a9","kind":"fast-track:bob","task":"00019-snapshot-memory-grows-with-dirty-file-v1-c1","queued_at":1794199326,"prompt_bytes":9543}
+{"id":"5e0c87a9","ended_at":1794199400,"elapsed_s":74,"outcome":"error","detail":"codex sandbox_apply failed again on retry"}
+{"id":"47f91186","ended_at":1794199506,"elapsed_s":450,"outcome":"ok","detail":null}
+{"id":"cab97418","ended_at":1794199605,"elapsed_s":540,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1794199783,"phase":"done","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
