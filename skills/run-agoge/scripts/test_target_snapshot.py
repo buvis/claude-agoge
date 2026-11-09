@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import resource
 import shlex
 import shutil
 import subprocess
@@ -910,3 +911,73 @@ def test_utf8_restore_command_is_unchanged(tmp_path):
     )
     assert violation["restore"] == expected
     assert violation["restore"] == f"git -C {repo} update-ref refs/heads/master {old} {new}"
+
+
+def _write_non_uniform_file(path, size):
+    """Write `size` bytes of non-uniform content efficiently (no giant in-memory buffer)."""
+    chunk = bytes(range(256)) * 4096  # 1 MiB, non-uniform, repeats every 256 KiB
+    with open(path, "wb") as handle:
+        written = 0
+        while written < size:
+            take = min(len(chunk), size - written)
+            handle.write(chunk[:take])
+            written += take
+
+
+def test_fingerprint_matches_whole_file_sha256(tmp_path):
+    target, env = _build_target(tmp_path)
+    big = target / "big.bin"
+    # Bigger than a typical 1 MiB chunk, with content that straddles any
+    # chunk boundary non-uniformly, so a buggy chunked reimplementation
+    # that mishandles boundaries would hash something other than the
+    # whole file and fail this assertion.
+    size = 5 * 1024 * 1024 + 777
+    _write_non_uniform_file(big, size)
+    _git(target, env, "add", "big.bin")
+    _git(target, env, "commit", "-q", "-m", "add big.bin")
+    before = _snap(tmp_path, target, env)
+
+    with open(big, "ab") as handle:
+        handle.write(b"tail edit\n")
+    full_bytes = big.read_bytes()
+
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    [violation] = [v for v in report["violations"] if v.get("path") == "big.bin"]
+    assert violation["kind"] == "tracked"
+    assert violation["after"] == f" M {hashlib.sha256(full_bytes).hexdigest()}"
+
+
+def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
+    target, env = _build_target(tmp_path)
+    big = target / "big.bin"
+    size = 200 * 1024 * 1024
+    with open(big, "wb") as handle:
+        handle.seek(size - 1)
+        handle.write(b"\0")
+    _git(target, env, "add", "big.bin")
+    _git(target, env, "commit", "-q", "-m", "add big.bin")
+    before = _snap(tmp_path, target, env)
+
+    with open(big, "r+b") as handle:
+        handle.seek(0)
+        handle.write(b"dirty")
+
+    budget = 48 * 1024 * 1024
+
+    before_rss = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
+    result = _run(tmp_path, env, "compare", str(target), str(before))
+    assert result.returncode == 1, result.stderr
+    after_rss = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
+
+    # ru_maxrss is bytes on Darwin, kilobytes on Linux.
+    unit = 1 if sys.platform == "darwin" else 1024
+    peak_rss = after_rss * unit
+    # ru_maxrss on RUSAGE_CHILDREN is the max over all reaped children in
+    # this process's lifetime, not just this one call, so a smaller
+    # before-value only strengthens the assertion; it is captured for
+    # documentation/debugging, not subtracted.
+    assert before_rss * unit <= peak_rss
+    assert peak_rss < budget, (
+        f"subprocess peak RSS {peak_rss} bytes exceeded {budget} byte budget"
+    )
