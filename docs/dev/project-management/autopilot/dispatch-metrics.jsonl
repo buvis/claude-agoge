@@ -461,3 +461,5 @@
 {"id":"c352e13c","kind":"fast-track:delta","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794202325,"prompt_bytes":9144}
 {"id":"c352e13c","ended_at":1794202616,"elapsed_s":291,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794202764,"phase":"done","prd":"00021-lane-git-identity-overridden-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794202788,"phase":"done","prd":"00021-lane-git-identity-overridden-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794202864,"phase":"build","prd":"00021-lane-git-identity-overridden-v1.md"}
