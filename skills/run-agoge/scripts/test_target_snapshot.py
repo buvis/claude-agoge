@@ -745,3 +745,27 @@ def test_fifo_replaced_by_file_is_tracked_violation(tmp_path):
     [violation] = [v for v in report["violations"] if v.get("path") == "notes.txt"]
     assert violation["kind"] == "tracked"
     assert violation["kind"] not in ("absent", "dir")
+
+
+def test_inherited_git_dir_does_not_redirect_snapshot(tmp_path):
+    target, env = _build_target(tmp_path)
+    decoy, decoy_env = _build_target(tmp_path, name="decoy")
+    (decoy / "decoy-marker.txt").write_text("decoy\n")
+    _git(decoy, decoy_env, "add", "-A")
+    _git(decoy, decoy_env, "commit", "-q", "-m", "decoy marker")
+    target_head = _git(target, env, "rev-parse", "HEAD")
+    decoy_head = _git(decoy, decoy_env, "rev-parse", "HEAD")
+    assert target_head != decoy_head
+
+    # A caller with GIT_DIR set in its environment (a git hook, some
+    # wrappers) must not have it override the explicit `-C <repo>` target.
+    hijack_env = {**env, "GIT_DIR": str(decoy / ".git")}
+    out = tmp_path / "snaps" / "before.json"
+    out.parent.mkdir(exist_ok=True)
+    result = _run(tmp_path, hijack_env, "snapshot", str(target), str(out))
+
+    assert result.returncode == 0, result.stderr
+    snapshot = json.loads(out.read_text())
+    assert snapshot["repo"] == os.path.realpath(target)
+    assert snapshot["head"]["commit"] == target_head
+    assert snapshot["head"]["commit"] != decoy_head
