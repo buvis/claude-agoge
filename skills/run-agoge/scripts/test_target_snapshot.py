@@ -428,6 +428,72 @@ def test_allowed_path_is_not_tracked_removed_or_touched(tmp_path):
     assert report["touched"] == ["new.txt", "new.txt.extra"]
 
 
+def _commit_gitignore(target, env, *rules):
+    (target / ".gitignore").write_text("".join(f"{rule}\n" for rule in rules))
+    _git(target, env, "add", ".gitignore")
+    _git(target, env, "commit", "-q", "-m", "ignore")
+
+
+def test_overwritten_untracked_file_is_untracked_modified_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    (target / "notes.md").write_bytes(NOTES_V1)
+    before = _snap(tmp_path, target, env)
+    (target / "notes.md").write_bytes(NOTES_V2)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["violations"] == [{"kind": "untracked-modified", "path": "notes.md"}]
+    assert report["touched"] == []
+
+
+def test_deleted_ignored_file_is_ignored_removed_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, ".env")
+    (target / ".env").write_text("SECRET=1\n")
+    before = _snap(tmp_path, target, env)
+    (target / ".env").unlink()
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["violations"] == [{"kind": "ignored-removed", "path": ".env"}]
+
+
+def test_deleted_ignored_dir_is_ignored_removed_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, "vault/")
+    (target / "vault").mkdir()
+    (target / "vault/a.txt").write_text("a\n")
+    (target / "vault/b.txt").write_text("b\n")
+    before = _snap(tmp_path, target, env)
+    shutil.rmtree(target / "vault")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("ignored-removed", "vault/"),
+        ("ignored-removed", "vault/a.txt"),
+        ("ignored-removed", "vault/b.txt"),
+    ]
+
+
+def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path):
+    target, env = _build_target(tmp_path)
+    _commit_gitignore(target, env, ".env")
+    (target / "notes.md").write_bytes(NOTES_V1)
+    (target / ".env").write_text("SECRET=1\n")
+    before = _snap(tmp_path, target, env)
+    (target / "notes.md").write_bytes(NOTES_V2)
+    (target / ".env").unlink()
+
+    code, report = _compare(tmp_path, target, before, env, allow=("notes.md", ".env"))
+    assert code == 0
+    assert report["violations"] == []
+
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("untracked-modified", "notes.md"),
+        ("ignored-removed", ".env"),
+    ]
+
+
 def test_added_remote_is_config_violation_without_url(tmp_path):
     target, env = _build_target(tmp_path)
     before = _snap(tmp_path, target, env)
