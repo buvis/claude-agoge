@@ -29,6 +29,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shlex
 import stat
 import subprocess
@@ -264,6 +265,9 @@ def _load(path: str, repo: str) -> dict:
         raise Fail(f"snapshot {path} is not version {VERSION}")
     if os.path.realpath(str(data.get("repo"))) != repo:
         raise Fail(f"snapshot {path} belongs to another repo")
+    for name, oid in data.get("refs", {}).items():
+        if not name.startswith("refs/") or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", oid):
+            raise Fail(f"snapshot {path} has a malformed ref")
     return data
 
 
