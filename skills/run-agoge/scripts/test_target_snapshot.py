@@ -60,10 +60,10 @@ def _build_target(tmp_path, name="target"):
     return target, env
 
 
-def _run(tmp_path, env, *args):
+def _run(tmp_path, env, *args, timeout=None):
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        cwd=tmp_path, env=env, capture_output=True, text=True,
+        cwd=tmp_path, env=env, capture_output=True, text=True, timeout=timeout,
     )
 
 
@@ -715,3 +715,33 @@ def test_every_gitdir_entry_is_checked_or_listed(tmp_path):
             rel = str(path.relative_to(git_dir))
             top = rel.split(os.sep)[0]
             assert rel in gitdir or top in target_snapshot.GITDIR_UNCHECKED, rel
+
+
+def test_fifo_in_place_of_tracked_file_does_not_hang(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    notes = target / "notes.txt"
+    notes.unlink()
+    os.mkfifo(notes)
+    try:
+        result = _run(tmp_path, env, "compare", str(target), str(before), timeout=10)
+    except subprocess.TimeoutExpired:
+        pytest.fail("compare hung on a tracked path replaced by a FIFO")
+    assert result.returncode in (0, 1), result.stderr
+
+
+def test_fifo_replaced_by_file_is_tracked_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    notes = target / "notes.txt"
+    notes.unlink()
+    os.mkfifo(notes)
+    try:
+        result = _run(tmp_path, env, "compare", str(target), str(before), timeout=10)
+    except subprocess.TimeoutExpired:
+        pytest.fail("compare hung on a tracked path replaced by a FIFO")
+    assert result.returncode == 1, result.stderr
+    report = json.loads(result.stdout)
+    [violation] = [v for v in report["violations"] if v.get("path") == "notes.txt"]
+    assert violation["kind"] == "tracked"
+    assert violation["kind"] not in ("absent", "dir")
