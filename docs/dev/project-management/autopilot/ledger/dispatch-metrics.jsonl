@@ -264,3 +264,22 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794188131,"phase":"done","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794188163,"phase":"done","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794188226,"phase":"build","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794188236,"phase":"build","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
+{"id":"b48fe1db","kind":"fast-track:tess","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188371,"prompt_bytes":85100}
+{"id":"506f5ded","kind":"fast-track:ivan","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188530,"prompt_bytes":36549}
+{"id":"506f5ded","ended_at":1794188723,"elapsed_s":193,"outcome":"ok","detail":null}
+{"id":"e1b34dbc","kind":"fast-track:fanout","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188872,"prompt_bytes":7175}
+{"id":"a4908c5c","kind":"fast-track:blake","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188878,"prompt_bytes":8345}
+{"id":"ffcc6c93","kind":"fast-track:eve","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188883,"prompt_bytes":4491}
+{"id":"9fb06832","kind":"fast-track:bob","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188886,"prompt_bytes":10368}
+{"id":"b359d751","kind":"fast-track:carl","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188890,"prompt_bytes":7531}
+{"id":"e1b34dbc","ended_at":1794188907,"elapsed_s":35,"outcome":"error","detail":"workflow skipped: using alice fallback for coordinator simplicity"}
+{"id":"108f8170","kind":"fast-track:alice","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794188910,"prompt_bytes":7175}
+{"id":"108f8170","ended_at":1794189364,"elapsed_s":454,"outcome":"ok","detail":null}
+{"id":"a4908c5c","ended_at":1794189684,"elapsed_s":806,"outcome":"ok","detail":null}
+{"id":"9fb06832","ended_at":1794189702,"elapsed_s":816,"outcome":"error","detail":"codex sandbox tool failure, retrying"}
+{"id":"4829be8b","kind":"fast-track:bob","task":"00013-integrity-check-misses-worktrees-submodules-v1-c1","queued_at":1794189705,"prompt_bytes":10368}
+{"id":"b359d751","ended_at":1794189722,"elapsed_s":832,"outcome":"ok","detail":null}
+{"id":"4829be8b","ended_at":1794189793,"elapsed_s":88,"outcome":"error","detail":"codex sandbox tool failure again, substituting general-purpose subagent"}
+{"id":"4829be8b","ended_at":1794189968,"elapsed_s":263,"outcome":"ok","detail":"bob substitute general-purpose subagent (codex sandbox unavailable)"}
+{"id":"ffcc6c93","ended_at":1794189971,"elapsed_s":1088,"outcome":"ok","detail":null}
