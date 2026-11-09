@@ -30,10 +30,10 @@ Generated: 2026-11-09
 ## Active Work
 
 ### Batch 202611091445 (in progress)
-- [ ] 00009-integrity-check-misses-untracked-edits-v1.md (wip, full lane, design skip; retry after park)
+- [x] 00009-integrity-check-misses-untracked-edits-v1.md (1 cycle)
 - [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (backlog)
 
-Both PRDs were un-held by 1d5cf78 with corrected retry contracts. 00009 retry: the prior attempt (parked branch `fast-track/00009-integrity-check-misses-untracked-edits-v1-c1`, tip `951401a`) failed review because `git ls-files -o -i --exclude-standard --directory` collapses ignored children into their parent dir, so deleting one child of `vault/` went unreported. The retry contract lists ignored paths as the union of the plain and `--directory` listings. Keep the branch as evidence; implement on master (the module changed since: 00011 FIFO handling, 00019 chunked hashing, 00012/00013/00018).
+00009 retry: the prior attempt (parked branch `fast-track/00009-integrity-check-misses-untracked-edits-v1-c1`, tip `951401a`) failed review because `git ls-files -o -i --exclude-standard --directory` collapses ignored children into their parent dir, so deleting one child of `vault/` went unreported. The retry contract listed ignored paths as the union of the plain and `--directory` listings; implemented on master (the module had changed since: 00011 FIFO handling, 00019 chunked hashing, 00012/00013/00018). Cycle 1 converged with 2 medium tail-sweep fixes (VERSION-bump pinning test, unreadable-untracked-file exit-2 case); Pat reviewer unavailable both times (OAuth session expired), PRD-level review already covered the diff. Full suite green (212 passed, 2 skipped).
 
 ### Batch 202611082330 (closed)
 - [x] 00007-parallel-claims-share-prd-number-v1.md (1 cycle)
