@@ -191,6 +191,19 @@ def take_snapshot(repo: str) -> dict:
     }
 
 
+def _shell_quote(word: str) -> str:
+    """shlex.quote, but surrogate-escaped bytes become a bash $'...' word."""
+    try:
+        word.encode("utf-8")
+    except UnicodeEncodeError:
+        out = "".join(
+            chr(b) if 0x20 <= b < 0x7F and b not in b"'\\" else f"\\x{b:02x}"
+            for b in os.fsencode(word)
+        )
+        return f"$'{out}'"
+    return shlex.quote(word)
+
+
 def _ref_violation(repo: str, name: str, before: str | None, after: str | None) -> dict:
     violation: dict = {"kind": "ref", "ref": name, "before": before, "after": after}
     reflog = None
@@ -210,7 +223,7 @@ def _ref_violation(repo: str, name: str, before: str | None, after: str | None) 
         args = ["update-ref", name, before, ""]
     else:
         args = ["update-ref", name, before, after]
-    violation["restore"] = " ".join(shlex.quote(a) for a in ["git", "-C", repo, *args])
+    violation["restore"] = " ".join(_shell_quote(a) for a in ["git", "-C", repo, *args])
     return violation
 
 
