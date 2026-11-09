@@ -24,6 +24,7 @@ import hashlib
 import json
 import os
 import shlex
+import stat
 import subprocess
 import sys
 
@@ -82,10 +83,14 @@ def _fingerprint(repo: str, path: str) -> str:
     full = os.path.join(repo, path)
     if os.path.islink(full):
         return "link:" + _sha(os.fsencode(os.readlink(full)))
-    if not os.path.exists(full):
+    try:
+        st = os.lstat(full)
+    except OSError:
         return "absent"
-    if os.path.isdir(full):
+    if stat.S_ISDIR(st.st_mode):
         return "dir"
+    if not stat.S_ISREG(st.st_mode):
+        return "special"
     with open(full, "rb") as handle:
         return _sha(handle.read())
 
