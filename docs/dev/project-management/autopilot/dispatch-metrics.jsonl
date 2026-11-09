@@ -329,3 +329,5 @@
 {"id":"d4c76d70","kind":"fast-track:bob","task":"00015-allocator-follows-symlinked-prds-v1-c1","queued_at":1794192958,"prompt_bytes":9412}
 {"id":"d4c76d70","ended_at":1794193045,"elapsed_s":87,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794193205,"phase":"done","prd":"00015-allocator-follows-symlinked-prds-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794193258,"phase":"done","prd":"00015-allocator-follows-symlinked-prds-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794193322,"phase":"build","prd":"00015-allocator-follows-symlinked-prds-v1.md"}
