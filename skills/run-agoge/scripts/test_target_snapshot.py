@@ -730,6 +730,29 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     assert not unborn_out.exists()
 
 
+def test_previous_version_snapshot_exits_2_with_one_line(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    assert snapshot["version"] == target_snapshot.VERSION
+
+    # Control: the same keys re-serialized at the current version still compare.
+    current = tmp_path / "snaps" / "current-version.json"
+    current.write_text(json.dumps({**snapshot, "version": target_snapshot.VERSION}))
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+    code, report = _compare(tmp_path, target, current, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+    previous = tmp_path / "snaps" / "previous-version.json"
+    previous.write_text(json.dumps({**snapshot, "version": target_snapshot.VERSION - 1}))
+    result = _run(tmp_path, env, "compare", str(target), str(previous))
+    _assert_exit2(result)
+    assert result.stdout == ""
+
+
 def test_text_keeps_filesystem_bytes_and_trailing_space():
     result = subprocess.CompletedProcess([], 0, stdout=b"/a/\xff b \n")
     assert target_snapshot._text(result) == "/a/\udcff b "
