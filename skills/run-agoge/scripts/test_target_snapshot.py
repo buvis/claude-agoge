@@ -826,6 +826,29 @@ def test_submodule_untracked_file_is_submodule_violation(tmp_path):
     assert "submodule" in _kinds(report)
 
 
+def test_malformed_ref_name_in_snapshot_exits_2(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    head = snapshot["refs"].pop("refs/heads/master")
+    snapshot["refs"]["--stdin"] = head
+    before.write_text(json.dumps(snapshot))
+    result = _run(tmp_path, env, "compare", str(target), str(before))
+    _assert_exit2(result)
+    assert result.stdout == ""
+
+
+def test_malformed_ref_value_in_snapshot_exits_2(tmp_path):
+    target, env = _build_target(tmp_path)
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    snapshot["refs"]["refs/heads/master"] = "--no-deref"
+    before.write_text(json.dumps(snapshot))
+    result = _run(tmp_path, env, "compare", str(target), str(before))
+    _assert_exit2(result)
+    assert result.stdout == ""
+
+
 def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path):
     target, env = _build_target(tmp_path)
     sub = _add_submodule(tmp_path, target, env)
