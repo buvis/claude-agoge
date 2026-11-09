@@ -181,41 +181,80 @@ def test_scratch_contract_sets_identity_with_env():
 
 
 def test_env_identity_beats_exported_author(tmp_path):
-    env = {**_env_for(tmp_path), "GIT_AUTHOR_NAME": "Operator Name"}
-    target = tmp_path / "scratch-repo"
-    target.mkdir()
-    git_dir = target / ".git"
-    subprocess.run(
-        ["git", "--git-dir", str(git_dir), "--work-tree", str(target), "init", "-q"],
-        env=env, check=True,
-    )
-    (target / "probe.txt").write_text("scratch\n")
-    subprocess.run(
-        ["git", "--git-dir", str(git_dir), "--work-tree", str(target), "add", "-A"],
-        env=env, check=True,
-    )
+    section = _extract_scratch_contract_section(CONTRACT_PATH.read_text())
+    match = re.search(r"`(env GIT_AUTHOR_NAME=agoge-<lane>[^`]*)`", section)
+    assert match, "no env-prefixed git identity command found in scratch contract"
+    template = match.group(1)
 
-    commit_env = {
-        **env,
-        "GIT_AUTHOR_NAME": f"agoge-{LANE}",
-        "GIT_AUTHOR_EMAIL": f"agoge-{LANE}@example.invalid",
-        "GIT_COMMITTER_NAME": f"agoge-{LANE}",
-        "GIT_COMMITTER_EMAIL": f"agoge-{LANE}@example.invalid",
+    scratch = tmp_path / "scratch"
+    repo = "probe-repo"
+    repo_dir = scratch / repo
+    repo_dir.mkdir(parents=True)
+
+    # The shell truly has an exported, inherited identity the command must beat.
+    env = {
+        **_env_for(tmp_path),
+        "GIT_AUTHOR_NAME": "Operator Name",
+        "GIT_COMMITTER_NAME": "Operator Name",
     }
-    subprocess.run(
-        [
-            "git", "--git-dir", str(git_dir), "--work-tree", str(target),
-            "commit", "-q", "-m", "chore(probe): seed scratch dotfiles",
-        ],
-        env=commit_env, check=True,
+    export_preamble = (
+        'export GIT_AUTHOR_NAME="Operator Name"\n'
+        'export GIT_COMMITTER_NAME="Operator Name"\n'
     )
 
-    author = subprocess.run(
-        ["git", "--git-dir", str(git_dir), "log", "-1", "--format=%an"],
+    subprocess.run(["git", "init", "-q", str(repo_dir)], env=env, check=True)
+    (repo_dir / "probe.txt").write_text("scratch\n")
+    subprocess.run(
+        ["git", "--git-dir", str(repo_dir / ".git"), "--work-tree", str(repo_dir), "add", "-A"],
+        env=env, check=True,
+    )
+
+    command = (
+        template
+        .replace("<lane>", LANE)
+        .replace("$SCRATCH", str(scratch))
+        .replace("<repo>", repo)
+        .replace("<command>", 'commit -q -m "chore(probe): seed scratch dotfiles"')
+    )
+    result = subprocess.run(
+        ["bash", "-c", export_preamble + command],
+        cwd=repo_dir, env=env, capture_output=True, text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    log_fields = subprocess.run(
+        ["git", "--git-dir", str(repo_dir / ".git"), "log", "-1", "--format=%an%n%ae%n%cn%n%ce"],
+        env=env, capture_output=True, text=True, check=True,
+    ).stdout.strip().splitlines()
+    assert log_fields == [
+        f"agoge-{LANE}", f"agoge-{LANE}@example.invalid",
+        f"agoge-{LANE}", f"agoge-{LANE}@example.invalid",
+    ]
+
+    # Premise control: the OLD `-c user.name=` form (no `env` prefix) loses to
+    # the exported identity, proving an export really does beat `-c` and that
+    # this test would have failed against the old contract/command form.
+    (repo_dir / "probe2.txt").write_text("scratch2\n")
+    subprocess.run(
+        ["git", "--git-dir", str(repo_dir / ".git"), "--work-tree", str(repo_dir), "add", "-A"],
+        env=env, check=True,
+    )
+    old_command = (
+        f'git --git-dir="{repo_dir}/.git" --work-tree="{repo_dir}" '
+        f"-c user.name=agoge-{LANE} -c user.email=agoge-{LANE}@example.invalid "
+        'commit -q -m "chore(probe): seed scratch dotfiles two"'
+    )
+    control_result = subprocess.run(
+        ["bash", "-c", export_preamble + old_command],
+        cwd=repo_dir, env=env, capture_output=True, text=True,
+    )
+    assert control_result.returncode == 0, control_result.stderr
+
+    control_author = subprocess.run(
+        ["git", "--git-dir", str(repo_dir / ".git"), "log", "-1", "--format=%an"],
         env=env, capture_output=True, text=True, check=True,
     ).stdout.strip()
-
-    assert author == f"agoge-{LANE}"
+    assert control_author == "Operator Name"
 
 
 def test_scratch_contract_charter():
