@@ -43,10 +43,18 @@ class Fail(Exception):
     """The check cannot run; exits 2 with a one-line reason."""
 
 
+_GIT_REPO_VARS = frozenset({
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
+})
+
+
 def _git(repo: str, *args: str, allow_fail: bool = False) -> subprocess.CompletedProcess:
+    env = {k: v for k, v in os.environ.items() if k not in _GIT_REPO_VARS}
     result = subprocess.run(
         ["git", "--no-optional-locks", "-C", str(repo), *args],
         capture_output=True,
+        env=env,
     )
     if result.returncode != 0 and not allow_fail:
         reason = result.stderr.decode(errors="replace").strip().splitlines()
