@@ -312,3 +312,51 @@ def test_cli_ignores_inherited_git_dir_from_unrelated_repo(tmp_path: Path) -> No
         == f"allocate_prd_number: {plain.resolve()} is not the top level of a git work tree\n"
     )
     assert not (plain / "docs").exists()
+
+
+def test_cli_read_only_backlog_exits_2_with_one_line(tmp_path: Path) -> None:
+    """An OS error creating the claim file is a crash, not bad input, but the
+    caller still needs a one-line diagnostic and exit 2, not a traceback."""
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    prds_root = tmp_path / "docs" / "dev" / "project-management" / "prds"
+    prds_root.mkdir(parents=True)
+    prds_root.chmod(0o500)
+    try:
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), str(tmp_path), "a-slug"],
+            capture_output=True,
+            text=True,
+        )
+    finally:
+        prds_root.chmod(0o700)
+    assert result.returncode == 2
+    lines = result.stderr.splitlines(keepends=True)
+    assert len(lines) == 1
+    assert lines[0].startswith("allocate_prd_number: ")
+    assert not (prds_root / "backlog").exists()
+
+
+def test_cli_bad_slug_exits_2_with_one_line(tmp_path: Path) -> None:
+    """A slug `claim` refuses is bad input, so it must read like the other
+    usage errors: exit 2 and one diagnostic line, not a traceback."""
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "Not Kebab"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2
+    lines = result.stderr.splitlines(keepends=True)
+    assert len(lines) == 1
+    assert lines[0].startswith("allocate_prd_number: ")
+    assert not (tmp_path / "docs" / "dev" / "project-management" / "prds" / "backlog").exists()
