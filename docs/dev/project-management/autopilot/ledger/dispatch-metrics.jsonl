@@ -218,3 +218,25 @@
 {"id":"f3e6cee2","kind":"fast-track:delta","task":"00010-snapshot-runs-repo-configured-programs-v1-c1","queued_at":1794184398,"prompt_bytes":2910}
 {"id":"f3e6cee2","ended_at":1794185039,"elapsed_s":641,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794185171,"phase":"build","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794185184,"phase":"build","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
+{"id":"d4a5fe2b","kind":"fast-track:tess","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185291,"prompt_bytes":79403}
+{"id":"d4a5fe2b","ended_at":1794185409,"elapsed_s":118,"outcome":"ok","detail":null}
+{"id":"51144ace","kind":"fast-track:ivan","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185441,"prompt_bytes":32764}
+{"id":"51144ace","ended_at":1794185513,"elapsed_s":72,"outcome":"ok","detail":null}
+{"id":"fc64a383","kind":"fast-track:fanout","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185651,"prompt_bytes":6221}
+{"id":"b4009106","kind":"fast-track:blake","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185655,"prompt_bytes":6829}
+{"id":"8d844c7e","kind":"fast-track:eve","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185658,"prompt_bytes":5345}
+{"id":"9ed5bb70","kind":"fast-track:bob","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185663,"prompt_bytes":9483}
+{"id":"e36e8463","kind":"fast-track:carl","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794185667,"prompt_bytes":6577}
+{"id":"9ed5bb70","ended_at":1794186197,"elapsed_s":534,"outcome":"error","detail":"codex sandbox init failed twice"}
+{"id":"e36e8463","ended_at":1794186201,"elapsed_s":534,"outcome":"ok","detail":null}
+{"id":"fc64a383","ended_at":1794186205,"elapsed_s":554,"outcome":"ok","detail":null}
+{"id":"b4009106","ended_at":1794186208,"elapsed_s":553,"outcome":"ok","detail":null}
+{"id":"8d844c7e","ended_at":1794186211,"elapsed_s":553,"outcome":"ok","detail":null}
+{"id":"efbf1f3b","kind":"fast-track:victor","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794186267,"prompt_bytes":2667}
+{"id":"efbf1f3b","ended_at":1794186286,"elapsed_s":19,"outcome":"ok","detail":null}
+{"id":"0b80ec28","kind":"fast-track:ivan","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794186304,"prompt_bytes":4466}
+{"id":"0b80ec28","ended_at":1794186340,"elapsed_s":36,"outcome":"ok","detail":null}
+{"id":"2e66f91e","kind":"fast-track:delta","task":"00011-snapshot-hangs-on-fifo-v1-c1","queued_at":1794186367,"prompt_bytes":4717}
+{"id":"2e66f91e","ended_at":1794186674,"elapsed_s":307,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1794186793,"phase":"done","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
