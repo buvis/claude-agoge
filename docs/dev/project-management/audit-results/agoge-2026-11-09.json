@@ -1,0 +1,168 @@
+{
+  "fixture": "claude-agoge",
+  "authorization": {"route": "profile"},
+  "target_integrity": {
+    "status": "changed",
+    "violations": [
+      {
+        "phase": "lanes",
+        "kind": "ref",
+        "ref": "refs/heads/master",
+        "before": "c7da90f77df15e18795e5a871f4a5b1ce2e051ff",
+        "after": "1d5cf78e3a70a3f19696e0cc6c0fdaa2481bf3ed",
+        "commit": {
+          "author": "Agent ran by Tomáš Bouška <tomas@buvis.net>",
+          "committer": "Agent ran by Tomáš Bouška <tomas@buvis.net>",
+          "date": "2026-11-09T07:11:53+01:00",
+          "subject": "docs: unblock held snapshot PRDs with corrected retry contracts"
+        },
+        "reflog": "Agent ran by Tomáš Bouška <tomas@buvis.net> | commit: docs: unblock held snapshot PRDs with corrected retry contracts",
+        "restore": "git -C /Users/bob/git/src/github.com/buvis/claude-agoge update-ref refs/heads/master c7da90f77df15e18795e5a871f4a5b1ce2e051ff 1d5cf78e3a70a3f19696e0cc6c0fdaa2481bf3ed"
+      },
+      {"phase": "lanes", "kind": "index"}
+    ],
+    "touched": []
+  },
+  "findings": [
+    {
+      "domain": "security",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Snapshot and compare run programs named in the target's git config (core.fsmonitor, filter clean)",
+      "lanes": ["trudy", "heidi"],
+      "symbols": ["_dirty", "_git"]
+    },
+    {
+      "domain": "release",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py", "CHANGELOG.md"],
+      "status": "verified",
+      "title": "Integrity snapshot hangs forever when a named pipe sits in .git/hooks or .git/info",
+      "lanes": ["wendy", "trudy", "heidi"],
+      "symbols": ["_gitdir_files"]
+    },
+    {
+      "domain": "integration",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A target with core.fsmonitor=true can never be snapshotted, and the snapshot starts a daemon in it",
+      "lanes": ["heidi"],
+      "symbols": ["_gitdir_files", "GITDIR_UNCHECKED"]
+    },
+    {
+      "domain": "integration",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Deleting or locking a target's linked worktree is reported as unchanged",
+      "lanes": ["heidi"],
+      "symbols": ["worktree_heads"]
+    },
+    {
+      "domain": "performance",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Snapshot memory grows with the largest file in the git dir (LFS objects, /dev/zero symlink)",
+      "lanes": ["peggy", "wendy", "trudy"],
+      "symbols": ["_gitdir_files"]
+    },
+    {
+      "domain": "journey",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py", "CHANGELOG.md"],
+      "status": "verified",
+      "title": "A change to a linked worktree's config.worktree (e.g. core.hooksPath) passes as unchanged",
+      "lanes": ["walter", "wendy", "heidi"],
+      "symbols": ["GITDIR_UNCHECKED"]
+    },
+    {
+      "domain": "journey",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py", "CHANGELOG.md"],
+      "status": "verified",
+      "title": "Editing a tracked file in a linked worktree passes as unchanged although the CHANGELOG says linked-worktree changes are detected",
+      "lanes": ["walter", "wendy"]
+    },
+    {
+      "domain": "integration",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Git config from the environment or global excludes hides lane writes, so compare says unchanged",
+      "lanes": ["heidi"],
+      "symbols": ["_git"]
+    },
+    {
+      "domain": "integration",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/SKILL.md", "skills/run-agoge/references/prd-emission.md"],
+      "status": "verified",
+      "title": "SKILL.md runs the snapshot without -I, so a module on PYTHONPATH turns the integrity check into a silent exit 0 with no snapshot",
+      "lanes": ["heidi"]
+    },
+    {
+      "domain": "security",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"],
+      "status": "verified",
+      "title": "A raced backlog symlink makes the allocator create the PRD outside the repo while printing an in-repo path",
+      "lanes": ["trudy"],
+      "symbols": ["claim", "main"]
+    },
+    {
+      "domain": "integration",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"],
+      "status": "verified",
+      "title": "The PRD allocator reuses a number held by a directory-form or .markdown PRD",
+      "lanes": ["heidi"],
+      "symbols": ["claimed_numbers"]
+    },
+    {
+      "domain": "release",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "In a reftable repo, ref moves leave gitdir violations with no restore command that never clear",
+      "lanes": ["wendy"],
+      "symbols": ["GITDIR_UNCHECKED"]
+    },
+    {
+      "domain": "release",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Compare accepts a snapshot whose nested submodule refs are malformed",
+      "lanes": ["wendy"],
+      "symbols": ["_load"]
+    },
+    {
+      "domain": "ux",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A submodule violation does not say what changed in the submodule",
+      "lanes": ["walter"]
+    },
+    {
+      "domain": "performance",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Nested submodules are re-scanned at every level, so git status runs grow with depth squared",
+      "lanes": ["peggy"],
+      "symbols": ["_dirty", "take_snapshot"]
+    },
+    {
+      "domain": "release",
+      "severity": "LOW",
+      "paths": ["README.md"],
+      "status": "verified",
+      "title": "The README test command hides skip reasons that CI and release-checks show",
+      "lanes": ["wendy"]
+    }
+  ]
+}

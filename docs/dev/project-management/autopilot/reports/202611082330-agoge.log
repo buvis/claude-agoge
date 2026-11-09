@@ -1,0 +1,39 @@
+Five lanes are running: walter, heidi, wendy, peggy and trudy. Judy is unarmed. I'll wait for their results.
+
+Walter is done with 3 findings. I'm waiting for the other four lanes.
+
+Heidi is done with 6 findings. Wendy, peggy and trudy are still running.
+
+Trudy is done with 3 findings. Wendy and peggy are still running.
+
+Wendy is done with 7 findings. Only peggy is still running.
+
+The agoge run is finished. It found 16 defects, all reproduced by actually running the scripts: 4 HIGH, 6 MEDIUM and 6 LOW. However, the target repo changed while the lanes were running, so the run counts as failed.
+
+**Repo change during the run.** `master` moved from `c7da90f` to `1d5cf78` while the lanes ran. The new commit is "docs: unblock held snapshot PRDs with corrected retry contracts". It only edits backlog PRDs 00009 and 00010, under your normal agent identity, not a lane's. Most likely another session committed it, but the check can't prove which process did. I did not run the restore command and did not push. Decide whether to keep the commit before you push.
+
+**Recon.** The profile was out of date, so I refreshed it at `c7da90f`. The "Pins and vetoes" section came through byte-identical (same checksum before and after). Tests at that commit: 201 passed, 2 skipped (the skips are tests for non-UTF-8 file names, which this macOS disk won't create).
+
+**Lanes.** walter, heidi, wendy, peggy and trudy ran. judy didn't run because the project has no UI to test. trudy was authorized by the profile's `Authorization:` line, which takes precedence over `--authorized autoclaude-drain`. No claim needed downgrading. Because of the repo change, I skipped writing tests.
+
+**Top findings:**
+1. **HIGH:** `target_snapshot.py` runs programs named in the target's git config (`core.fsmonitor` and clean filters). Backlog PRD 00010 already covers this.
+2. **HIGH:** the snapshot hangs forever if a named pipe sits in `.git/hooks` or `.git/info`. This brings back a hang the CHANGELOG says is fixed.
+3. **HIGH:** a repo with `core.fsmonitor=true` can't be snapshotted at all, and the snapshot starts a background daemon inside it.
+4. **HIGH:** deleting or locking a linked worktree is reported as "unchanged".
+5. **MEDIUM:**
+   - Memory use grows with the largest file in `.git`, for example Git LFS objects.
+   - Changes in linked worktrees go unnoticed: config edits and tracked-file edits, although the CHANGELOG says linked-worktree changes are detected.
+   - Git config passed in through environment variables can hide changes from the check.
+   - `SKILL.md` runs the scripts without `-I`, so a stray Python module on `PYTHONPATH` can make the check exit 0 without writing a snapshot.
+   - The PRD-number script can be tricked into writing a PRD outside the repo by swapping a directory for a symlink at the right moment.
+
+One fix in the function that reads `.git` (`_gitdir_files`) would clear findings 2, 3 and 5. The installed plugin (0.3.0) still has the lane git-identity bug, because that fix isn't released yet.
+
+This was an unattended run, so nobody has made decisions on the findings and no PRDs were created. Nothing was committed.
+
+Files are in `docs/dev/project-management/audit-results/`:
+- agoge-2026-11-09.md
+- agoge-2026-11-09.json
+
+To review the findings one by one and record decisions, run `/run-agoge --resume <path to agoge-2026-11-09.md>`.

@@ -1,0 +1,262 @@
+{
+  "phase": "done",
+  "next_phase": "",
+  "schema_version": 1,
+  "batch": {
+    "id": "202611082330",
+    "mode": "autopilot",
+    "completed_prds": [
+      {
+        "filename": "00007-parallel-claims-share-prd-number-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "card_sized",
+        "lane_effective": "full",
+        "lane_escalated": {
+          "from": "fast-track",
+          "signal": "unnamed_path"
+        }
+      },
+      {
+        "filename": "00008-integrity-check-misses-git-hooks-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "full",
+        "lane_escalated": {
+          "from": "fast-track",
+          "signal": "unnamed_path"
+        }
+      },
+      {
+        "filename": "00011-snapshot-hangs-on-fifo-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00012-inherited-git-dir-misreads-target-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00013-integrity-check-misses-worktrees-submodules-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00014-allocator-accepts-non-repo-path-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00015-allocator-follows-symlinked-prds-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00016-slug-trailing-newline-accepted-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00017-crafted-snapshot-injects-restore-options-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00018-non-utf8-ref-restore-fails-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "full",
+        "lane_escalated": {
+          "from": "fast-track",
+          "signal": "unnamed_path"
+        }
+      },
+      {
+        "filename": "00019-snapshot-memory-grows-with-dirty-file-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00020-allocator-errors-print-traceback-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00021-lane-git-identity-overridden-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "fast-track",
+        "lane_reason": "override",
+        "lane_effective": "fast-track",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00022-readme-gym-link-404-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "solo",
+        "lane_reason": "override",
+        "lane_effective": "solo",
+        "lane_escalated": null
+      },
+      {
+        "filename": "00023-ci-release-checks-suite-drift-v1.md",
+        "cycles": 1,
+        "autonomous_decisions": 0,
+        "escalated_decisions": 0,
+        "tasks_completed": 1,
+        "tasks_total": 1,
+        "lane": "solo",
+        "lane_reason": "override",
+        "lane_effective": "full",
+        "lane_escalated": {
+          "from": "solo",
+          "signal": "unnamed_path"
+        }
+      }
+    ],
+    "plugin_versions": {
+      "aegis@buvis-plugins": "0.4.1",
+      "warden@buvis-plugins": "0.14.1"
+    },
+    "parks_consecutive": 0
+  },
+  "prd": "00023-ci-release-checks-suite-drift-v1.md",
+  "catchup_mode": "skip",
+  "doubt_reviewer": "codex",
+  "consensus_engine": "legacy",
+  "session_model": "sonnet",
+  "rework_cap": 2,
+  "lane": "solo",
+  "lane_reason": "override",
+  "lane_effective": "full",
+  "tasks_total": 0,
+  "tasks_completed": 0,
+  "phases_completed": [
+    "review"
+  ],
+  "cycle": 1,
+  "replan_count": 0,
+  "contract_card": "step: review cycle 1 converged for 00023-ci-release-checks-suite-drift-v1.md (Verdict: converged, 0 findings; alice/blake/bob/carl all clean; constraint gate exit 0; tail sweep skipped - zero actionable medium/low) | invariants: review file docs/dev/project-management/reviews/00023-ci-release-checks-suite-drift-v1-review-1.md saved and gated (--require-codex-guard), phase-done --outcome converged applied (phase/next_phase: done, \"review\" in phases_completed), cycle stays 1 | next: fresh session runs Phase 9 finalize (references/phase-done.md), skipping Phases 4-6 via the loop-level skip",
+  "prd_budget_since": "2026-11-09T05:48:38Z",
+  "design_mode": "skip",
+  "work_start_sha": "47cfc637cf8841b6e1890831f276fb90dcfe0ebe",
+  "repo_root": "/Users/bob/git/src/github.com/buvis/claude-agoge",
+  "tasks": [],
+  "lane_escalated": {
+    "from": "solo",
+    "signal": "unnamed_path"
+  },
+  "review_lenses": {
+    "consensus": "done",
+    "blind": "done",
+    "doubt": "done",
+    "ui": "done"
+  },
+  "doubts_rubric_verdicts": [
+    {
+      "rule_id": "D1",
+      "verdict": "pass"
+    },
+    {
+      "rule_id": "D2",
+      "verdict": "pass"
+    },
+    {
+      "rule_id": "D3",
+      "verdict": "pass"
+    },
+    {
+      "rule_id": "D4",
+      "verdict": "pass"
+    },
+    {
+      "rule_id": "D5",
+      "verdict": "pass"
+    }
+  ]
+}
