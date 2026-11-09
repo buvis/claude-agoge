@@ -414,3 +414,21 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794199783,"phase":"done","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794199838,"phase":"done","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794199926,"phase":"build","prd":"00019-snapshot-memory-grows-with-dirty-file-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794199936,"phase":"build","prd":"00020-allocator-errors-print-traceback-v1.md"}
+{"id":"a608dacf","kind":"fast-track:tess","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200047,"prompt_bytes":41067}
+{"id":"a608dacf","ended_at":1794200112,"elapsed_s":65,"outcome":"ok","detail":null}
+{"id":"ec04e929","kind":"fast-track:ivan","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200150,"prompt_bytes":16296}
+{"id":"ec04e929","ended_at":1794200238,"elapsed_s":88,"outcome":"ok","detail":null}
+{"id":"942dd310","kind":"fast-track:fanout","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200614,"prompt_bytes":3397}
+{"id":"c796f13a","kind":"fast-track:blake","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200618,"prompt_bytes":6976}
+{"id":"97fb338d","kind":"fast-track:eve","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200621,"prompt_bytes":5344}
+{"id":"92beea2a","kind":"fast-track:bob","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200625,"prompt_bytes":9412}
+{"id":"6543d369","kind":"fast-track:carl","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200628,"prompt_bytes":6597}
+{"id":"942dd310","ended_at":1794200651,"elapsed_s":37,"outcome":"ok","detail":null}
+{"id":"c796f13a","ended_at":1794200877,"elapsed_s":259,"outcome":"ok","detail":null}
+{"id":"97fb338d","ended_at":1794200908,"elapsed_s":287,"outcome":"ok","detail":null}
+{"id":"6543d369","ended_at":1794200908,"elapsed_s":280,"outcome":"ok","detail":null}
+{"id":"92beea2a","ended_at":1794200913,"elapsed_s":288,"outcome":"error","detail":"blocked by codex sandbox PreToolUse Fact-Forcing Gate before any read; retrying once"}
+{"id":"73a7e1f8","kind":"fast-track:bob","task":"00020-allocator-errors-print-traceback-v1-c1","queued_at":1794200918,"prompt_bytes":9412}
+{"id":"73a7e1f8","ended_at":1794200995,"elapsed_s":77,"outcome":"error","detail":"codex sandbox init failed twice (fact-forcing gate / mcp node_repl failed); counted as failed lane"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794201148,"phase":"done","prd":"00020-allocator-errors-print-traceback-v1.md"}
