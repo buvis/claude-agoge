@@ -285,3 +285,5 @@
 {"id":"ffcc6c93","ended_at":1794189971,"elapsed_s":1088,"outcome":"ok","detail":null}
 {"id":"b48fe1db","ended_at":1794190174,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
 {"kind":"handoff","site":"build","edge":"leave","at":1794190174,"phase":"done","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794190197,"phase":"done","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794190284,"phase":"build","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
