@@ -49,7 +49,7 @@ def claimed_numbers(repo: Path) -> set[int]:
 
 def claim(repo: Path, slug: str) -> Path:
     """Create an empty PRD file at the next free number and return its path."""
-    if not SLUG_RE.match(slug):
+    if not SLUG_RE.fullmatch(slug):
         raise SystemExit(f"slug must be kebab-case, got {slug!r}")
 
     backlog = repo / "docs" / "dev" / "project-management" / "prds" / "backlog"
