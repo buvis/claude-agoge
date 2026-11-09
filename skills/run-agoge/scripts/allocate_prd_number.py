@@ -22,6 +22,7 @@ import errno
 import fcntl
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -82,7 +83,22 @@ def main(argv: list[str]) -> int:
     if len(argv) != 3:
         print("usage: allocate_prd_number.py <repo> <slug>", file=sys.stderr)
         return 2
-    print(claim(Path(argv[1]).resolve(), argv[2]))
+
+    repo = Path(argv[1]).resolve()
+    if not repo.is_dir():
+        print(f"error: {repo} does not exist", file=sys.stderr)
+        return 1
+
+    result = subprocess.run(
+        ["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or Path(result.stdout.strip()).resolve() != repo:
+        print(f"error: {repo} is not a git work-tree top level", file=sys.stderr)
+        return 1
+
+    print(claim(repo, argv[2]))
     return 0
 
 
