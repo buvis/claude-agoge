@@ -242,3 +242,23 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794186793,"phase":"done","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794186828,"phase":"done","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794186916,"phase":"build","prd":"00011-snapshot-hangs-on-fifo-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794186923,"phase":"build","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
+{"id":"7bfdfedc","kind":"fast-track:tess","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187066,"prompt_bytes":75003}
+{"id":"7bfdfedc","ended_at":1794187164,"elapsed_s":98,"outcome":"ok","detail":null}
+{"id":"3c3f0a12","kind":"fast-track:ivan","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187184,"prompt_bytes":33861}
+{"id":"3c3f0a12","ended_at":1794187274,"elapsed_s":90,"outcome":"ok","detail":null}
+{"id":"14116760","kind":"fast-track:fanout","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187427,"prompt_bytes":6243}
+{"id":"8883f468","kind":"fast-track:blake","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187430,"prompt_bytes":6833}
+{"id":"a9ae7e2b","kind":"fast-track:eve","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187434,"prompt_bytes":5238}
+{"id":"20b52ab0","kind":"fast-track:bob","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187438,"prompt_bytes":9416}
+{"id":"8633bf11","kind":"fast-track:carl","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187442,"prompt_bytes":6599}
+{"id":"14116760","ended_at":1794187461,"elapsed_s":34,"outcome":"error","detail":"fanout skipped, alice fallback used"}
+{"id":"9c99301d","kind":"fast-track:alice","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187465,"prompt_bytes":6243}
+{"id":"9c99301d","ended_at":1794187883,"elapsed_s":418,"outcome":"ok","detail":null}
+{"id":"8883f468","ended_at":1794187887,"elapsed_s":457,"outcome":"ok","detail":null}
+{"id":"a9ae7e2b","ended_at":1794187890,"elapsed_s":456,"outcome":"ok","detail":null}
+{"id":"20b52ab0","ended_at":1794187894,"elapsed_s":456,"outcome":"ok","detail":null}
+{"id":"8633bf11","ended_at":1794187898,"elapsed_s":456,"outcome":"ok","detail":null}
+{"id":"48caffcf","kind":"fast-track:bob","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187939,"prompt_bytes":9416}
+{"id":"48caffcf","ended_at":1794187943,"elapsed_s":4,"outcome":"error","detail":"codex blocked both runs by its own Fact-Forcing Gate hook before cat"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794188131,"phase":"done","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
