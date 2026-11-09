@@ -467,3 +467,5 @@
 {"kind":"handoff","site":"done","edge":"leave","at":1794203218,"phase":"done","prd":"00022-readme-gym-link-404-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794203239,"phase":"done","prd":"00022-readme-gym-link-404-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794203311,"phase":"build","prd":"00022-readme-gym-link-404-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794203318,"phase":"build","prd":"00023-ci-release-checks-suite-drift-v1.md"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794203528,"phase":"review","prd":"00023-ci-release-checks-suite-drift-v1.md"}
