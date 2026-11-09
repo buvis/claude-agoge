@@ -73,7 +73,9 @@ def test_non_prd_filenames_are_ignored(tmp_path: Path) -> None:
     assert claimed_numbers(tmp_path) == set()
 
 
-@pytest.mark.parametrize("slug", ["Not Kebab", "trailing-", "UPPER", "under_score", ""])
+@pytest.mark.parametrize(
+    "slug", ["Not Kebab", "trailing-", "UPPER", "under_score", "", "ab\n"]
+)
 def test_a_bad_slug_is_refused_rather_than_normalized(
     tmp_path: Path, slug: str
 ) -> None:
