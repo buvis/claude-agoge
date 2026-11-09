@@ -129,6 +129,12 @@ def test_parallel_distinct_slugs_get_distinct_numbers(tmp_path: Path) -> None:
 
 
 def test_cli_prints_the_path_it_claimed(tmp_path: Path) -> None:
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     result = subprocess.run(
         [sys.executable, str(SCRIPT), str(tmp_path), "from-the-cli"],
         capture_output=True,
@@ -148,3 +154,45 @@ def test_cli_refuses_wrong_argument_counts(tmp_path: Path) -> None:
     )
     assert result.returncode == 2
     assert "usage:" in result.stderr
+
+
+def test_cli_refuses_missing_path(tmp_path: Path) -> None:
+    missing = tmp_path / "does-not-exist"
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(missing), "a-slug"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert result.stderr.strip() != ""
+    assert not missing.exists()
+
+
+def test_cli_refuses_non_repo_dir(tmp_path: Path) -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path), "a-slug"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "git work-tree top level" in result.stderr
+    assert not (tmp_path / "docs").exists()
+
+
+def test_cli_refuses_repo_subdirectory(tmp_path: Path) -> None:
+    subprocess.run(
+        ["git", "init", str(tmp_path)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    subdir = tmp_path / "nested"
+    subdir.mkdir()
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(subdir), "a-slug"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "git work-tree top level" in result.stderr
+    assert not (subdir / "docs").exists()
