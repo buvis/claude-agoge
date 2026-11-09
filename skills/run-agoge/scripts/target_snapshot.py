@@ -13,7 +13,10 @@ untracked-removed, untracked-modified, ignored-removed)
 plus newly `touched` untracked paths. `--allow` exempts a repo-relative path
 from tracked, untracked-removed, untracked-modified, ignored-removed and
 touched only. Edits inside ignored files are not checked; only the removal of
-an ignored file or directory is.
+an ignored file or directory is. An unreadable untracked file (mode 000, or
+owned by another user) makes `snapshot` and `compare` exit 2, same as an
+unreadable tracked file: untracked files are fingerprinted too, so failing
+closed matches the tracked case.
 
 Each linked worktree's HEAD and each initialized submodule's full state
 (commit, refs, config, dirty tree) are checked recursively; an uninitialized

@@ -930,6 +930,25 @@ def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path):
         notes.chmod(0o644)
 
 
+def test_unreadable_untracked_file_exits_2_with_one_line(tmp_path):
+    if os.geteuid() == 0:
+        pytest.skip("root reads files regardless of mode")
+    target, env = _build_target(tmp_path)
+    notes = target / "notes.md"
+    notes.write_bytes(NOTES_V1)
+    notes.chmod(0o000)
+    try:
+        out = tmp_path / "snaps" / "unreadable-untracked.json"
+        out.parent.mkdir()
+        result = _run(tmp_path, env, "snapshot", str(target), str(out))
+        _assert_exit2(result)
+        assert "notes.md" in result.stderr
+        assert result.stdout == ""
+        assert not out.exists()
+    finally:
+        notes.chmod(0o644)
+
+
 def test_new_hook_is_gitdir_violation(tmp_path):
     target, env = _build_target(tmp_path)
     before = _snap(tmp_path, target, env)
