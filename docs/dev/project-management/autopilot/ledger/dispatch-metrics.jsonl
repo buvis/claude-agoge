@@ -309,3 +309,5 @@
 {"id":"92ab5352","ended_at":1794191815,"elapsed_s":337,"outcome":"ok","detail":null}
 {"id":"af70b8d5","ended_at":1794191943,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
 {"kind":"handoff","site":"build","edge":"leave","at":1794191943,"phase":"done","prd":"00014-allocator-accepts-non-repo-path-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794191976,"phase":"done","prd":"00014-allocator-accepts-non-repo-path-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794192059,"phase":"build","prd":"00014-allocator-accepts-non-repo-path-v1.md"}
