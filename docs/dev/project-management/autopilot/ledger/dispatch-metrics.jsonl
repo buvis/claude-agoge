@@ -434,3 +434,30 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794201148,"phase":"done","prd":"00020-allocator-errors-print-traceback-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794201224,"phase":"done","prd":"00020-allocator-errors-print-traceback-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794201302,"phase":"build","prd":"00020-allocator-errors-print-traceback-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794201310,"phase":"build","prd":"00021-lane-git-identity-overridden-v1.md"}
+{"id":"67f24ce2","kind":"fast-track:tess","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201408,"prompt_bytes":34946}
+{"id":"67f24ce2","ended_at":1794201521,"elapsed_s":113,"outcome":"ok","detail":null}
+{"id":"393ef695","kind":"fast-track:ivan","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201551,"prompt_bytes":11442}
+{"id":"393ef695","ended_at":1794201596,"elapsed_s":45,"outcome":"ok","detail":null}
+{"id":"c4967f82","kind":"fast-track:fanout","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201728,"prompt_bytes":6233}
+{"id":"c7d160cd","kind":"fast-track:blake","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201731,"prompt_bytes":7151}
+{"id":"319bf7f6","kind":"fast-track:eve","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201734,"prompt_bytes":5260}
+{"id":"be23a9b4","kind":"fast-track:bob","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201738,"prompt_bytes":9507}
+{"id":"e3900805","kind":"fast-track:carl","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201741,"prompt_bytes":6589}
+{"id":"c4967f82","ended_at":1794201759,"elapsed_s":31,"outcome":"error","detail":"skipped workflow fanout; used autopilot:alice fallback"}
+{"id":"4cd8e5d9","kind":"fast-track:alice","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201762,"prompt_bytes":6233}
+{"id":"be23a9b4","ended_at":1794201944,"elapsed_s":206,"outcome":"ok","detail":null}
+{"id":"c7d160cd","ended_at":1794201953,"elapsed_s":222,"outcome":"ok","detail":null}
+{"id":"4cd8e5d9","ended_at":1794201956,"elapsed_s":194,"outcome":"ok","detail":null}
+{"id":"6fa9f2cf","kind":"fast-track:bob","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794201966,"prompt_bytes":9507}
+{"id":"6fa9f2cf","ended_at":1794202048,"elapsed_s":82,"outcome":"ok","detail":null}
+{"id":"6fa9f2cf","ended_at":1794202057,"elapsed_s":91,"outcome":"error","detail":"codex sandbox_apply: Operation not permitted, after 1 retry"}
+{"id":"e3900805","ended_at":1794202066,"elapsed_s":325,"outcome":"ok","detail":null}
+{"id":"319bf7f6","ended_at":1794202071,"elapsed_s":337,"outcome":"ok","detail":null}
+{"id":"83bee8cb","kind":"fast-track:victor","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794202128,"prompt_bytes":2418}
+{"id":"83bee8cb","ended_at":1794202165,"elapsed_s":37,"outcome":"ok","detail":null}
+{"id":"6310e36e","kind":"fast-track:ivan","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794202195,"prompt_bytes":6456}
+{"id":"6310e36e","ended_at":1794202285,"elapsed_s":90,"outcome":"ok","detail":null}
+{"id":"c352e13c","kind":"fast-track:delta","task":"00021-lane-git-identity-overridden-v1-c1","queued_at":1794202325,"prompt_bytes":9144}
+{"id":"c352e13c","ended_at":1794202616,"elapsed_s":291,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1794202764,"phase":"done","prd":"00021-lane-git-identity-overridden-v1.md"}
