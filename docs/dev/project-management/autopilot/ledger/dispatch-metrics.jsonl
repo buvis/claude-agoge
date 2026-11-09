@@ -262,3 +262,5 @@
 {"id":"48caffcf","kind":"fast-track:bob","task":"00012-inherited-git-dir-misreads-target-v1-c1","queued_at":1794187939,"prompt_bytes":9416}
 {"id":"48caffcf","ended_at":1794187943,"elapsed_s":4,"outcome":"error","detail":"codex blocked both runs by its own Fact-Forcing Gate hook before cat"}
 {"kind":"handoff","site":"build","edge":"leave","at":1794188131,"phase":"done","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794188163,"phase":"done","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794188226,"phase":"build","prd":"00012-inherited-git-dir-misreads-target-v1.md"}
