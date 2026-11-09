@@ -287,3 +287,25 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794190174,"phase":"done","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794190197,"phase":"done","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794190284,"phase":"build","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794190292,"phase":"build","prd":"00014-allocator-accepts-non-repo-path-v1.md"}
+{"id":"208e06c1","kind":"fast-track:tess","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190425,"prompt_bytes":20925}
+{"id":"208e06c1","ended_at":1794190485,"elapsed_s":60,"outcome":"ok","detail":null}
+{"id":"ba72a7a6","kind":"fast-track:ivan","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190515,"prompt_bytes":10732}
+{"id":"ba72a7a6","ended_at":1794190595,"elapsed_s":80,"outcome":"ok","detail":null}
+{"id":"6bcdef81","kind":"fast-track:fanout","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190733,"prompt_bytes":6239}
+{"id":"c51140b1","kind":"fast-track:blake","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190736,"prompt_bytes":7040}
+{"id":"af70b8d5","kind":"fast-track:eve","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190740,"prompt_bytes":5546}
+{"id":"1523d7ad","kind":"fast-track:bob","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190743,"prompt_bytes":9519}
+{"id":"35d93527","kind":"fast-track:carl","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190746,"prompt_bytes":6595}
+{"id":"6bcdef81","ended_at":1794190758,"elapsed_s":25,"outcome":"error","detail":"workflow skipped, using alice fallback"}
+{"id":"fbcddfb4","kind":"fast-track:alice","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794190762,"prompt_bytes":6239}
+{"id":"fbcddfb4","ended_at":1794191117,"elapsed_s":355,"outcome":"ok","detail":null}
+{"id":"c51140b1","ended_at":1794191117,"elapsed_s":381,"outcome":"ok","detail":null}
+{"id":"1523d7ad","ended_at":1794191117,"elapsed_s":374,"outcome":"error","detail":"codex sandbox_apply failed, no findings established"}
+{"id":"35d93527","ended_at":1794191117,"elapsed_s":371,"outcome":"ok","detail":null}
+{"id":"34154587","kind":"fast-track:ivan","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794191352,"prompt_bytes":5863}
+{"id":"34154587","ended_at":1794191435,"elapsed_s":83,"outcome":"ok","detail":null}
+{"id":"92ab5352","kind":"fast-track:delta","task":"00014-allocator-accepts-non-repo-path-v1-c1","queued_at":1794191478,"prompt_bytes":4917}
+{"id":"92ab5352","ended_at":1794191815,"elapsed_s":337,"outcome":"ok","detail":null}
+{"id":"af70b8d5","ended_at":1794191943,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794191943,"phase":"done","prd":"00014-allocator-accepts-non-repo-path-v1.md"}
