@@ -477,3 +477,21 @@
 {"kind":"handoff","site":"review","edge":"leave","at":1794203964,"phase":"done","prd":"00023-ci-release-checks-suite-drift-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794203995,"phase":"done","prd":"00023-ci-release-checks-suite-drift-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794204105,"phase":"done","prd":"00023-ci-release-checks-suite-drift-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794231935,"phase":"build","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
+{"id":"2eecfcb1","kind":"ivan","task":"1","queued_at":1794232435,"prompt_bytes":17921}
+{"id":"2eecfcb1","ended_at":1794232504,"elapsed_s":69,"outcome":"ok","detail":null}
+{"id":"5702c40d","kind":"ivan","task":"2","queued_at":1794232566,"prompt_bytes":18795}
+{"id":"5702c40d","ended_at":1794232605,"elapsed_s":39,"outcome":"ok","detail":null}
+{"id":"68522756","kind":"tess","task":"3","queued_at":1794232731,"prompt_bytes":10824}
+{"id":"68522756","ended_at":1794232772,"elapsed_s":41,"outcome":"ok","detail":null}
+{"id":"60fe4dd5","kind":"devon","task":"3","queued_at":1794232828,"prompt_bytes":4563}
+{"id":"60fe4dd5","ended_at":1794233073,"elapsed_s":245,"outcome":"ok","detail":null}
+{"id":"50d13141","kind":"tess","task":"3","queued_at":1794233121,"prompt_bytes":11206}
+{"id":"50d13141","ended_at":1794233259,"elapsed_s":138,"outcome":"ok","detail":null}
+{"id":"9383a68c","kind":"ivan","task":"3","queued_at":1794233307,"prompt_bytes":20587}
+{"id":"9383a68c","ended_at":1794233359,"elapsed_s":52,"outcome":"ok","detail":null}
+{"id":"0ad98c26","kind":"pat","task":"3","queued_at":1794233411,"prompt_bytes":22148}
+{"id":"0ad98c26","ended_at":1794233446,"elapsed_s":35,"outcome":"ok","detail":"external sonnet-run auth failed x2; native autopilot:pat agent route"}
+{"id":"ac1255a4","kind":"ivan","task":"4","queued_at":1794233510,"prompt_bytes":7368}
+{"id":"ac1255a4","ended_at":1794233641,"elapsed_s":131,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1794233738,"phase":"review","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}

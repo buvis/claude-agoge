@@ -1,6 +1,6 @@
 # Project Capsule: claude-agoge
 
-Generated: 2026-11-03
+Generated: 2026-11-09
 
 ## Key Invariants
 
@@ -29,7 +29,13 @@ Generated: 2026-11-03
 
 ## Active Work
 
-### Batch 202611082330
+### Batch 202611091445 (in progress)
+- [ ] 00009-integrity-check-misses-untracked-edits-v1.md (wip, full lane, design skip; retry after park)
+- [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (backlog)
+
+Both PRDs were un-held by 1d5cf78 with corrected retry contracts. 00009 retry: the prior attempt (parked branch `fast-track/00009-integrity-check-misses-untracked-edits-v1-c1`, tip `951401a`) failed review because `git ls-files -o -i --exclude-standard --directory` collapses ignored children into their parent dir, so deleting one child of `vault/` went unreported. The retry contract lists ignored paths as the union of the plain and `--directory` listings. Keep the branch as evidence; implement on master (the module changed since: 00011 FIFO handling, 00019 chunked hashing, 00012/00013/00018).
+
+### Batch 202611082330 (closed)
 - [x] 00007-parallel-claims-share-prd-number-v1.md (1 cycle)
 - [x] 00008-integrity-check-misses-git-hooks-v1.md (1 cycle)
 - [x] 00011-snapshot-hangs-on-fifo-v1.md (1 cycle)
@@ -68,18 +74,18 @@ Working tree: `docs/dev/project-management/meta/agoge-profile.md` is untracked (
 
 ## Related context
 
-No topic this session: on master with no wip PRD, so the engram queries were skipped. The repo was not gita-registered, so `engram harvest` returned `no_repo`; after `gita add` (2026-11-04) it upserted the 5 review files. The 3 `*-audit.md` files have no frontmatter and are not harvestable. Staleness stamp not taken.
+Topic (2026-11-09): "Overwriting an existing untracked file or deleting an ignored file in the target goes undetected" (00009 title). Repo and portfolio hits were only the PRD itself (score 0.033 down), plus one unrelated agent-skills review line; no prior design notes exist. `engram harvest` upserted all 18 `-review-1/2.md` files; the 18 `*-audit.md` files have no frontmatter and fail to parse (expected). Staleness (`engram status --scope portfolio`, exit 1): memory stale=10, transcripts stale=6 dead=6249, code stale=6, prd dead=98.
 
 ## GitHub State
 
-- 0 open issues, 0 open PRs.
-- Active branches (14d): `origin/master` only.
+- 0 open issues, 0 open PRs (checked 2026-11-09).
+- Active branches (14d): `origin/master` only; local parked branch `fast-track/00009-...-c1` is unpushed evidence.
 - No GitHub releases; versions are git tags v0.1.0..v0.3.0.
-- CI: `.github/workflows/test.yml` (e95d42f) runs pytest on ubuntu and macOS for every push and PR. First run green on both.
+- CI: `.github/workflows/test.yml` runs pytest on ubuntu and macOS for every push and PR. Last 5 master runs green (latest 2026-11-08).
 
 ## Project Health
 
-Healthy and idle. CI green on both OSes. Backlog is empty. Remaining risks: unreleased 00006 fix, SIGKILL flake seen once and not reproduced, none on authorization: the operator asserted it in the profile on 2026-11-05, so trudy can run.
+Healthy. CI green on both OSes. Unreleased fixes accumulate under `[Unreleased]` (00006 onward). Remaining risks: SIGKILL flake seen once and not reproduced; authorization asserted by the operator in the profile on 2026-11-05, so trudy can run.
 
 ## Project Memories
 
