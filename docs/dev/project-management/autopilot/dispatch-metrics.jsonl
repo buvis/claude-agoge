@@ -283,3 +283,5 @@
 {"id":"4829be8b","ended_at":1794189793,"elapsed_s":88,"outcome":"error","detail":"codex sandbox tool failure again, substituting general-purpose subagent"}
 {"id":"4829be8b","ended_at":1794189968,"elapsed_s":263,"outcome":"ok","detail":"bob substitute general-purpose subagent (codex sandbox unavailable)"}
 {"id":"ffcc6c93","ended_at":1794189971,"elapsed_s":1088,"outcome":"ok","detail":null}
+{"id":"b48fe1db","ended_at":1794190174,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794190174,"phase":"done","prd":"00013-integrity-check-misses-worktrees-submodules-v1.md"}
