@@ -119,6 +119,18 @@ def main(argv: list[str]) -> int:
         )
         return 2
 
+    backlog = repo / "docs" / "dev" / "project-management" / "prds" / "backlog"
+    if backlog.exists():
+        resolved_backlog = backlog.resolve()
+    else:
+        resolved_backlog = backlog.parent.resolve() / backlog.name
+    if os.path.commonpath([str(resolved_backlog), str(repo)]) != str(repo):
+        print(
+            f"allocate_prd_number: {backlog} resolves outside {repo}",
+            file=sys.stderr,
+        )
+        return 2
+
     print(claim(repo, argv[2]))
     return 0
 
