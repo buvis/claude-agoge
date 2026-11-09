@@ -769,3 +769,71 @@ def test_inherited_git_dir_does_not_redirect_snapshot(tmp_path):
     assert snapshot["repo"] == os.path.realpath(target)
     assert snapshot["head"]["commit"] == target_head
     assert snapshot["head"]["commit"] != decoy_head
+
+
+def _kinds(report):
+    return [v["kind"] for v in report["violations"]]
+
+
+def _add_submodule(tmp_path, target, env):
+    sub_src, _ = _build_target(tmp_path, name="sub-src")
+    _git(target, env, "-c", "protocol.file.allow=always",
+         "submodule", "add", "-q", str(sub_src), "sub")
+    _git(target, env, "commit", "-q", "-m", "add submodule")
+    return target / "sub"
+
+
+def test_untouched_linked_worktree_and_submodule_compare_unchanged(tmp_path):
+    target, env = _build_target(tmp_path)
+    _git(target, env, "worktree", "add", "-q", "--detach", str(tmp_path / "wt"), "HEAD")
+    _add_submodule(tmp_path, target, env)
+    before = _snap(tmp_path, target, env)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+
+def test_detached_linked_worktree_is_worktree_head_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    worktree = tmp_path / "wt"
+    _git(target, env, "worktree", "add", "-q", "--detach", str(worktree), "HEAD")
+    before = _snap(tmp_path, target, env)
+    other = _git(worktree, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "wt work")
+    _git(worktree, env, "checkout", "-q", "--detach", other)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert report["status"] == "changed"
+    assert _kinds(report) == ["worktree-head"]
+
+
+def test_submodule_commit_is_submodule_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = _add_submodule(tmp_path, target, env)
+    before = _snap(tmp_path, target, env)
+    _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert "submodule" in _kinds(report)
+
+
+def test_submodule_untracked_file_is_submodule_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = _add_submodule(tmp_path, target, env)
+    before = _snap(tmp_path, target, env)
+    (sub / "planted.txt").write_text("planted\n")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert "submodule" in _kinds(report)
+
+
+def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path):
+    target, env = _build_target(tmp_path)
+    sub = _add_submodule(tmp_path, target, env)
+    (sub / "notes.txt").write_bytes(NOTES_V1)
+    before = _snap(tmp_path, target, env)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 0, report
+    (sub / "notes.txt").write_bytes(NOTES_V2)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert "submodule" in _kinds(report)
