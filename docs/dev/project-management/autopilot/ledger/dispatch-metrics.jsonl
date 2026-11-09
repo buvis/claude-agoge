@@ -168,3 +168,27 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794180623,"phase":"done","prd":"00008-integrity-check-misses-git-hooks-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794180658,"phase":"done","prd":"00008-integrity-check-misses-git-hooks-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794180736,"phase":"build","prd":"00008-integrity-check-misses-git-hooks-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794180743,"phase":"build","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
+{"id":"0dbf2abd","kind":"fast-track:tess","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794180876,"prompt_bytes":101582}
+{"id":"0dbf2abd","ended_at":1794180981,"elapsed_s":105,"outcome":"ok","detail":null}
+{"id":"c31331f8","kind":"fast-track:ivan","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181007,"prompt_bytes":34133}
+{"id":"c31331f8","ended_at":1794181136,"elapsed_s":129,"outcome":"ok","detail":null}
+{"id":"b91a9112","kind":"fast-track:alice","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181317,"prompt_bytes":6253}
+{"id":"cbf23950","kind":"fast-track:blake","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181321,"prompt_bytes":7524}
+{"id":"1a16012b","kind":"fast-track:eve","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181325,"prompt_bytes":5786}
+{"id":"ac310cc1","kind":"fast-track:bob","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181329,"prompt_bytes":9436}
+{"id":"4c0717f2","kind":"fast-track:carl","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181333,"prompt_bytes":6609}
+{"id":"b91a9112","ended_at":1794181701,"elapsed_s":384,"outcome":"ok","detail":null}
+{"id":"cbf23950","ended_at":1794181705,"elapsed_s":384,"outcome":"ok","detail":null}
+{"id":"1a16012b","ended_at":1794181744,"elapsed_s":419,"outcome":"ok","detail":null}
+{"id":"ac310cc1","ended_at":1794181748,"elapsed_s":419,"outcome":"ok","detail":null}
+{"id":"4c0717f2","ended_at":1794181751,"elapsed_s":418,"outcome":"ok","detail":null}
+{"id":"f8c566b2","kind":"fast-track:bob","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181832,"prompt_bytes":9436}
+{"id":"f8c566b2","ended_at":1794181836,"elapsed_s":4,"outcome":"error","detail":"codex sandbox init failure on retry, both runs blocked at PreToolUse gate before reading any input"}
+{"id":"4f9011bb","kind":"fast-track:victor","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181841,"prompt_bytes":3210}
+{"id":"4f9011bb","ended_at":1794181910,"elapsed_s":69,"outcome":"ok","detail":null}
+{"id":"357d0e0b","kind":"fast-track:ivan","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794181939,"prompt_bytes":6828}
+{"id":"357d0e0b","ended_at":1794182048,"elapsed_s":109,"outcome":"ok","detail":null}
+{"id":"4571f087","kind":"fast-track:delta","task":"00009-integrity-check-misses-untracked-edits-v1-c1","queued_at":1794182098,"prompt_bytes":4917}
+{"id":"4571f087","ended_at":1794182416,"elapsed_s":318,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1794182486,"phase":"build","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
