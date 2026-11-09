@@ -349,3 +349,5 @@
 {"id":"92e5f9d9","ended_at":1794194289,"elapsed_s":526,"outcome":"error","detail":"codex sandbox init failed twice: sandbox-exec: sandbox_apply: Operation not permitted; substituted general-purpose fallback"}
 {"id":"e5b02be6","ended_at":1794194292,"elapsed_s":524,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1794194417,"phase":"done","prd":"00016-slug-trailing-newline-accepted-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794194441,"phase":"done","prd":"00016-slug-trailing-newline-accepted-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794194497,"phase":"build","prd":"00016-slug-trailing-newline-accepted-v1.md"}
