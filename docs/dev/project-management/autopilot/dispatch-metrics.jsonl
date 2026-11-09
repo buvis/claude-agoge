@@ -351,3 +351,22 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1794194417,"phase":"done","prd":"00016-slug-trailing-newline-accepted-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794194441,"phase":"done","prd":"00016-slug-trailing-newline-accepted-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794194497,"phase":"build","prd":"00016-slug-trailing-newline-accepted-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794194515,"phase":"build","prd":"00017-crafted-snapshot-injects-restore-options-v1.md"}
+{"id":"29b248f8","kind":"fast-track:tess","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794194631,"prompt_bytes":84476}
+{"id":"a0f1a6f3","kind":"fast-track:ivan","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794194794,"prompt_bytes":37423}
+{"id":"a0f1a6f3","ended_at":1794194859,"elapsed_s":65,"outcome":"ok","detail":null}
+{"id":"c6f3960a","kind":"fast-track:fanout","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794194994,"prompt_bytes":6257}
+{"id":"c6f3960a","ended_at":1794195020,"elapsed_s":26,"outcome":"error","detail":"skipped: single-file item scope disproportionate to 7-persona workflow fan-out; using alice fallback"}
+{"id":"bb337a90","kind":"fast-track:alice","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794195025,"prompt_bytes":6257}
+{"id":"349994a7","kind":"fast-track:blake","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794195025,"prompt_bytes":7037}
+{"id":"4854ccd7","kind":"fast-track:eve","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794195031,"prompt_bytes":5373}
+{"id":"bc132f7d","kind":"fast-track:bob","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794195031,"prompt_bytes":9444}
+{"id":"f425ab18","kind":"fast-track:carl","task":"00017-crafted-snapshot-injects-restore-options-v1-c1","queued_at":1794195031,"prompt_bytes":6613}
+{"id":"bc132f7d","ended_at":1794195340,"elapsed_s":309,"outcome":"ok","detail":null}
+{"id":"f425ab18","ended_at":1794195340,"elapsed_s":309,"outcome":"ok","detail":null}
+{"id":"bb337a90","ended_at":1794195521,"elapsed_s":496,"outcome":"ok","detail":null}
+{"id":"349994a7","ended_at":1794195521,"elapsed_s":496,"outcome":"ok","detail":null}
+{"id":"4854ccd7","ended_at":1794195521,"elapsed_s":490,"outcome":"ok","detail":null}
+{"id":"29b248f8","ended_at":1794195659,"elapsed_s":null,"outcome":"lost","detail":"open at done/resume handoff"}
+{"kind":"handoff","site":"done","edge":"resume","at":1794195659,"phase":"done","prd":"00017-crafted-snapshot-injects-restore-options-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1794195754,"phase":"build","prd":"00017-crafted-snapshot-injects-restore-options-v1.md"}

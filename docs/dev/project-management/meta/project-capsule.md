@@ -38,9 +38,9 @@ Generated: 2026-11-03
 - [x] 00014-allocator-accepts-non-repo-path-v1.md (1 cycle)
 - [x] 00015-allocator-follows-symlinked-prds-v1.md (1 cycle)
 - [x] 00016-slug-trailing-newline-accepted-v1.md (1 cycle)
+- [x] 00017-crafted-snapshot-injects-restore-options-v1.md (fast-track, 1 card)
 - [ ] 00009-integrity-check-misses-untracked-edits-v1.md (parked in hold/)
 - [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (parked in hold/)
-- [ ] 00017-crafted-snapshot-injects-restore-options-v1.md
 - [ ] 00018-non-utf8-ref-restore-fails-v1.md
 - [ ] 00019-snapshot-memory-grows-with-dirty-file-v1.md
 - [ ] 00020-allocator-errors-print-traceback-v1.md
