@@ -436,24 +436,66 @@ def _commit_gitignore(target, env, *rules):
 
 def test_overwritten_untracked_file_is_untracked_modified_violation(tmp_path):
     target, env = _build_target(tmp_path)
+    (target / "sub").mkdir()
+    (target / "sub/keep.txt").write_text("k\n")
+    _git(target, env, "add", "sub/keep.txt")
+    _git(target, env, "commit", "-q", "-m", "sub")
+    outside = tmp_path / "outside.txt"
+    outside.write_text("outside v1\n")
+    (target / "link").symlink_to(outside)
     (target / "notes.md").write_bytes(NOTES_V1)
+    # Nested, same size and same trailing bytes: only the first bytes change.
+    (target / "sub/x.txt").write_bytes(b"head-v1" + b"y" * 30)
     before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    assert set(snapshot["untracked_fingerprints"]) == {"link", "notes.md", "sub/x.txt"}
     (target / "notes.md").write_bytes(NOTES_V2)
+    (target / "sub/x.txt").write_bytes(b"head-v2" + b"y" * 30)
+    # The link's pointed-to file changes, the link itself does not.
+    outside.write_text("outside v2\n")
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{"kind": "untracked-modified", "path": "notes.md"}]
+    assert sorted((v["kind"], v["path"]) for v in report["violations"]) == [
+        ("untracked-modified", "notes.md"),
+        ("untracked-modified", "sub/x.txt"),
+    ]
     assert report["touched"] == []
+
+    (target / "link").unlink()
+    (target / "link").symlink_to(tmp_path / "elsewhere.txt")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert sorted((v["kind"], v["path"]) for v in report["violations"]) == [
+        ("untracked-modified", "link"),
+        ("untracked-modified", "notes.md"),
+        ("untracked-modified", "sub/x.txt"),
+    ]
 
 
 def test_deleted_ignored_file_is_ignored_removed_violation(tmp_path):
     target, env = _build_target(tmp_path)
     _commit_gitignore(target, env, ".env")
+    (target / "sub").mkdir()
+    (target / "sub/.gitignore").write_text("cache.bin\n")
+    _git(target, env, "add", "sub/.gitignore")
+    _git(target, env, "commit", "-q", "-m", "nested ignore")
+    # Written before the snapshot: a later write would be a gitdir violation.
+    (target / ".git/info").mkdir(exist_ok=True)
+    (target / ".git/info/exclude").write_text("local.cfg\n")
     (target / ".env").write_text("SECRET=1\n")
+    (target / "sub/cache.bin").write_text("c\n")
+    (target / "local.cfg").write_text("l\n")
     before = _snap(tmp_path, target, env)
     (target / ".env").unlink()
+    (target / "sub/cache.bin").unlink()
+    (target / "local.cfg").unlink()
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{"kind": "ignored-removed", "path": ".env"}]
+    assert sorted((v["kind"], v["path"]) for v in report["violations"]) == [
+        ("ignored-removed", ".env"),
+        ("ignored-removed", "local.cfg"),
+        ("ignored-removed", "sub/cache.bin"),
+    ]
 
 
 def test_deleted_ignored_dir_is_ignored_removed_violation(tmp_path):
@@ -500,11 +542,17 @@ def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_
     (target / "vault").mkdir()
     (target / "vault/a.txt").write_text("a\n")
     (target / "vault/b.txt").write_text("b\n")
+    (target / "vault/sub").mkdir()
+    (target / "vault/sub/deep.txt").write_text("d\n")
     before = _snap(tmp_path, target, env)
     (target / "vault/a.txt").unlink()
+    (target / "vault/sub/deep.txt").unlink()
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/a.txt"}]
+    assert sorted((v["kind"], v["path"]) for v in report["violations"]) == [
+        ("ignored-removed", "vault/a.txt"),
+        ("ignored-removed", "vault/sub/deep.txt"),
+    ]
 
 
 def test_deleted_empty_ignored_dir_is_ignored_removed_violation(tmp_path):
@@ -525,6 +573,7 @@ def test_ignored_fifo_does_not_hang(tmp_path):
     target, env = _build_target(tmp_path)
     _commit_gitignore(target, env, "*.pipe")
     os.mkfifo(target / "x.pipe")
+    os.mkfifo(target / "untracked.fifo")
     out = tmp_path / "snaps" / "fifo.json"
     out.parent.mkdir()
     result = _run(tmp_path, env, "snapshot", str(target), str(out), timeout=10)
@@ -554,6 +603,13 @@ def test_ignored_contents_are_never_read(tmp_path):
     assert isinstance(snapshot["ignored"], list)
     assert snapshot["ignored"] == ["secret.key", "vault/", "vault/a.txt"]
     assert set(snapshot["untracked_fingerprints"]) == set(snapshot["untracked"])
+    assert set(snapshot) == {
+        "version", "repo", "head", "refs", "config", "worktrees", "worktree_heads",
+        "submodules", "index", "dirty", "untracked", "untracked_fingerprints",
+        "ignored", "gitdir",
+    }
+    # The readable ignored file's content hash appears nowhere in the snapshot.
+    assert _sha(b"a\n") not in before.read_text()
 
 
 def test_allow_exempts_ignored_children_by_exact_path(tmp_path):
@@ -563,13 +619,33 @@ def test_allow_exempts_ignored_children_by_exact_path(tmp_path):
     (target / "vault/a.txt").write_text("a\n")
     (target / "vault/b.txt").write_text("b\n")
     (target / "empty").mkdir()
+    (target / "sub").mkdir()
+    (target / "sub/keep.txt").write_text("k\n")
+    _git(target, env, "add", "sub/keep.txt")
+    _git(target, env, "commit", "-q", "-m", "sub")
+    (target / "a.txt").write_text("a\n")
+    (target / "sub/a.txt").write_text("a\n")
     before = _snap(tmp_path, target, env)
     (target / "vault/a.txt").unlink()
     (target / "vault/b.txt").unlink()
     (target / "empty").rmdir()
-    code, report = _compare(tmp_path, target, before, env, allow=("vault/a.txt", "empty/"))
+    (target / "a.txt").write_text("changed\n")
+    (target / "sub/a.txt").write_text("changed\n")
+    code, report = _compare(
+        tmp_path, target, before, env, allow=("vault/a.txt", "empty/", "a.txt", "sub/a.txt"),
+    )
     assert code == 1
     assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/b.txt"}]
+
+    # Allowing `a.txt` exempts that exact path only, not other paths ending in it.
+    code, report = _compare(tmp_path, target, before, env, allow=("a.txt",))
+    assert code == 1
+    assert sorted((v["kind"], v["path"]) for v in report["violations"]) == [
+        ("ignored-removed", "empty/"),
+        ("ignored-removed", "vault/a.txt"),
+        ("ignored-removed", "vault/b.txt"),
+        ("untracked-modified", "sub/a.txt"),
+    ]
 
 
 def test_added_remote_is_config_violation_without_url(tmp_path):
@@ -746,11 +822,18 @@ def test_previous_version_snapshot_exits_2_with_one_line(tmp_path):
     assert code == 0
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
-    previous = tmp_path / "snaps" / "previous-version.json"
-    previous.write_text(json.dumps({**snapshot, "version": target_snapshot.VERSION - 1}))
-    result = _run(tmp_path, env, "compare", str(target), str(previous))
-    _assert_exit2(result)
-    assert result.stdout == ""
+    versionless = {key: value for key, value in snapshot.items() if key != "version"}
+    for name, data in (
+        ("previous", {**snapshot, "version": target_snapshot.VERSION - 1}),
+        ("older", {**snapshot, "version": target_snapshot.VERSION - 2}),
+        ("newer", {**snapshot, "version": target_snapshot.VERSION + 1}),
+        ("versionless", versionless),
+    ):
+        stale = tmp_path / "snaps" / f"{name}-version.json"
+        stale.write_text(json.dumps(data))
+        result = _run(tmp_path, env, "compare", str(target), str(stale))
+        _assert_exit2(result)
+        assert result.stdout == "", name
 
 
 def test_text_keeps_filesystem_bytes_and_trailing_space():
