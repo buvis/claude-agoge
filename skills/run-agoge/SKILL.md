@@ -163,7 +163,11 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/target_snapshot.py" snapshot /absolute/targ
 ```
 
 The comparison allows the profile, which recon may write, and nothing else. If
-it exits 1 or 2, dispatch nobody and go to step 7.
+it exits 1 or 2, dispatch nobody and go to step 7. It also fails on a
+pre-existing untracked file whose contents changed (`untracked-modified`) and
+on a pre-existing ignored file or directory that was removed
+(`ignored-removed`). It does not check edits inside ignored files, which keep
+passing as unchanged.
 
 Dispatch every armed specialist **in one message**, one Agent call each naming
 `subagent_type: agoge:<persona>`, so they run concurrently. One that fails
