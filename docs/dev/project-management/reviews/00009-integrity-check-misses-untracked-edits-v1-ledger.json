@@ -1,0 +1,42 @@
+[
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The test file is now about 1260 lines, over the 800-line limit. It was already over (about 1010 lines) and this diff adds 250. The limit is breached before and after this diff. Splitting the file (for example moving the untracked and ignored tests into their own module) belongs in a separate PRD",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1",
+    "reason": "pre-existing limit breach; both finders state the split belongs in its own PRD, so it is out of this PRD's scope"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "Mechanical analysis flags the existing either-or assertion in `test_every_gitdir_entry_is_checked_or_listed`. This assertion is unchanged and concerns the earlier git-directory coverage contract, outside this PRD.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:996",
+    "reason": "single-voice; the assertion is untouched by this diff and belongs to the earlier git-directory coverage contract"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The \"control\" block in `test_previous_version_snapshot_exits_2_with_one_line` does nothing. It rewrites `current-version.json` with the same version and keys, then runs compare twice on identical input. Drop it, or compare `before` once",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:502",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`test_ignored_fifo_does_not_hang` passes against the pre-change code, so it only guards against regression. It is a PRD-mandated hang guard, so I am not asking for a change. Leave it as it is, since the 10-second timeout is the assertion",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:408",
+    "reason": "single-voice; the finder explicitly asks for no change"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The `ignored` listing and the fingerprint map grow linearly with the number of ignored or untracked files, for example `node_modules`. The snapshot JSON and the git listing cost scale with that. The PRD accepts the cost and states the risk, so this is only a note.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:193",
+    "reason": "single-voice; the PRD accepts the cost and states the risk"
+  }
+]
