@@ -166,6 +166,58 @@ def test_scratch_contract_incident_control(tmp_path):
     assert after["refs/remotes/origin/master"] != before["refs/remotes/origin/master"]
 
 
+def _extract_scratch_contract_section(contract_text):
+    start = contract_text.index("## Scratch contract")
+    rest = contract_text[start + len("## Scratch contract"):]
+    end = rest.index("\n## ")
+    return contract_text[start:start + len("## Scratch contract") + end]
+
+
+def test_scratch_contract_sets_identity_with_env():
+    section = _extract_scratch_contract_section(CONTRACT_PATH.read_text())
+    assert "env GIT_AUTHOR_NAME=agoge-" in section
+    assert "-c user.name=" not in section
+    assert "never `export` one" in section
+
+
+def test_env_identity_beats_exported_author(tmp_path):
+    env = {**_env_for(tmp_path), "GIT_AUTHOR_NAME": "Operator Name"}
+    target = tmp_path / "scratch-repo"
+    target.mkdir()
+    git_dir = target / ".git"
+    subprocess.run(
+        ["git", "--git-dir", str(git_dir), "--work-tree", str(target), "init", "-q"],
+        env=env, check=True,
+    )
+    (target / "probe.txt").write_text("scratch\n")
+    subprocess.run(
+        ["git", "--git-dir", str(git_dir), "--work-tree", str(target), "add", "-A"],
+        env=env, check=True,
+    )
+
+    commit_env = {
+        **env,
+        "GIT_AUTHOR_NAME": f"agoge-{LANE}",
+        "GIT_AUTHOR_EMAIL": f"agoge-{LANE}@example.invalid",
+        "GIT_COMMITTER_NAME": f"agoge-{LANE}",
+        "GIT_COMMITTER_EMAIL": f"agoge-{LANE}@example.invalid",
+    }
+    subprocess.run(
+        [
+            "git", "--git-dir", str(git_dir), "--work-tree", str(target),
+            "commit", "-q", "-m", "chore(probe): seed scratch dotfiles",
+        ],
+        env=commit_env, check=True,
+    )
+
+    author = subprocess.run(
+        ["git", "--git-dir", str(git_dir), "log", "-1", "--format=%an"],
+        env=env, capture_output=True, text=True, check=True,
+    ).stdout.strip()
+
+    assert author == f"agoge-{LANE}"
+
+
 def test_scratch_contract_charter():
     for path in AGENT_FILES:
         text = path.read_text()
