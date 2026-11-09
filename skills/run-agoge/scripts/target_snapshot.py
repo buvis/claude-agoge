@@ -106,8 +106,11 @@ def _fingerprint(repo: str, path: str) -> str:
         return "dir"
     if not stat.S_ISREG(st.st_mode):
         return f"special:{stat.S_IFMT(st.st_mode):o}"
+    digest = hashlib.sha256()
     with open(full, "rb") as handle:
-        return _sha(handle.read())
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _resolve_repo(repo_arg: str) -> str:
@@ -119,7 +122,15 @@ def _resolve_repo(repo_arg: str) -> str:
 
 
 def _dirty(repo: str) -> dict[str, str]:
-    out = _git(repo, "status", "--porcelain=v1", "-z", "--untracked-files=no").stdout
+    out = _git(
+        repo,
+        "-c",
+        "core.bigFileThreshold=1m",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no",
+    ).stdout
     fields = out.split(b"\0")
     dirty: dict[str, str] = {}
     i = 0

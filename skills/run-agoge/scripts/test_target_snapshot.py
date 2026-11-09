@@ -1,7 +1,7 @@
 import hashlib
 import json
 import os
-import resource
+import re
 import shlex
 import shutil
 import subprocess
@@ -66,6 +66,34 @@ def _run(tmp_path, env, *args, timeout=None):
         [sys.executable, str(SCRIPT), *args],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=timeout,
     )
+
+
+_MAXRSS_RE = {
+    "darwin": re.compile(r"^\s*(\d+)\s+maximum resident set size$", re.MULTILINE),
+    "linux": re.compile(r"Maximum resident set size \(kbytes\):\s*(\d+)", re.MULTILINE),
+}
+
+
+def _peak_rss(tmp_path, env, *args, timeout=None):
+    """Peak RSS, in bytes, of exactly one `target_snapshot.py` invocation.
+
+    `resource.getrusage(RUSAGE_CHILDREN)` is cumulative over the whole test
+    process's lifetime and cannot be reset, so it cannot isolate one call
+    from another subprocess (e.g. the fixture's own `git add`) that ran
+    earlier. `/usr/bin/time` reports the peak RSS of just the one process it
+    wraps.
+    """
+    flag = "-l" if sys.platform == "darwin" else "-v"
+    result = subprocess.run(
+        ["/usr/bin/time", flag, sys.executable, str(SCRIPT), *args],
+        cwd=tmp_path, env=env, capture_output=True, text=True, timeout=timeout,
+    )
+    pattern = _MAXRSS_RE.get(sys.platform, _MAXRSS_RE["linux"])
+    match = pattern.search(result.stderr)
+    assert match, f"could not parse peak RSS from /usr/bin/time output:\n{result.stderr}"
+    value = int(match.group(1))
+    # ru_maxrss is bytes on Darwin, kilobytes on Linux; /usr/bin/time mirrors it.
+    return value if sys.platform == "darwin" else value * 1024
 
 
 def _snap(tmp_path, target, env, name="before.json"):
@@ -965,19 +993,16 @@ def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
 
     budget = 48 * 1024 * 1024
 
-    before_rss = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
-    result = _run(tmp_path, env, "compare", str(target), str(before))
-    assert result.returncode == 1, result.stderr
-    after_rss = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
-
-    # ru_maxrss is bytes on Darwin, kilobytes on Linux.
-    unit = 1 if sys.platform == "darwin" else 1024
-    peak_rss = after_rss * unit
-    # ru_maxrss on RUSAGE_CHILDREN is the max over all reaped children in
-    # this process's lifetime, not just this one call, so a smaller
-    # before-value only strengthens the assertion; it is captured for
-    # documentation/debugging, not subtracted.
-    assert before_rss * unit <= peak_rss
+    # resource.getrusage(RUSAGE_CHILDREN) is cumulative over every child this
+    # pytest process has ever reaped, with no way to reset it. The fixture's
+    # own `git add` of a 200 MiB file already drives that ceiling past the
+    # budget (git mmaps/hashes the whole blob), before `compare` even runs,
+    # so that counter cannot isolate this one subprocess's RSS. Wrap the
+    # `compare` invocation in `/usr/bin/time` instead, which reports the
+    # peak RSS of exactly that one child process.
+    peak_rss = _peak_rss(tmp_path, env, "compare", str(target), str(before))
     assert peak_rss < budget, (
         f"subprocess peak RSS {peak_rss} bytes exceeded {budget} byte budget"
     )
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1, report
