@@ -7,9 +7,15 @@
 `snapshot` records HEAD, refs, local config, worktrees, the index, dirty
 tracked paths and untracked paths into <out.json>, which must lie outside
 <repo>. `compare` takes a fresh snapshot and prints a JSON report of
-violations (head, ref, config, worktrees, index, tracked, untracked-removed)
+violations (head, ref, config, worktrees, worktree-head, submodule, index,
+gitdir, tracked, untracked-removed)
 plus newly `touched` untracked paths. `--allow` exempts a repo-relative path
 from tracked, untracked-removed and touched only.
+
+Each linked worktree's HEAD and each initialized submodule's full state
+(commit, refs, config, dirty tree) are checked recursively; an uninitialized
+submodule (gitlink with no `.git` on disk) is unchecked, same as an unlisted
+worktree outside `worktree list`.
 
 Exit 0 when unchanged, 1 when changed, 2 when the check cannot run (one
 `target_snapshot: <reason>` line on stderr, no JSON). Any other unexpected
@@ -28,7 +34,7 @@ import stat
 import subprocess
 import sys
 
-VERSION = 2
+VERSION = 3
 
 GITDIR_UNCHECKED = frozenset({
     "HEAD", "config", "index", "packed-refs",
@@ -154,11 +160,19 @@ def take_snapshot(repo: str) -> dict:
     for line in _text(_git(repo, "for-each-ref", "--format=%(refname)%00%(objectname)")).splitlines():
         name, oid = line.split("\0")
         refs[name] = oid
-    worktrees = [
-        os.fsdecode(line[len(b"worktree "):])
-        for line in _git(repo, "worktree", "list", "--porcelain").stdout.splitlines()
-        if line.startswith(b"worktree ")
-    ]
+    worktrees: list[str] = []
+    worktree_heads: dict[str, str] = {}
+    for line in _git(repo, "worktree", "list", "--porcelain").stdout.splitlines():
+        if line.startswith(b"worktree "):
+            worktrees.append(os.fsdecode(line[len(b"worktree "):]))
+        elif line.startswith((b"HEAD ", b"branch ", b"detached")) and len(worktrees) > 1:
+            worktree_heads[worktrees[-1]] = worktree_heads.get(worktrees[-1], "") + os.fsdecode(line) + "\n"
+    submodules = {}
+    for entry in _git(repo, "ls-files", "--stage", "-z").stdout.split(b"\0"):
+        if entry.startswith(b"160000 "):
+            path = os.fsdecode(entry.split(b"\t", 1)[1])
+            if os.path.exists(os.path.join(repo, path, ".git")):
+                submodules[path] = take_snapshot(os.path.join(repo, path))
     untracked = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout
     return {
         "version": VERSION,
@@ -167,6 +181,8 @@ def take_snapshot(repo: str) -> dict:
         "refs": refs,
         "config": _sha(_git(repo, "config", "--local", "--list", "-z").stdout),
         "worktrees": worktrees,
+        "worktree_heads": worktree_heads,
+        "submodules": submodules,
         "index": _sha(_git(repo, "ls-files", "--stage", "-z").stdout),
         "dirty": _dirty(repo),
         "untracked": sorted(os.fsdecode(p) for p in untracked.split(b"\0") if p),
@@ -213,6 +229,13 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
         violations.append(
             {"kind": "worktrees", "before": before["worktrees"], "after": after["worktrees"]}
         )
+    for path in sorted(set(before["worktree_heads"]) & set(after["worktree_heads"])):
+        old, new = before["worktree_heads"][path], after["worktree_heads"][path]
+        if old != new:
+            violations.append({"kind": "worktree-head", "path": path, "before": old, "after": new})
+    for path in sorted(set(before["submodules"]) | set(after["submodules"])):
+        if before["submodules"].get(path) != after["submodules"].get(path):
+            violations.append({"kind": "submodule", "path": path})
     if before["index"] != after["index"]:
         violations.append({"kind": "index"})
     for path in sorted(set(before["gitdir"]) | set(after["gitdir"])):

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: target snapshot now detects changed git hooks, `.git/info/exclude`, `.git/info/attributes` and worktree-local config, so a lane that plants a hook no longer passes integrity as unchanged
 - **run-agoge**: target snapshot no longer hangs on a named pipe in place of a tracked file; it now reports it as a tracked violation instead of blocking the integrity gate forever
 - **run-agoge**: target snapshot ignores an inherited GIT_DIR and related variables
+- **run-agoge**: target snapshot now detects changes in linked worktrees and submodules, reporting a moved HEAD in a linked worktree (`worktree-head`) and any commit, edit or new file inside a checked-out submodule (`submodule`); an uninitialized submodule is still unchecked
 
 ## [0.3.0] - 2026-11-02
 
