@@ -74,6 +74,8 @@ _GIT_REPO_VARS = frozenset({
 
 _GIT_CONFIG_COUNT_VARS = frozenset({"GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"})
 
+_GIT_CONFIG_REDIRECT_VARS = frozenset({"GIT_CONFIG"})
+
 _GIT_CONFIG_INDEXED_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
 
 _STATIC_OVERRIDES: tuple[tuple[str, str], ...] = (
@@ -92,12 +94,18 @@ def _base_env() -> dict[str, str]:
     `GIT_CONFIG_GLOBAL`, `GIT_CONFIG_SYSTEM` and `GIT_CONFIG_NOSYSTEM` are
     deliberately kept: discovery reads through the same environment, so such a
     redirect cannot smuggle a filter past it.
+
+    `GIT_CONFIG` is removed because it is the one redirect that is NOT
+    symmetric: `git config` then reads that file alone, while `git status` keeps
+    reading the repository's own config, so an inherited `GIT_CONFIG` would hide
+    a filter driver from discovery and still let it run.
     """
     return {
         key: value
         for key, value in os.environ.items()
         if key not in _GIT_REPO_VARS
         and key not in _GIT_CONFIG_COUNT_VARS
+        and key not in _GIT_CONFIG_REDIRECT_VARS
         and not key.startswith(_GIT_CONFIG_INDEXED_PREFIXES)
     }
 

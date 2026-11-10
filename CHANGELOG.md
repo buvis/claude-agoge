@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: PRD allocator reports errors as one line with exit 2
 - **run-agoge**: target integrity check detects overwritten untracked files and deleted ignored files
 - **run-agoge**: target snapshot no longer runs the repo's fsmonitor or clean filter programs
+- **run-agoge**: target snapshot and compare now ignore an inherited `GIT_CONFIG`, which previously hid the repo's filter drivers from discovery while git still ran them, and aborted the snapshot with `only one config file at a time`
 
 ## [0.3.0] - 2026-11-02
 
