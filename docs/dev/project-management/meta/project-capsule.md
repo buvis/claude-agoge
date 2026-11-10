@@ -31,7 +31,9 @@ Generated: 2026-11-09
 
 ### Batch 202611091445 (in progress)
 - [x] 00009-integrity-check-misses-untracked-edits-v1.md (1 cycle)
-- [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (backlog)
+- [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (wip, in progress)
+
+00010 retry: premise re-checked on master at `8c1bf7b` and it still holds - `_git` (`target_snapshot.py:65`) passes only `--no-optional-locks -C <repo>` and sanitizes `_GIT_REPO_VARS`; there is no `core.fsmonitor` or `filter.*` neutralization anywhere in the script. The prior attempt (parked branch `fast-track/00010-...-c1`, tip `d3dcc4a`, unmerged) was rejected for omitting include files, equals-named filters and submodule config. Full lane this time: design + full review gate.
 
 00009 retry: the prior attempt (parked branch `fast-track/00009-integrity-check-misses-untracked-edits-v1-c1`, tip `951401a`) failed review because `git ls-files -o -i --exclude-standard --directory` collapses ignored children into their parent dir, so deleting one child of `vault/` went unreported. The retry contract listed ignored paths as the union of the plain and `--directory` listings; implemented on master (the module had changed since: 00011 FIFO handling, 00019 chunked hashing, 00012/00013/00018). Cycle 1 converged with 2 medium tail-sweep fixes (VERSION-bump pinning test, unreadable-untracked-file exit-2 case); Pat reviewer unavailable both times (OAuth session expired), PRD-level review already covered the diff. Full suite green (212 passed, 2 skipped).
 
@@ -74,12 +76,22 @@ Working tree: `docs/dev/project-management/meta/agoge-profile.md` is untracked (
 
 ## Related context
 
-Topic (2026-11-09): "Overwriting an existing untracked file or deleting an ignored file in the target goes undetected" (00009 title). Repo and portfolio hits were only the PRD itself (score 0.033 down), plus one unrelated agent-skills review line; no prior design notes exist. `engram harvest` upserted all 18 `-review-1/2.md` files; the 18 `*-audit.md` files have no frontmatter and fail to parse (expected). Staleness (`engram status --scope portfolio`, exit 1): memory stale=10, transcripts stale=6 dead=6249, code stale=6, prd dead=98.
+Topic (2026-11-09, second catchup): "Taking a snapshot runs programs the repo's own git config names" (00010 title). Repo and portfolio queries returned identical hits, all inside this repo and all low-scoring:
+
+- `docs/.../prds/wip/00010-...md:7-10` - 0.0328 - the PRD itself.
+- `docs/.../prds/done/00012-inherited-git-dir-misreads-target-v1.md:30-36` - 0.0161 - nearest prior art: the other PRD that hardened `_git`'s environment, so its sanitization must be preserved.
+- `skills/run-agoge/scripts/target_snapshot.py:170-215` - 0.0159 - `take_snapshot`, the call site.
+- `docs/.../prds/wip/00010-...md:36-42` - 0.0156 - same PRD.
+- `docs/.../prds/done/00012-...md:11-14` - 0.0154 - same PRD as above.
+
+No prior design notes on git-config-driven program execution exist. `engram harvest` upserted all 20 `-review-1/2.md` files plus 3 audit logs; the other 18 `*-audit.md` files contain no decision blocks and fail to parse (expected). Staleness (`engram status --scope portfolio`, exit 1): memory stale=11, transcripts stale=6 dead=6597, code stale=1 dead=300, prd dead=168.
+
+Earlier topic (2026-11-09): 00009's title; hits were only the PRD itself plus one unrelated agent-skills review line.
 
 ## GitHub State
 
-- 0 open issues, 0 open PRs (checked 2026-11-09).
-- Active branches (14d): `origin/master` only; local parked branch `fast-track/00009-...-c1` is unpushed evidence.
+- 0 open issues, 0 open PRs (re-checked 2026-11-09, second catchup).
+- Active branches (14d): `origin/master` only (last push 2026-11-08); local parked branches `fast-track/00009-...-c1` and `fast-track/00010-...-c1` (tip `d3dcc4a`) are unpushed evidence, not approved work.
 - No GitHub releases; versions are git tags v0.1.0..v0.3.0.
 - CI: `.github/workflows/test.yml` runs pytest on ubuntu and macOS for every push and PR. Last 5 master runs green (latest 2026-11-08).
 

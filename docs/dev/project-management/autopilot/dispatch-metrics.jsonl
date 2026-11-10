@@ -514,3 +514,24 @@
 {"kind":"handoff","site":"review","edge":"leave","at":1794263060,"phase":"done","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794263086,"phase":"done","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1794263153,"phase":"build","prd":"00009-integrity-check-misses-untracked-edits-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794263177,"phase":"build","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1794263206,"phase":"build","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"id":"83a1c1ba","kind":"ivan","task":"1","queued_at":1794265443,"prompt_bytes":36873}
+{"id":"83a1c1ba","ended_at":1794265757,"elapsed_s":314,"outcome":"ok","detail":null}
+{"id":"83a1c1ba","ended_at":1794265760,"elapsed_s":317,"outcome":"ok","detail":null}
+{"id":"d09da74e","kind":"ivan","task":"2","queued_at":1794265899,"prompt_bytes":38373}
+{"id":"d09da74e","ended_at":1794266671,"elapsed_s":772,"outcome":"ok","detail":null}
+{"id":"2facd6c1","kind":"devon","task":"3","queued_at":1794266933,"prompt_bytes":5028}
+{"id":"2facd6c1","ended_at":1794267884,"elapsed_s":951,"outcome":"ok","detail":null}
+{"id":"d28ba58e","kind":"tess","task":"3","queued_at":1794267935,"prompt_bytes":10332}
+{"id":"d28ba58e","ended_at":1794268768,"elapsed_s":833,"outcome":"ok","detail":null}
+{"id":"d28ba58e","ended_at":1794268771,"elapsed_s":836,"outcome":"ok","detail":null}
+{"id":"e865d442","kind":"ivan","task":"3","queued_at":1794268853,"prompt_bytes":41248}
+{"id":"e865d442","ended_at":1794269207,"elapsed_s":354,"outcome":"ok","detail":null}
+{"id":"ac8028aa","kind":"deslop","task":"3","queued_at":1794269293,"prompt_bytes":3690}
+{"id":"ac8028aa","ended_at":1794269456,"elapsed_s":163,"outcome":"ok","detail":null}
+{"id":"a4755125","kind":"ivan","task":"3","queued_at":1794269503,"prompt_bytes":8202}
+{"id":"a4755125","ended_at":1794269967,"elapsed_s":464,"outcome":"ok","detail":null}
+{"id":"582bd71b","kind":"pat","task":"3","queued_at":1794270078,"prompt_bytes":48134}
+{"id":"582bd71b","ended_at":1794270373,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"kind":"handoff","site":"build","edge":"leave","at":1794270373,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
