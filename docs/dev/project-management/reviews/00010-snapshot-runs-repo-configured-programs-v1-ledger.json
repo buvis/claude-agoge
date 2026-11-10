@@ -1,15 +1,170 @@
 [
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "Behavior added in `_base_env` and `_inherited_config_pairs` has no test. Untested: stripping of `GIT_CONFIG_PARAMETERS` (a second channel through which a caller can hand git a hostile `filter.*.clean`), case-insensitive matching of inherited filter keys (the `folded` branch), a negative or non-integer `GIT_CONFIG_COUNT`, and dropping of a pair with a missing KEY or VALUE.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1518", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "The submodule enumeration in `_filter_overrides` copies the one in `take_snapshot`. Extract one `_initialized_submodules(repo)` helper.", "file": "skills/run-agoge/scripts/target_snapshot.py:200", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "`GIT_CONFIG_PARAMETERS` is dropped entirely rather than parsed. A caller's unrelated `-c` settings passed that way are silently discarded.", "file": "skills/run-agoge/scripts/target_snapshot.py:92", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "`test_inherited_non_filter_config_pair_still_takes_effect` is subsumed by `test_snapshot_does_not_run_inherited_command_scope_filter`. Drop it or merge it.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1568", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "Task 2 asks for recursive-submodule coverage, but every submodule test is one level deep. Nothing nests a grandchild submodule, so the recursion in `_filter_overrides` is never pinned by a regression test.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1704", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "settled-deferral", "severity": "medium", "issue": "The supplied mechanical check identifies an either-or hedge in `test_every_gitdir_entry_is_checked_or_listed`. Replace it with the intended exact assertion in separate test maintenance; this existing test is unchanged by the PRD.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1023", "reason": "pre-existing test untouched by this PRD's diff; fixing it is out of scope for 00010 and belongs to separate test maintenance"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "`test_unreadable_included_config_exits_2_and_runs_nothing` calls `pytest.skip` when the user can read a mode-000 file, which is the case when run as root.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1641", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The computed `[MECH]` hedge in `test_every_gitdir_entry_is_checked_or_listed` is pre-existing and not part of this change. Listed for completeness.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1023", "reason": "single-voice; duplicate of the settled deferral on the same test"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The environment is unbounded. A target with very many `filter.*` drivers could hit `E2BIG` and surface as `target_snapshot: unexpected OSError` instead of a reasoned line.", "file": "skills/run-agoge/scripts/target_snapshot.py:187", "reason": "single-voice; the design review already recorded it as a non-blocker"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "A filter name containing a space has no marker positive control. It cannot have one, because `.gitattributes` cuts a value at whitespace.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:1621", "reason": "single-voice; the reviewer himself records the deviation as justified and impossible to close"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "`GIT_CONFIG_PARAMETERS` (the old `-c` inheritance from a parent git process) is dropped wholesale and is not forwarded the way `GIT_CONFIG_COUNT` pairs are.", "file": "skills/run-agoge/scripts/target_snapshot.py:75", "reason": "single-voice"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The error message for a path that is not a git repo changed. `_resolve_repo` now fails first in discovery's `ls-files`, so the reason reads \"git ls-files failed\" instead of \"git rev-parse failed\".", "file": "skills/run-agoge/scripts/target_snapshot.py:204", "reason": "single-voice; still one line with exit 2, which is the documented contract"},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "Submodule discovery relies on `os.path.exists(<path>/.git)`. A gitlink whose submodule was not initialized is skipped, which matches the documented \"uninitialized is unchecked\" policy.", "file": "skills/run-agoge/scripts/target_snapshot.py:208", "reason": "single-voice; the reviewer confirms it matches the documented policy"}
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "Behavior added in `_base_env` and `_inherited_config_pairs` has no test. Untested: stripping of `GIT_CONFIG_PARAMETERS` (a second channel through which a caller can hand git a hostile `filter.*.clean`), case-insensitive matching of inherited filter keys (the `folded` branch), a negative or non-integer `GIT_CONFIG_COUNT`, and dropping of a pair with a missing KEY or VALUE.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1518",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The submodule enumeration in `_filter_overrides` copies the one in `take_snapshot`. Extract one `_initialized_submodules(repo)` helper.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:200",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "`GIT_CONFIG_PARAMETERS` is dropped entirely rather than parsed. A caller's unrelated `-c` settings passed that way are silently discarded.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:92",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "`test_inherited_non_filter_config_pair_still_takes_effect` is subsumed by `test_snapshot_does_not_run_inherited_command_scope_filter`. Drop it or merge it.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1568",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "Task 2 asks for recursive-submodule coverage, but every submodule test is one level deep. Nothing nests a grandchild submodule, so the recursion in `_filter_overrides` is never pinned by a regression test.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1704",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "settled-deferral",
+    "severity": "medium",
+    "issue": "The supplied mechanical check identifies an either-or hedge in `test_every_gitdir_entry_is_checked_or_listed`. Replace it with the intended exact assertion in separate test maintenance; this existing test is unchanged by the PRD.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1023",
+    "reason": "pre-existing test untouched by this PRD's diff; fixing it is out of scope for 00010 and belongs to separate test maintenance"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`test_unreadable_included_config_exits_2_and_runs_nothing` calls `pytest.skip` when the user can read a mode-000 file, which is the case when run as root.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1641",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The computed `[MECH]` hedge in `test_every_gitdir_entry_is_checked_or_listed` is pre-existing and not part of this change. Listed for completeness.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1023",
+    "reason": "single-voice; duplicate of the settled deferral on the same test"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The environment is unbounded. A target with very many `filter.*` drivers could hit `E2BIG` and surface as `target_snapshot: unexpected OSError` instead of a reasoned line.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:187",
+    "reason": "single-voice; the design review already recorded it as a non-blocker"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "A filter name containing a space has no marker positive control. It cannot have one, because `.gitattributes` cuts a value at whitespace.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1621",
+    "reason": "single-voice; the reviewer himself records the deviation as justified and impossible to close"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`GIT_CONFIG_PARAMETERS` (the old `-c` inheritance from a parent git process) is dropped wholesale and is not forwarded the way `GIT_CONFIG_COUNT` pairs are.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:75",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The error message for a path that is not a git repo changed. `_resolve_repo` now fails first in discovery's `ls-files`, so the reason reads \"git ls-files failed\" instead of \"git rev-parse failed\".",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:204",
+    "reason": "single-voice; still one line with exit 2, which is the documented contract"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Submodule discovery relies on `os.path.exists(<path>/.git)`. A gitlink whose submodule was not initialized is skipped, which matches the documented \"uninitialized is unchecked\" policy.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:208",
+    "reason": "single-voice; the reviewer confirms it matches the documented policy"
+  },
+  {
+    "cycle": 2,
+    "disposition": "settled-deferral",
+    "severity": "medium",
+    "issue": "test_every_gitdir_entry_is_checked_or_listed hedges with `or`: either outcome satisfies it",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:393",
+    "reason": "same pre-existing test already settled as a deferral in cycle 1; untouched by this PRD's diff, it only moved file in the cycle-1 split"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config` builds two untouched-asserters over the same repo when the source is `local` (`target` and `declaring` are the same repo), so the second adds nothing for that case. Harmless, cosmetic only",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_programs.py:534",
+    "reason": "single-voice; the reviewer himself calls it cosmetic only"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The rewrite of the assumptions ledger replaced the recorded assumptions for tasks 1 to 3 and the cross-task corrections with the cycle-1 rework notes. That durable history is gone from the working file, though it stays in git history",
+    "file": "docs/dev/project-management/meta/assumptions.md:1",
+    "reason": "single-voice; the history is preserved in git, and the working file is a scratch ledger"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Tests and fixtures sit in new files `skills/run-agoge/scripts/test_target_snapshot_programs.py` and `skills/run-agoge/scripts/snapshot_fixtures.py`. The spec's Location lists only `test_target_snapshot.py`.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_programs.py",
+    "reason": "single-voice; the split is the cycle-1 fix for finding R4 (the 800-line limit), so it is the intended outcome"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`CHANGELOG.md:29` adds a second Fixed entry for the inherited `GIT_CONFIG` fix. The spec asked for one entry.",
+    "file": "CHANGELOG.md",
+    "reason": "single-voice; the second entry documents the cycle-1 security fix and is required by the changelog rule"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Inherited command-scope `filter.*` pairs are dropped rather than overridden to a disabled value. This is equivalent in effect, but the docstring says drivers are \"disabled through command-scope configuration\".",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:113",
+    "reason": "single-voice; the reviewer records it as equivalent in effect"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "A submodule path that is a symlink back to its parent would recurse in `_filter_overrides` and `take_snapshot`, because the cache is written only after the recursion. It ends in a `RecursionError`, caught as exit 2, so it fails closed.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:214",
+    "reason": "single-voice; fails closed with the documented exit-2 contract"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Residual risk is documented correctly and not overclaimed: `core.pager`, hooks, `diff.external`, `core.alternateRefsCommand` and credential helpers are not blocked.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:31",
+    "reason": "single-voice; it is an observation of correct documentation, not a defect"
+  }
 ]
