@@ -501,6 +501,53 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
     assert code == 0, report
 
 
+def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_path):
+    target, env = _build_target(tmp_path)
+    script, log = _marker(tmp_path)
+    driver = _driver()
+    _configure_filter(target, env, ["--local"], driver, script)
+    (target / "notes.txt").write_bytes(b"notes v1\n")
+
+    # `git config` reads only GIT_CONFIG when it is set, while `git status`
+    # ignores it and still reads the target's own config. The file is real but
+    # empty, so this pins the redirect and not a git error.
+    redirect = tmp_path / "inherited.cfg"
+    redirect.write_text("")
+    hostile_env = {**env, "GIT_CONFIG": str(redirect)}
+
+    # Positive control under that same environment: the target's clean filter
+    # really does still run, so "never ran" below cannot pass vacuously.
+    _assert_program_ran(target, hostile_env, log, "the target's clean filter")
+
+    # The other half of the asymmetry, asserted rather than assumed: if a
+    # future git stops honouring GIT_CONFIG here, the fixture goes inert and
+    # this is what says so.
+    probe = subprocess.run(
+        ["git", "config", "--includes", "--get", f"filter.{driver}.clean"],
+        cwd=target, env=hostile_env, capture_output=True, text=True,
+    )
+    assert not probe.stdout.strip(), (
+        f"the fixture is inert: `git config` still reports filter.{driver}.clean "
+        f"under the inherited GIT_CONFIG: {probe.stdout!r}"
+    )
+
+    assert_untouched = _capture_untouched(target, hostile_env, "the target")
+
+    before = _snap(tmp_path, target, hostile_env)
+    assert not log.exists(), (
+        f"an inherited GIT_CONFIG let snapshot run the target's clean filter: "
+        f"{log.read_text()!r}"
+    )
+    assert_untouched("snapshot")
+    code, report = _compare(tmp_path, target, before, hostile_env)
+    assert not log.exists(), (
+        f"an inherited GIT_CONFIG let compare run the target's clean filter: "
+        f"{log.read_text()!r}"
+    )
+    assert_untouched("compare")
+    assert code == 0, report
+
+
 def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path):
     target, env = _build_target(tmp_path)
     sub = _add_submodule(tmp_path, target, env)
