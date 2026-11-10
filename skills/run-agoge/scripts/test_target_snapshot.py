@@ -1253,7 +1253,14 @@ def test_fingerprint_matches_whole_file_sha256(tmp_path):
     assert violation["after"] == f" M {hashlib.sha256(full_bytes).hexdigest()}"
 
 
-def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
+def _big_file_target(tmp_path):
+    """Target with a committed 200 MiB big.bin, snapshotted, then dirtied.
+
+    The file is sparse (one seek, one byte), so the fixture itself stays
+    cheap; the edit rewrites the first bytes in place, which keeps the size
+    and so leaves the content as the only way to tell the file changed.
+    Returns (target, env, snapshot path).
+    """
     target, env = _build_target(tmp_path)
     big = target / "big.bin"
     size = 200 * 1024 * 1024
@@ -1267,6 +1274,11 @@ def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
     with open(big, "r+b") as handle:
         handle.seek(0)
         handle.write(b"dirty")
+    return target, env, before
+
+
+def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
+    target, env, before = _big_file_target(tmp_path)
 
     budget = 48 * 1024 * 1024
 
@@ -1332,6 +1344,74 @@ def _configure_filter(target, env, scope_args, driver, program):
     _git(target, env, "commit", "-q", "-m", "map *.txt to a filter")
     _git(target, env, "config", *scope_args, f"filter.{driver}.clean", str(program))
     _git(target, env, "config", *scope_args, f"filter.{driver}.required", "true")
+
+
+def _assert_program_ran(repo, env, log, subject):
+    """Positive control: a bare `git status` in `repo` must run its program.
+
+    Without it an inert fixture - a wrong scope flag, a non-matching
+    includeIf - would make a "never ran" assertion pass vacuously. The log is
+    removed afterwards, so the assertions that follow start from no log.
+    """
+    _git(repo, env, "status", "--porcelain")
+    assert log.exists() and log.read_text().strip(), (
+        f"fixture is inert: {subject} never ran"
+    )
+    log.unlink()
+
+
+def _capture_untouched(repo, env, subject):
+    """Capture `repo`'s own config bytes and `.git` state.
+
+    Returns an asserter: calling it with the command's name re-reads both and
+    fails if either moved, which is the promise that nothing is ever written
+    inside <repo>. A submodule's `.git` is a file, so its real config is
+    located with `rev-parse` instead of assumed at `<repo>/.git/config`.
+    """
+    config = Path(_git(repo, env, "rev-parse", "--absolute-git-dir")) / "config"
+    config_before = config.read_bytes()
+    state_before = _git_dir_state(repo)
+
+    def assert_untouched(command):
+        assert config.read_bytes() == config_before, (
+            f"{command} rewrote {subject}'s own config to disable its program"
+        )
+        assert _git_dir_state(repo) == state_before, (
+            f"{command} wrote inside {subject}'s .git"
+        )
+
+    return assert_untouched
+
+
+def _assert_submodule_head(snapshot_path, head):
+    """The snapshot must record the submodule's own HEAD commit.
+
+    Never visiting the submodule at all would silence its program too, so the
+    snapshot has to prove the submodule was really traversed.
+    """
+    submodules = json.loads(snapshot_path.read_text())["submodules"]
+    assert submodules["sub"]["head"]["commit"] == head, (
+        f"the snapshot does not record the submodule's own state: {submodules}"
+    )
+
+
+def _pair_env(env, *pairs):
+    """`env` plus `pairs` carried over git's command-scope environment."""
+    extra = {"GIT_CONFIG_COUNT": str(len(pairs))}
+    for index, (key, value) in enumerate(pairs):
+        extra[f"GIT_CONFIG_KEY_{index}"] = key
+        extra[f"GIT_CONFIG_VALUE_{index}"] = str(value)
+    return {**env, **extra}
+
+
+def _assert_scratch_ignored(snapshot, dropped):
+    """An inherited `core.excludesFile` must still make scratch.txt ignored."""
+    assert "scratch.txt" not in snapshot["untracked"], (
+        f"{dropped}: {snapshot['untracked']}"
+    )
+    assert "scratch.txt" in snapshot["ignored"], (
+        f"{dropped}: {snapshot['ignored']}"
+    )
 
 
 def test_snapshot_does_not_run_fsmonitor(tmp_path):
@@ -1635,28 +1715,20 @@ def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path):
     # Positive control, in the submodule itself: its own driver fires there,
     # and the parent's driver does not - a submodule reads neither its
     # parent's config nor its parent's attributes.
-    _git(sub, env, "status", "--porcelain")
-    assert sub_log.exists() and sub_log.read_text().strip(), (
-        "fixture is inert: the submodule's own clean filter never ran"
-    )
+    _assert_program_ran(sub, env, sub_log, "the submodule's own clean filter")
     assert not parent_log.exists(), (
         f"git applied the parent's filter inside the submodule: {parent_log.read_text()!r}"
     )
-    _git(target, env, "status", "--porcelain")
-    assert parent_log.exists() and parent_log.read_text().strip(), (
-        "fixture is inert: the parent's own clean filter never ran"
-    )
-    sub_log.unlink()
-    parent_log.unlink()
+    _assert_program_ran(target, env, parent_log, "the parent's own clean filter")
+    # That status recursed into the submodule and ran its driver there again.
+    sub_log.unlink(missing_ok=True)
 
     # Both drivers must be disabled through the module's own command-scope
     # configuration, in the parent and in the submodule alike, without a byte
     # written inside either repository.
-    sub_git_dir = Path(_git(sub, env, "rev-parse", "--absolute-git-dir"))
     sub_head = _git(sub, env, "rev-parse", "HEAD")
-    parent_config_before = (target / ".git" / "config").read_bytes()
-    sub_config_before = (sub_git_dir / "config").read_bytes()
-    git_state_before = _git_dir_state(target)
+    assert_sub_untouched = _capture_untouched(sub, env, "the submodule")
+    assert_parent_untouched = _capture_untouched(target, env, "the parent")
 
     before = _snap(tmp_path, target, env)
     assert not sub_log.exists(), (
@@ -1665,19 +1737,9 @@ def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path):
     assert not parent_log.exists(), (
         f"snapshot ran the parent's clean filter: {parent_log.read_text()!r}"
     )
-    # Never visiting the submodule at all would silence its driver too, so
-    # the snapshot has to prove the submodule was really traversed.
-    submodules = json.loads(before.read_text())["submodules"]
-    assert submodules["sub"]["head"]["commit"] == sub_head, (
-        f"the snapshot does not record the submodule's own state: {submodules}"
-    )
-    assert (target / ".git" / "config").read_bytes() == parent_config_before, (
-        f"snapshot rewrote the parent's own .git/config to disable {parent_driver!r}"
-    )
-    assert (sub_git_dir / "config").read_bytes() == sub_config_before, (
-        f"snapshot rewrote the submodule's own config to disable {sub_driver!r}"
-    )
-    assert _git_dir_state(target) == git_state_before
+    _assert_submodule_head(before, sub_head)
+    assert_sub_untouched("snapshot")
+    assert_parent_untouched("snapshot")
     code, report = _compare(tmp_path, target, before, env)
     assert not sub_log.exists(), (
         f"compare ran the submodule's clean filter: {sub_log.read_text()!r}"
@@ -1685,13 +1747,8 @@ def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path):
     assert not parent_log.exists(), (
         f"compare ran the parent's clean filter: {parent_log.read_text()!r}"
     )
-    assert (target / ".git" / "config").read_bytes() == parent_config_before, (
-        f"compare rewrote the parent's own .git/config to disable {parent_driver!r}"
-    )
-    assert (sub_git_dir / "config").read_bytes() == sub_config_before, (
-        f"compare rewrote the submodule's own config to disable {sub_driver!r}"
-    )
-    assert _git_dir_state(target) == git_state_before
+    assert_sub_untouched("compare")
+    assert_parent_untouched("compare")
     assert code == 0, report
 
 
@@ -1718,10 +1775,7 @@ def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path):
     assert not log.exists(), (
         f"snapshot ran the submodule's fsmonitor hook: {log.read_text()!r}"
     )
-    submodules = json.loads(before.read_text())["submodules"]
-    assert submodules["sub"]["head"]["commit"] == sub_head, (
-        f"the snapshot does not record the submodule's own state: {submodules}"
-    )
+    _assert_submodule_head(before, sub_head)
     assert (sub_git_dir / "config").read_bytes() == sub_config_before, (
         "snapshot rewrote the submodule's own config to disable its fsmonitor hook"
     )
@@ -1760,22 +1814,14 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
     # command-scope environment declares it, between two harmless pairs. The
     # module must override the one hostile key and keep the rest; throwing
     # away the caller's inherited configuration is not a way out.
-    hijack_env = {
-        **env,
-        "GIT_CONFIG_COUNT": "3",
-        "GIT_CONFIG_KEY_0": "diff.ignoreSubmodules",
-        "GIT_CONFIG_VALUE_0": "all",
-        "GIT_CONFIG_KEY_1": f"filter.{driver}.clean",
-        "GIT_CONFIG_VALUE_1": str(script),
-        "GIT_CONFIG_KEY_2": "core.excludesFile",
-        "GIT_CONFIG_VALUE_2": str(excludes),
-    }
-
-    _git(target, hijack_env, "status", "--porcelain")
-    assert log.exists() and log.read_text().strip(), (
-        f"fixture is inert: the inherited filter.{driver}.clean never ran"
+    hijack_env = _pair_env(
+        env,
+        ("diff.ignoreSubmodules", "all"),
+        (f"filter.{driver}.clean", script),
+        ("core.excludesFile", excludes),
     )
-    log.unlink()
+
+    _assert_program_ran(target, hijack_env, log, f"the inherited filter.{driver}.clean")
 
     before = _snap(tmp_path, target, hijack_env)
     assert not log.exists(), (
@@ -1785,12 +1831,7 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
     assert "sub" not in snapshot["dirty"], (
         f"the inherited diff.ignoreSubmodules=all was dropped: {snapshot['dirty']}"
     )
-    assert "scratch.txt" not in snapshot["untracked"], (
-        f"the inherited core.excludesFile was dropped: {snapshot['untracked']}"
-    )
-    assert "scratch.txt" in snapshot["ignored"], (
-        f"the inherited core.excludesFile was dropped: {snapshot['ignored']}"
-    )
+    _assert_scratch_ignored(snapshot, "the inherited core.excludesFile was dropped")
     code, report = _compare(tmp_path, target, before, hijack_env)
     assert not log.exists(), (
         f"compare ran an inherited command-scope filter: {log.read_text()!r}"
@@ -1823,19 +1864,7 @@ def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path):
 
 
 def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
-    target, env = _build_target(tmp_path)
-    big = target / "big.bin"
-    size = 200 * 1024 * 1024
-    with open(big, "wb") as handle:
-        handle.seek(size - 1)
-        handle.write(b"\0")
-    _git(target, env, "add", "big.bin")
-    _git(target, env, "commit", "-q", "-m", "add big.bin")
-    before = _snap(tmp_path, target, env)
-
-    with open(big, "r+b") as handle:
-        handle.seek(0)
-        handle.write(b"dirty")
+    target, env, before = _big_file_target(tmp_path)
 
     # A second, harmless pair rides along in the same hostile environment.
     # Deleting the caller's inherited pairs would hold the RSS budget without
@@ -1854,14 +1883,9 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     # beats the environment transport, so PRD 00019's peak-RSS guard survives.
     # Measured on git 2.56.0 for this fixture: ~8 MiB when 1m wins, ~207 MiB
     # when the inherited 4g wins.
-    hostile_env = {
-        **env,
-        "GIT_CONFIG_COUNT": "2",
-        "GIT_CONFIG_KEY_0": "core.bigFileThreshold",
-        "GIT_CONFIG_VALUE_0": "4g",
-        "GIT_CONFIG_KEY_1": "core.excludesFile",
-        "GIT_CONFIG_VALUE_1": str(excludes),
-    }
+    hostile_env = _pair_env(
+        env, ("core.bigFileThreshold", "4g"), ("core.excludesFile", excludes),
+    )
     budget = 48 * 1024 * 1024
     peak_rss = _peak_rss(tmp_path, hostile_env, "compare", str(target), str(before))
     assert peak_rss < budget, (
@@ -1869,13 +1893,10 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
         f"peak RSS {peak_rss} bytes exceeded {budget} byte budget"
     )
     hostile = json.loads(_snap(tmp_path, target, hostile_env, name="hostile.json").read_text())
-    assert "scratch.txt" not in hostile["untracked"], (
-        f"the inherited core.excludesFile was dropped instead of forwarded, so the "
-        f"threshold was beaten by deletion, not by precedence: {hostile['untracked']}"
-    )
-    assert "scratch.txt" in hostile["ignored"], (
-        f"the inherited core.excludesFile was dropped instead of forwarded, so the "
-        f"threshold was beaten by deletion, not by precedence: {hostile['ignored']}"
+    _assert_scratch_ignored(
+        hostile,
+        "the inherited core.excludesFile was dropped instead of forwarded, so the "
+        "threshold was beaten by deletion, not by precedence",
     )
     code, report = _compare(tmp_path, target, before, hostile_env)
     assert code == 1, report
