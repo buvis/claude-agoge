@@ -501,50 +501,55 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_path):
+@pytest.mark.parametrize("source", ["local", "global", "include-if", "submodule"])
+def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_path, source):
     target, env = _build_target(tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
-    _configure_filter(target, env, ["--local"], driver, script)
-    (target / "notes.txt").write_bytes(b"notes v1\n")
+    env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, driver, script, "clean")
+    (declaring / "notes.txt").write_bytes(b"notes v1\n")
 
-    # `git config` reads only GIT_CONFIG when it is set, while `git status`
-    # ignores it and still reads the target's own config. The file is real but
-    # empty, so this pins the redirect and not a git error.
+    # `git config` reads only GIT_CONFIG when set; `git status` ignores it and
+    # reads the repository's own config. The file is real but empty, so this
+    # pins the redirect, not a git error. Several sources, because redirecting
+    # discovery to one repository's local config still hides the others.
     redirect = tmp_path / "inherited.cfg"
     redirect.write_text("")
     hostile_env = {**env, "GIT_CONFIG": str(redirect)}
 
-    # Positive control under that same environment: the target's clean filter
-    # really does still run, so "never ran" below cannot pass vacuously.
-    _assert_program_ran(target, hostile_env, log, "the target's clean filter")
+    # Positive control, so "never ran" below cannot pass vacuously.
+    _assert_program_ran(declaring, hostile_env, log, f"the {source} clean filter")
 
     # The other half of the asymmetry, asserted rather than assumed: if a
-    # future git stops honouring GIT_CONFIG here, the fixture goes inert and
-    # this is what says so.
+    # future git stops honouring GIT_CONFIG, the fixture goes inert and this says so.
     probe = subprocess.run(
         ["git", "config", "--includes", "--get", f"filter.{driver}.clean"],
-        cwd=target, env=hostile_env, capture_output=True, text=True,
+        cwd=declaring, env=hostile_env, capture_output=True, text=True,
     )
     assert not probe.stdout.strip(), (
         f"the fixture is inert: `git config` still reports filter.{driver}.clean "
         f"under the inherited GIT_CONFIG: {probe.stdout!r}"
     )
 
-    assert_untouched = _capture_untouched(target, hostile_env, "the target")
+    assert_target_untouched = _capture_untouched(target, hostile_env, "the target")
+    assert_declaring_untouched = _capture_untouched(declaring, hostile_env, f"the {source}")
 
     before = _snap(tmp_path, target, hostile_env)
     assert not log.exists(), (
-        f"an inherited GIT_CONFIG let snapshot run the target's clean filter: "
+        f"an inherited GIT_CONFIG let snapshot run the {source} clean filter: "
         f"{log.read_text()!r}"
     )
-    assert_untouched("snapshot")
+    if source == "submodule":  # never visiting the submodule is not a pass
+        _assert_submodule_head(before, _git(declaring, env, "rev-parse", "HEAD"))
+    assert_target_untouched("snapshot")
+    assert_declaring_untouched("snapshot")
     code, report = _compare(tmp_path, target, before, hostile_env)
     assert not log.exists(), (
-        f"an inherited GIT_CONFIG let compare run the target's clean filter: "
+        f"an inherited GIT_CONFIG let compare run the {source} clean filter: "
         f"{log.read_text()!r}"
     )
-    assert_untouched("compare")
+    assert_target_untouched("compare")
+    assert_declaring_untouched("compare")
     assert code == 0, report
 
 
