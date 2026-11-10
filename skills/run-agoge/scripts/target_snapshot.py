@@ -27,6 +27,17 @@ Exit 0 when unchanged, 1 when changed, 2 when the check cannot run (one
 `target_snapshot: <reason>` line on stderr, no JSON). Any other unexpected
 error also exits 2. Every git call runs with `--no-optional-locks` and nothing
 is ever written inside <repo>.
+
+Every git call also refuses to run the target's own `core.fsmonitor` hook and
+its `clean`/`process` filter drivers: the drivers effective in the repo and in
+every initialized submodule are discovered from git's configuration and
+disabled through command-scope configuration, so the target's config can never
+name a program this script runs. That covers those two vectors only - it is not
+a claim that nothing a repo configures can run (`core.pager`, `core.hooksPath`
+hooks, `diff.external`, `core.alternateRefsCommand` and credential helpers are
+out of scope). With a normalizing filter disabled, a file whose worktree bytes
+differ from its filtered blob reads as modified, so `dirty` can list more paths
+than git itself would.
 """
 
 from __future__ import annotations
@@ -61,19 +72,154 @@ _GIT_REPO_VARS = frozenset({
     "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
 })
 
+_GIT_CONFIG_COUNT_VARS = frozenset({"GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"})
 
-def _git(repo: str, *args: str, allow_fail: bool = False) -> subprocess.CompletedProcess:
-    env = {k: v for k, v in os.environ.items() if k not in _GIT_REPO_VARS}
+_GIT_CONFIG_INDEXED_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
+
+_STATIC_OVERRIDES: tuple[tuple[str, str], ...] = (
+    ("core.fsmonitor", "false"),
+)
+
+_FILTER_KEY_REGEX = r"^filter\..*\.(clean|process|required)$"
+
+_filter_override_cache: dict[str, tuple[tuple[str, str], ...]] = {}
+
+
+def _base_env() -> dict[str, str]:
+    """The inherited environment with every git repo and command-scope config
+    variable removed.
+
+    Drops `_GIT_REPO_VARS`, `GIT_CONFIG_COUNT`, `GIT_CONFIG_PARAMETERS` and
+    every `GIT_CONFIG_KEY_<n>` / `GIT_CONFIG_VALUE_<n>`. Returns a new dict;
+    `os.environ` is never mutated. `GIT_CONFIG_GLOBAL`, `GIT_CONFIG_SYSTEM` and
+    `GIT_CONFIG_NOSYSTEM` are deliberately kept: discovery reads through the
+    same environment, so such a redirect cannot smuggle a filter past it.
+    """
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if key not in _GIT_REPO_VARS
+        and key not in _GIT_CONFIG_COUNT_VARS
+        and not key.startswith(_GIT_CONFIG_INDEXED_PREFIXES)
+    }
+
+
+def _inherited_config_pairs() -> tuple[tuple[str, str], ...]:
+    """Inherited command-scope `(key, value)` pairs that are not filter keys.
+
+    Reads `GIT_CONFIG_COUNT` and returns the pairs at indices `0..count-1`, in
+    index order, skipping any filter key (matched case-insensitively on the
+    first and last components, the way git compares them) and any index whose
+    key or value is absent. A missing, empty, non-integer or negative count
+    yields `()`.
+    """
+    try:
+        count = int(os.environ.get("GIT_CONFIG_COUNT", ""))
+    except ValueError:
+        return ()
+    pairs: list[tuple[str, str]] = []
+    for index in range(max(count, 0)):
+        key = os.environ.get(f"GIT_CONFIG_KEY_{index}")
+        value = os.environ.get(f"GIT_CONFIG_VALUE_{index}")
+        if key is None or value is None:
+            continue
+        parts = key.split(".")
+        if len(parts) >= 3:
+            folded = ".".join([parts[0].lower(), *parts[1:-1], parts[-1].lower()])
+            if re.match(_FILTER_KEY_REGEX, folded):
+                continue
+        pairs.append((key, value))
+    return tuple(pairs)
+
+
+def _config_env(overrides: tuple[tuple[str, str], ...]) -> dict[str, str]:
+    """`GIT_CONFIG_COUNT`/`KEY`/`VALUE` variables for one git invocation.
+
+    Emits `_inherited_config_pairs()` first, then `overrides`, so the overrides
+    sit at later indices and win. `GIT_CONFIG_COUNT` is always set, even to
+    `"0"`, so an inherited count can never leak through.
+    """
+    pairs = _inherited_config_pairs() + overrides
+    env = {"GIT_CONFIG_COUNT": str(len(pairs))}
+    for index, (key, value) in enumerate(pairs):
+        env[f"GIT_CONFIG_KEY_{index}"] = key
+        env[f"GIT_CONFIG_VALUE_{index}"] = value
+    return env
+
+
+def _run_git(
+    repo: str,
+    args: tuple[str, ...],
+    overrides: tuple[tuple[str, str], ...],
+    allow_fail: bool,
+) -> subprocess.CompletedProcess:
+    """Run one `git --no-optional-locks -C <repo> <args>` with `overrides`."""
     result = subprocess.run(
         ["git", "--no-optional-locks", "-C", str(repo), *args],
         capture_output=True,
-        env=env,
+        env={**_base_env(), **_config_env(overrides)},
     )
     if result.returncode != 0 and not allow_fail:
         reason = result.stderr.decode(errors="replace").strip().splitlines()
         detail = reason[0] if reason else f"exit {result.returncode}"
         raise Fail(f"git {args[0]} failed: {detail}")
     return result
+
+
+def _filter_overrides(repo: str) -> tuple[tuple[str, str], ...]:
+    """Config overrides that disable every filter driver effective in `repo`.
+
+    Discovery is one unscoped `git config --get-regexp`, so local, global,
+    system, worktree, included and matching conditional-include files all
+    count. Names are split on NUL and stripped of the `filter.` prefix and the
+    final `.<prop>` with `rsplit`, so a driver name containing `=`, a space or
+    a dot survives whole. Exit 1 means no matching key; any other non-zero exit
+    fails closed to `Fail`.
+
+    The result is the UNION of `repo`'s own drivers and those of every
+    initialized submodule, found recursively: a `filter.*.clean` declared only
+    in a submodule runs during the PARENT's `git status` (the parent's
+    submodule-dirtiness check runs status machinery inside the submodule),
+    while the parent's own config discovery cannot see that key. Disabling a
+    driver a repository does not declare is harmless. Results are memoized
+    under `os.path.realpath(repo)`, so each repository discovers once.
+    """
+    cache_key = os.path.realpath(repo)
+    if cache_key in _filter_override_cache:
+        return _filter_override_cache[cache_key]
+    found = _run_git(
+        repo,
+        ("config", "--includes", "--null", "--name-only", "--get-regexp", _FILTER_KEY_REGEX),
+        _STATIC_OVERRIDES,
+        True,
+    )
+    if found.returncode not in (0, 1):
+        reason = found.stderr.decode(errors="replace").strip().splitlines()
+        detail = reason[0] if reason else f"exit {found.returncode}"
+        raise Fail(f"git config filter discovery failed: {detail}")
+    names = {
+        os.fsdecode(name)[len("filter."):].rsplit(".", 1)[0]
+        for name in found.stdout.split(b"\0")
+        if name
+    }
+    overrides: list[tuple[str, str]] = []
+    for name in sorted(names):
+        overrides.append((f"filter.{name}.clean", ""))
+        overrides.append((f"filter.{name}.process", ""))
+        overrides.append((f"filter.{name}.required", "false"))
+    staged = _run_git(repo, ("ls-files", "--stage", "-z"), _STATIC_OVERRIDES, False)
+    for entry in staged.stdout.split(b"\0"):
+        if entry.startswith(b"160000 "):
+            path = os.path.join(repo, os.fsdecode(entry.split(b"\t", 1)[1]))
+            if os.path.exists(os.path.join(path, ".git")):
+                overrides.extend(_filter_overrides(path))
+    result = tuple(dict.fromkeys(overrides))
+    _filter_override_cache[cache_key] = result
+    return result
+
+
+def _git(repo: str, *args: str, allow_fail: bool = False) -> subprocess.CompletedProcess:
+    return _run_git(repo, args, _STATIC_OVERRIDES + _filter_overrides(repo), allow_fail)
 
 
 def _text(result: subprocess.CompletedProcess) -> str:

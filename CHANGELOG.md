@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: target snapshot now hashes dirty files in chunks instead of loading the whole file into memory, keeping peak memory bounded for large dirty files
 - **run-agoge**: PRD allocator reports errors as one line with exit 2
 - **run-agoge**: target integrity check detects overwritten untracked files and deleted ignored files
+- **run-agoge**: target snapshot no longer runs the repo's fsmonitor or clean filter programs
 
 ## [0.3.0] - 2026-11-02
 
