@@ -180,7 +180,8 @@ def test_snapshot_does_not_run_clean_filter(tmp_path):
 
 
 # One setup per configuration source. Each takes the freshly built target and
-# its environment, declares a `kind` (clean or process) filter for `driver` through its own scope,
+# its environment, declares a `kind` (clean or process) filter for `driver`
+# through its own scope,
 # and returns the environment the snapshot must run with plus the repository
 # whose config now declares the driver (the submodule, for the last one).
 def _source_local(tmp_path, target, env, driver, script, kind):
@@ -239,12 +240,12 @@ _FILTER_SOURCES = {
 
 @pytest.mark.parametrize("kind", ["clean", "process"])
 @pytest.mark.parametrize("source", list(_FILTER_SOURCES))
-def test_snapshot_does_not_run_clean_filter_from_any_source(tmp_path, source, kind):
+def test_snapshot_does_not_run_filter_from_any_source(tmp_path, source, kind):
     target, env = _build_target(tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
     env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, driver, script, kind)
-    # Same-size edit with a newer mtime, so git must run the clean filter to
+    # Same-size edit with a newer mtime, so git must run the filter to
     # decide whether the content changed.
     (declaring / "notes.txt").write_bytes(b"notes v1\n")
 
@@ -262,10 +263,7 @@ def test_snapshot_does_not_run_clean_filter_from_any_source(tmp_path, source, ki
     if source == "submodule":
         # Not running the submodule's driver because the submodule was never
         # visited is not a pass: the snapshot must carry its state.
-        submodules = json.loads(before.read_text())["submodules"]
-        assert submodules["sub"]["head"]["commit"] == _git(declaring, env, "rev-parse", "HEAD"), (
-            f"the snapshot does not record the submodule's own state: {submodules}"
-        )
+        _assert_submodule_head(before, _git(declaring, env, "rev-parse", "HEAD"))
     code, report = _compare(tmp_path, target, before, env)
     assert not log.exists(), (
         f"compare ran the {source} {kind} filter: {log.read_text()!r}"
@@ -356,22 +354,17 @@ def test_snapshot_does_not_run_required_process_filter(tmp_path):
     # Positive control: the marker cannot speak git's long-running filter
     # protocol, so git fails - but only after launching it, which is what the
     # log line proves.
-    with pytest.raises(subprocess.CalledProcessError):
-        _git(target, env, "status", "--porcelain")
-    assert log.exists() and log.read_text().strip(), (
-        "fixture is inert: the target's process filter never launched"
+    _assert_program_ran(
+        target, env, log, "the target's process filter", fails=True,
     )
-    log.unlink()
 
-    out = tmp_path / "snaps" / "before.json"
-    out.parent.mkdir(exist_ok=True)
-    result = _run(tmp_path, env, "snapshot", str(target), str(out))
+    # `_snap` asserts the snapshot exited 0, which is the other half of the
+    # promise here: a `required` driver whose command is disabled must not make
+    # status fail.
+    out = _snap(tmp_path, target, env)
     assert not log.exists(), (
         f"snapshot ran the target's process filter: {log.read_text()!r}"
     )
-    # A `required` driver whose command is disabled must not make status fail:
-    # exit 0 or 1, never 2.
-    assert result.returncode == 0, result.stderr
     code, report = _compare(tmp_path, target, out, env)
     assert not log.exists(), (
         f"compare ran the target's process filter: {log.read_text()!r}"
@@ -439,31 +432,22 @@ def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path):
     # Positive control: command-scope config is process-wide, so the
     # submodule's hook fires during the PARENT's own status, not only during
     # the recursion into the submodule.
-    _git(target, env, "status", "--porcelain")
-    assert log.exists() and log.read_text().strip(), (
-        "fixture is inert: the submodule's core.fsmonitor never ran"
-    )
-    log.unlink()
+    _assert_program_ran(target, env, log, "the submodule's core.fsmonitor")
 
-    sub_git_dir = Path(_git(sub, env, "rev-parse", "--absolute-git-dir"))
     sub_head = _git(sub, env, "rev-parse", "HEAD")
-    sub_config_before = (sub_git_dir / "config").read_bytes()
+    assert_sub_untouched = _capture_untouched(sub, env, "the submodule")
 
     before = _snap(tmp_path, target, env)
     assert not log.exists(), (
         f"snapshot ran the submodule's fsmonitor hook: {log.read_text()!r}"
     )
     _assert_submodule_head(before, sub_head)
-    assert (sub_git_dir / "config").read_bytes() == sub_config_before, (
-        "snapshot rewrote the submodule's own config to disable its fsmonitor hook"
-    )
+    assert_sub_untouched("snapshot")
     code, report = _compare(tmp_path, target, before, env)
     assert not log.exists(), (
         f"compare ran the submodule's fsmonitor hook: {log.read_text()!r}"
     )
-    assert (sub_git_dir / "config").read_bytes() == sub_config_before, (
-        "compare rewrote the submodule's own config to disable its fsmonitor hook"
-    )
+    assert_sub_untouched("compare")
     assert code == 0, report
 
 
@@ -528,12 +512,7 @@ def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path):
     baseline = _snap(tmp_path, target, env, name="baseline.json")
     assert "sub" in json.loads(baseline.read_text())["dirty"]
 
-    pair_env = {
-        **env,
-        "GIT_CONFIG_COUNT": "1",
-        "GIT_CONFIG_KEY_0": "diff.ignoreSubmodules",
-        "GIT_CONFIG_VALUE_0": "all",
-    }
+    pair_env = _pair_env(env, ("diff.ignoreSubmodules", "all"))
     with_pair = _snap(tmp_path, target, pair_env, name="with-pair.json")
     dirty = json.loads(with_pair.read_text())["dirty"]
     assert "sub" not in dirty, (
