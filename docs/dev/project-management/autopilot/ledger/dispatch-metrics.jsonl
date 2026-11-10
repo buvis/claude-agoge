@@ -571,3 +571,4 @@
 {"id":"10ac8ebf","ended_at":1794274917,"elapsed_s":870,"outcome":"ok","detail":null}
 {"id":"17101e9b","ended_at":1794274917,"elapsed_s":870,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"review","edge":"leave","at":1794275012,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"kind":"handoff","site":"review","edge":"leave","at":1794275212,"phase":"done","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
