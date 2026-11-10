@@ -31,9 +31,11 @@ Generated: 2026-11-09
 
 ### Batch 202611091445 (in progress)
 - [x] 00009-integrity-check-misses-untracked-edits-v1.md (1 cycle)
-- [ ] 00010-snapshot-runs-repo-configured-programs-v1.md (wip, in progress)
+- [x] 00010-snapshot-runs-repo-configured-programs-v1.md (2 cycles)
 
 00010 retry: premise re-checked on master at `8c1bf7b` and it still holds - `_git` (`target_snapshot.py:65`) passes only `--no-optional-locks -C <repo>` and sanitizes `_GIT_REPO_VARS`; there is no `core.fsmonitor` or `filter.*` neutralization anywhere in the script. The prior attempt (parked branch `fast-track/00010-...-c1`, tip `d3dcc4a`, unmerged) was rejected for omitting include files, equals-named filters and submodule config. Full lane this time: design + full review gate.
+
+00010 result: 2 review cycles, converged. Cycle 2's tail sweep fixed `TEST_ENV` in `skills/run-agoge/scripts/snapshot_fixtures.py` to strip the `GIT_CONFIG` command-scope family, so the fsmonitor positive controls stop failing under an inherited `core.fsmonitor` override. 1 LOW item deferred (either-or hedge in a test assertion, already resolved at review-close). `dev/bin/release-checks` green at close (241 passed, 2 skipped).
 
 00009 retry: the prior attempt (parked branch `fast-track/00009-integrity-check-misses-untracked-edits-v1-c1`, tip `951401a`) failed review because `git ls-files -o -i --exclude-standard --directory` collapses ignored children into their parent dir, so deleting one child of `vault/` went unreported. The retry contract listed ignored paths as the union of the plain and `--directory` listings; implemented on master (the module had changed since: 00011 FIFO handling, 00019 chunked hashing, 00012/00013/00018). Cycle 1 converged with 2 medium tail-sweep fixes (VERSION-bump pinning test, unreadable-untracked-file exit-2 case); Pat reviewer unavailable both times (OAuth session expired), PRD-level review already covered the diff. Full suite green (212 passed, 2 skipped).
 
