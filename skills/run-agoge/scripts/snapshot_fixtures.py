@@ -7,8 +7,14 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "target_snapshot.py"
 
+_GIT_CONFIG_SCOPE_PREFIXES = ("GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
+
 TEST_ENV = {
-    **os.environ,
+    **{
+        key: value
+        for key, value in os.environ.items()
+        if key != "GIT_CONFIG" and not key.startswith(_GIT_CONFIG_SCOPE_PREFIXES)
+    },
     "GIT_CONFIG_GLOBAL": "/dev/null",
     "GIT_CONFIG_NOSYSTEM": "1",
     "GIT_AUTHOR_NAME": "Test User",
