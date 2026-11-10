@@ -535,3 +535,9 @@
 {"id":"582bd71b","kind":"pat","task":"3","queued_at":1794270078,"prompt_bytes":48134}
 {"id":"582bd71b","ended_at":1794270373,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
 {"kind":"handoff","site":"build","edge":"leave","at":1794270373,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"kind":"handoff","site":"review","edge":"resume","at":1794270407,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"id":"04556aca","kind":"bob","task":"review-202611100035","queued_at":1794270497,"prompt_bytes":13276}
+{"id":"475965ae","kind":"carl","task":"review-202611100035","queued_at":1794270497,"prompt_bytes":6612}
+{"id":"04556aca","ended_at":1794270915,"elapsed_s":418,"outcome":"ok","detail":null}
+{"id":"475965ae","ended_at":1794270917,"elapsed_s":420,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"review","edge":"leave","at":1794271213,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
