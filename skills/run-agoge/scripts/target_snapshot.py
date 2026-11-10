@@ -89,11 +89,9 @@ def _base_env() -> dict[str, str]:
     """The inherited environment with every git repo and command-scope config
     variable removed.
 
-    Drops `_GIT_REPO_VARS`, `GIT_CONFIG_COUNT`, `GIT_CONFIG_PARAMETERS` and
-    every `GIT_CONFIG_KEY_<n>` / `GIT_CONFIG_VALUE_<n>`. Returns a new dict;
-    `os.environ` is never mutated. `GIT_CONFIG_GLOBAL`, `GIT_CONFIG_SYSTEM` and
-    `GIT_CONFIG_NOSYSTEM` are deliberately kept: discovery reads through the
-    same environment, so such a redirect cannot smuggle a filter past it.
+    `GIT_CONFIG_GLOBAL`, `GIT_CONFIG_SYSTEM` and `GIT_CONFIG_NOSYSTEM` are
+    deliberately kept: discovery reads through the same environment, so such a
+    redirect cannot smuggle a filter past it.
     """
     return {
         key: value
@@ -107,11 +105,8 @@ def _base_env() -> dict[str, str]:
 def _inherited_config_pairs() -> tuple[tuple[str, str], ...]:
     """Inherited command-scope `(key, value)` pairs that are not filter keys.
 
-    Reads `GIT_CONFIG_COUNT` and returns the pairs at indices `0..count-1`, in
-    index order, skipping any filter key (matched case-insensitively on the
-    first and last components, the way git compares them) and any index whose
-    key or value is absent. A missing, empty, non-integer or negative count
-    yields `()`.
+    Filter keys are matched case-insensitively on the first and last
+    components, the way git compares them.
     """
     try:
         count = int(os.environ.get("GIT_CONFIG_COUNT", ""))
@@ -153,7 +148,6 @@ def _run_git(
     overrides: tuple[tuple[str, str], ...],
     allow_fail: bool,
 ) -> subprocess.CompletedProcess:
-    """Run one `git --no-optional-locks -C <repo> <args>` with `overrides`."""
     result = subprocess.run(
         ["git", "--no-optional-locks", "-C", str(repo), *args],
         capture_output=True,
