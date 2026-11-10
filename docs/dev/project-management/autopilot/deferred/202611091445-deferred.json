@@ -1,0 +1,37 @@
+{
+  "batch_id": "202611091445",
+  "items": [
+    {
+      "type": "test-strength-gap",
+      "issue": "test_snapshot_does_not_run_filter_from_any_source[global-clean|process] passes vacuously if the module drops GIT_CONFIG_GLOBAL from its env: git never reads the global file, so the driver cannot run whatever the module does about filters. Close it by asserting an observable harmless global key survives the module env (core.excludesFile -> _assert_scratch_ignored).",
+      "severity": "medium",
+      "source": "devon adversarial validation, cycle 1 task 5, weak point 3",
+      "reason": "pre-existing gap outside task 5 diff; Tess and the orchestrator both agree the gap is real",
+      "prd": "00010-snapshot-runs-repo-configured-programs-v1.md"
+    },
+    {
+      "type": "test-strength-gap",
+      "issue": "Every test in test_target_snapshot_programs.py asserts code == 0, so a compare that returns a constant unchanged report, reading neither repo nor snapshot, passes all of them; that also makes every compare-ran-the-program and assert_untouched(compare) assertion vacuous. Close it with one test that makes a real change after the snapshot (move a ref, edit a tracked file) and asserts code == 1 with the expected violation kind.",
+      "severity": "medium",
+      "source": "devon adversarial validation, cycle 1 task 5, weak points 4 and 5",
+      "reason": "pre-existing gap outside task 5 diff; the violation kind vocabulary is not pinned by this PRD, so Tess declined to invent it",
+      "prd": "00010-snapshot-runs-repo-configured-programs-v1.md"
+    },
+    {
+      "type": "test-strength-gap",
+      "issue": "Nothing asserts the snapshot config/index/gitdir content derives from the repository, so a snapshot freezing them to constants with gitdir = {} passes the clean-filter, fsmonitor and submodule-only tests and makes config rewrites and .git writes undetectable. Relatedly, _assert_submodule_head is satisfied by a submodule entry carrying only head.commit. Close it by asserting the config digest differs across two targets with different local config, that gitdir is non-empty, and that a submodule entry carries non-empty index/refs.",
+      "severity": "medium",
+      "source": "devon adversarial validation, cycle 1 task 5, weak points 6 and 7",
+      "reason": "pre-existing gap outside task 5 diff; the submodule index/refs field names are not pinned by this PRD, so Tess declined to invent schema",
+      "prd": "00010-snapshot-runs-repo-configured-programs-v1.md"
+    },
+    {
+      "type": "test-strength-gap",
+      "issue": "test_unreadable_included_config_exits_2_and_runs_nothing is satisfied by filter discovery that fails open plus a hardcoded git config discovery failed prefix on every git error, because the test only checks that the reason contains config. Close it by asserting the reason names filter discovery specifically, plus a control proving a non-config git failure (e.g. a missing HEAD) does not report a config reason.",
+      "severity": "medium",
+      "source": "devon adversarial validation, cycle 1 task 5, weak point 8",
+      "reason": "pre-existing gap outside task 5 diff; Tess and the orchestrator both agree the gap is real",
+      "prd": "00010-snapshot-runs-repo-configured-programs-v1.md"
+    }
+  ]
+}

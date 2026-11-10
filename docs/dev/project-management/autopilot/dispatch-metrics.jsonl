@@ -541,3 +541,25 @@
 {"id":"04556aca","ended_at":1794270915,"elapsed_s":418,"outcome":"ok","detail":null}
 {"id":"475965ae","ended_at":1794270917,"elapsed_s":420,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"review","edge":"leave","at":1794271213,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"kind":"handoff","site":"review","edge":"resume","at":1794271251,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"id":"f4981439","kind":"ivan","task":"6","queued_at":1794271387,"prompt_bytes":10741}
+{"id":"f4981439","ended_at":1794271454,"elapsed_s":67,"outcome":"ok","detail":null}
+{"id":"00984055","kind":"ivan","task":"6","queued_at":1794271482,"prompt_bytes":12750}
+{"id":"00984055","ended_at":1794271716,"elapsed_s":234,"outcome":"ok","detail":null}
+{"id":"1f05ca2d","kind":"pat","task":"6","queued_at":1794271868,"prompt_bytes":125823}
+{"id":"fc92b1ae","kind":"pat","task":"6","queued_at":1794271879,"prompt_bytes":7978}
+{"id":"6a1ce755","kind":"pat","task":"6","queued_at":1794271900,"prompt_bytes":38321}
+{"id":"ec40fd20","kind":"tess","task":"5","queued_at":1794272182,"prompt_bytes":38410}
+{"id":"5069bedc","kind":"devon","task":"5","queued_at":1794272368,"prompt_bytes":3415}
+{"id":"5069bedc","ended_at":1794272779,"elapsed_s":411,"outcome":"ok","detail":null}
+{"id":"8abc8bdb","kind":"tess","task":"5","queued_at":1794272809,"prompt_bytes":13513}
+{"id":"ee73bc69","kind":"ivan","task":"5","queued_at":1794273122,"prompt_bytes":33985}
+{"id":"fc79ff8d","kind":"pat","task":"5","queued_at":1794273348,"prompt_bytes":12137}
+{"id":"1f05ca2d","ended_at":1794273498,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"fc92b1ae","ended_at":1794273498,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"6a1ce755","ended_at":1794273498,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"fc79ff8d","ended_at":1794273498,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
+{"id":"ec40fd20","ended_at":1794273498,"elapsed_s":null,"outcome":"lost","detail":"open at review/leave handoff"}
+{"id":"8abc8bdb","ended_at":1794273498,"elapsed_s":null,"outcome":"lost","detail":"open at review/leave handoff"}
+{"id":"ee73bc69","ended_at":1794273498,"elapsed_s":null,"outcome":"lost","detail":"open at review/leave handoff"}
+{"kind":"handoff","site":"review","edge":"leave","at":1794273498,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
