@@ -1,0 +1,203 @@
+{
+  "fixture": "claude-agoge",
+  "target_head": "de4db0bf74d3c041265346028bfde29341d10f89",
+  "authorization": {"route": "profile"},
+  "target_integrity": {
+    "status": "unchanged",
+    "violations": [],
+    "touched": []
+  },
+  "findings": [
+    {
+      "domain": "security",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Snapshot hangs or eats unbounded memory when .git holds a fifo, a link to /dev/zero, or a large file such as an LFS object",
+      "symbols": ["_gitdir_files"],
+      "lanes": ["trudy", "peggy"]
+    },
+    {
+      "domain": "security",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Compare runs the target repo's gpg.program when it reports a moved ref",
+      "symbols": ["_ref_violation", "_STATIC_OVERRIDES"],
+      "lanes": ["trudy"]
+    },
+    {
+      "domain": "integration",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A plain git status in a repo with a normalizing filter makes compare fail the run although no bytes changed",
+      "symbols": ["_dirty"],
+      "lanes": ["heidi"]
+    },
+    {
+      "domain": "performance",
+      "severity": "HIGH",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Every snapshot reads and hashes every untracked byte, so a repo with many or large untracked files takes seconds to minutes per run and stalls on a huge file",
+      "symbols": ["_fingerprint"],
+      "lanes": ["peggy", "trudy"]
+    },
+    {
+      "domain": "security",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A filter driver in a submodule that appears during a snapshot runs in the parent's git status",
+      "symbols": ["_filter_overrides", "_filter_override_cache"],
+      "lanes": ["trudy"]
+    },
+    {
+      "domain": "security",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A fifo .gitignore in the target makes snapshot hang forever",
+      "symbols": ["_run_git"],
+      "lanes": ["trudy"]
+    },
+    {
+      "domain": "security",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"],
+      "status": "verified",
+      "title": "The PRD allocator creates the claimed file outside the repo if backlog/ is swapped for a symlink while it waits for the lock",
+      "symbols": ["claim"],
+      "lanes": ["trudy"]
+    },
+    {
+      "domain": "integration",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A file written inside a submodule fails the run with no inner path, and --allow cannot exempt it",
+      "symbols": ["compare"],
+      "lanes": ["heidi"]
+    },
+    {
+      "domain": "journey",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Changing an untracked file's permissions passes as unchanged, while the same change on a tracked file is caught",
+      "symbols": ["_fingerprint"],
+      "lanes": ["walter"]
+    },
+    {
+      "domain": "release",
+      "severity": "MEDIUM",
+      "paths": ["CHANGELOG.md", "skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A repo with one unreadable untracked file now gets no lanes at all, and the changelog does not say so",
+      "lanes": ["wendy"]
+    },
+    {
+      "domain": "release",
+      "severity": "MEDIUM",
+      "paths": ["README.md", "skills/run-agoge/references/finding-contract.md"],
+      "status": "verified",
+      "title": "Docs promise a restore command for every violation, but only ref changes carry one",
+      "lanes": ["wendy"]
+    },
+    {
+      "domain": "performance",
+      "severity": "MEDIUM",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "The snapshot file grows about 5x with untracked files and lists every ignored file, 3.5 MB for a 100k-file node_modules",
+      "lanes": ["peggy"]
+    },
+    {
+      "domain": "integration",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "If snapshot and compare see different global git config, an untouched file is reported as both removed and touched",
+      "lanes": ["heidi"]
+    },
+    {
+      "domain": "integration",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A broken inherited GIT_CONFIG_COUNT that git refuses is silently accepted",
+      "symbols": ["_inherited_config_pairs"],
+      "lanes": ["heidi"]
+    },
+    {
+      "domain": "journey",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "A fifo replacing an untracked file is reported as removed, and a new fifo is not reported at all",
+      "lanes": ["walter"]
+    },
+    {
+      "domain": "ux",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "--allow on a directory does not exempt the files inside it, and a directory name without a trailing slash matches nothing",
+      "lanes": ["walter"]
+    },
+    {
+      "domain": "ux",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "An unreadable untracked file stops the check with an 'unexpected PermissionError' line that --allow cannot clear",
+      "symbols": ["_fingerprint"],
+      "lanes": ["walter"]
+    },
+    {
+      "domain": "release",
+      "severity": "LOW",
+      "paths": ["README.md", "skills/run-agoge/references/finding-contract.md"],
+      "status": "verified",
+      "title": "README says any change fails the run, but edits inside ignored files pass",
+      "lanes": ["wendy"]
+    },
+    {
+      "domain": "release",
+      "severity": "LOW",
+      "paths": ["CHANGELOG.md"],
+      "status": "verified",
+      "title": "The changelog names fsmonitor and clean filters but not the process filters (git-lfs) the fix also stopped",
+      "lanes": ["wendy"]
+    },
+    {
+      "domain": "release",
+      "severity": "LOW",
+      "paths": ["CHANGELOG.md"],
+      "status": "verified",
+      "title": "The GIT_CONFIG changelog entry claims filters ran while hidden, which no build ever did",
+      "lanes": ["wendy"]
+    },
+    {
+      "domain": "performance",
+      "severity": "LOW",
+      "paths": ["skills/run-agoge/scripts/target_snapshot.py"],
+      "status": "verified",
+      "title": "Git subprocesses per repo rose from 10 to 14, with ls-files --stage run three times",
+      "lanes": ["peggy"]
+    },
+    {
+      "domain": "performance",
+      "severity": "LOW",
+      "paths": [
+        "skills/run-agoge/scripts/test_target_snapshot_programs.py",
+        "skills/run-agoge/scripts/test_target_snapshot_state.py",
+        "skills/run-agoge/scripts/test_target_snapshot.py"
+      ],
+      "status": "verified",
+      "title": "The test suite went from about 19 s to about 50 s",
+      "lanes": ["peggy"]
+    }
+  ]
+}

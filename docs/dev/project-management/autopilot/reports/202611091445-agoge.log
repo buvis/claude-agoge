@@ -1,0 +1,52 @@
+I've started all five lanes (walter, heidi, wendy, peggy, trudy) at the same time. I'll wait for them to finish, then compare the target again and write the report.
+
+Done so far:
+- **Recon:** the strategy profile was out of date (written at commit `c7da90f`, the repo is now at `de4db0b`), so I had recon refresh it.
+- **Test suite:** recon ran it at the current commit: 241 passed, 2 skipped.
+- **Pins and vetoes:** this section of the profile is byte-identical after the refresh (same checksum).
+- **Target check after recon:** unchanged. The only allowed change is the profile itself.
+- **Security lane (trudy):** authorized by the `Authorization:` line in the profile. Your `--authorized autoclaude-drain` flag was also passed, but the profile line takes precedence when both are present.
+- **UX lane (judy):** not run, because the repo has no UI.
+- **Prompt size:** I did not measure each prompt exactly. Pasting the whole contract file, the whole profile and the largest playbook would still be about 38.6 KB, under the 50 KB limit.
+
+The skill's scratch rules tell lanes to tag scratch commits with `-c user.name`. The repo's newer `finding-contract.md` requires an `env GIT_AUTHOR_NAME=...` prefix instead, because an exported identity overrides `-c`. I pasted the skill's text unchanged and added a note telling each lane to use the `env` form. This is a gap between the installed 0.3.0 plugin and unreleased fixes in the repo.
+
+Heidi has reported back: 4 findings, all backed by commands she ran and their output. I'm still waiting on walter, wendy, peggy and trudy.
+
+Wendy has reported back: 5 findings, all backed by commands she ran and their output. She also saw this run's identity issue happen for real. With the `-c user.name` form from the 0.3.0 contract I pasted, her scratch commit came out under an outside name and email instead of `agoge-wendy`. The repo already fixes this, but the fix is not released yet. Still waiting on walter, peggy and trudy.
+
+Walter has reported back: 4 findings, all backed by commands he ran and their output, and the test suite matches the baseline (241 passed, 2 skipped). Still waiting on peggy and trudy.
+
+Trudy has reported back: 6 findings, all backed by commands she ran and their output. Two are HIGH:
+- `compare` runs the target's `gpg.program` when a ref has moved.
+- `snapshot` hangs, or keeps using more memory, when a fifo or a link to `/dev/zero` sits inside `.git`.
+
+Her scratch folder holds a 1 TiB sparse file. It takes no disk space, but anything that reads it will hang. I'll name it in the report. Still waiting on peggy.
+
+The agoge run on claude-agoge (HEAD `de4db0b`) is done: 22 findings (4 HIGH, 8 MEDIUM, 10 LOW). The packets are not walked yet, since nobody was there to answer.
+
+**Integrity:** the run left the target unchanged. Both checks (after recon and after the lanes) exited 0, and the only files this run wrote are the refreshed profile and the two report files.
+
+**Lanes:**
+- **Recon:** the profile was out of date, so recon refreshed it. The "Pins and vetoes" section is byte-identical (same checksum before and after). The test suite passes: 241 passed, 2 skipped.
+- **Five lanes ran:** walter, heidi, wendy, peggy and trudy. Every finding came with a command it ran and its output, so I downgraded none.
+- **judy:** not run, because the repo has no UI.
+- **Security lane:** authorized by the `Authorization:` line in the profile. `--authorized autoclaude-drain` was also passed, but the profile line takes precedence.
+- **Authoring:** skipped, because the working tree is dirty.
+
+**The four HIGH findings, all in `target_snapshot.py`:**
+1. A fifo, a link to `/dev/zero` or a large file inside `.git` makes the snapshot hang or use up memory. A 4 GiB LFS object used 4.3 GB of memory. This is the second report of this bug; the 2026-11-09 report already had it.
+2. `compare` runs the target repo's `gpg.program` when a ref has moved.
+3. A plain `git status` in a repo with a line-ending or LFS filter makes the next check fail, though no file changed.
+4. Every snapshot reads every untracked byte. With 100k untracked files a snapshot takes 3.6 s, against 0.23 s before.
+
+**Not done, needs you:**
+- Lane scratch folders are still on disk. Peggy's folder at `/var/folders/.../T/agoge-peggy.diC8di` uses 1.3 GB, because warden blocked her `rm -rf`. Trudy's folder holds a 1 TiB sparse file at `/tmp/agoge-trudy.EUvYOv/u3/sparse.bin`. It takes no disk space, but any tool that reads it will hang.
+- The installed 0.3.0 plugin still makes lane scratch commits under a name and email from the session's settings instead of `agoge-<lane>`. Wendy saw this happen again in this run. The fix is in the repo but not released, so a release would close it.
+- The report and sidecar are not committed. I left that to the drain loop.
+
+Files are in `docs/dev/project-management/audit-results/`:
+- agoge-2026-11-10.md
+- agoge-2026-11-10.json
+
+To walk the findings, run `/run-agoge --resume <path to agoge-2026-11-10.md>`. The 2026-11-09 report is also still unwalked.
