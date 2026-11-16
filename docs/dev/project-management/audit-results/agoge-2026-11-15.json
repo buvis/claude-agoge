@@ -1,0 +1,21 @@
+{
+  "fixture": "claude-agoge",
+  "authorization": {"route": "profile"},
+  "target_integrity": {"status": "unchanged", "violations": [], "touched": []},
+  "findings": [
+    {"domain": "performance", "severity": "HIGH", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Snapshot and compare cost grows linearly with untracked files, 25x-40x slower than c7da90f", "lanes": ["peggy"]},
+    {"domain": "security", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A fifo or symlink to a fifo or /dev/zero under .git hangs snapshot and compare", "lanes": ["trudy"]},
+    {"domain": "performance", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Untracked files are hashed in full, so snapshot cost grows with file bytes", "lanes": ["peggy", "trudy"]},
+    {"domain": "performance", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A large file in the git dir is read whole into memory", "lanes": ["peggy"]},
+    {"domain": "ux", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "--allow on a removed directory does not exempt the files inside it", "lanes": ["walter"]},
+    {"domain": "performance", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/test_target_snapshot.py", "skills/run-agoge/scripts/test_target_snapshot_state.py", "skills/run-agoge/scripts/test_target_snapshot_programs.py", "skills/run-agoge/scripts/snapshot_fixtures.py"], "status": "verified", "title": "The test suite takes 65 s, nearly four times the 17 s baseline", "lanes": ["peggy"]},
+    {"domain": "security", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A malformed before.json exits 2 with 'unexpected KeyError' and some bad shapes pass silently", "lanes": ["trudy"]},
+    {"domain": "security", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "The git-dir walk follows symlinks outside the repo and reports an unreadable file as unexpected", "lanes": ["trudy"]},
+    {"domain": "journey", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "chmod on an untracked file is not reported by compare", "lanes": ["walter"]},
+    {"domain": "journey", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Replacing an untracked file with a fifo reports untracked-removed, not untracked-modified", "lanes": ["walter"]},
+    {"domain": "performance", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "An ignored tree of 100k files adds a 3.5 MB before.json", "lanes": ["peggy"]},
+    {"domain": "performance", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Git subprocess count per repo rose from 11 to 15 and submodules multiply it", "lanes": ["peggy"]},
+    {"domain": "release", "severity": "LOW", "paths": ["CHANGELOG.md", "skills/run-agoge/scripts/test_target_snapshot.py", "skills/run-agoge/scripts/test_target_snapshot_state.py"], "status": "verified", "title": "Non-UTF-8 path handling is verified only on Linux CI; macOS skips those tests", "lanes": ["wendy"]},
+    {"domain": "release", "severity": "LOW", "paths": ["CHANGELOG.md", "skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "The changelog entry on fsmonitor and clean filters omits that process filters are also disabled", "lanes": ["wendy"]}
+  ]
+}

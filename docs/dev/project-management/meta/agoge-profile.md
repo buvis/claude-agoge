@@ -4,7 +4,7 @@
 
 All commands run from the repo root. The product is a Claude Code plugin: markdown personas and prompts plus two stdlib-only Python helper scripts and their pytest suites. There is no application server, UI, or database.
 
-**Change since the last recon (c7da90f..de4db0b).** 20 product commits (PRDs 00009 and 00010), `git diff --stat c7da90f HEAD -- skills agents README.md CHANGELOG.md .claude-plugin dev .github`: 7 files, +1650/-493. Only `target_snapshot.py`, its tests, `SKILL.md` and `CHANGELOG.md` changed; `allocate_prd_number.py`, `agents/`, `references/`, README, plugin manifests and CI are untouched.
+**Change since the last recon (de4db0b..abee71a).** One commit, abee71a "record drained state" (autopilot state chore). `git diff --stat de4db0b HEAD -- skills agents README.md CHANGELOG.md .claude-plugin dev .github` is empty: no product change. The whole diff touches only `docs/dev/project-management/` (audit-results 2026-11-10, autopilot state and loop-metrics, the previous profile). Working tree clean at recon. The notes below about c7da90f..de4db0b still describe the product.
 - `target_snapshot.py`, snapshot `VERSION` 3 -> 4 (older snapshots are refused, exit 2):
   - Records `untracked_fingerprints` (one per untracked path, via `_fingerprint`: lstat, symlink target hash, `special:<mode>`, chunked sha256) and `ignored` (names only, from `git ls-files -o -i --exclude-standard` with and without `--directory`).
   - New violation kinds `untracked-modified` and `ignored-removed`; `--allow` exempts both. Edits inside ignored files are documented as not checked.
@@ -18,7 +18,7 @@ All commands run from the repo root. The product is a Claude Code plugin: markdo
 
 **Test suite (verified, runs green).**
 - Command: `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q -rs` (identical to `dev/bin/release-checks`).
-- Result at HEAD de4db0b, run with `env PYTHONDONTWRITEBYTECODE=1` and `-p no:cacheprovider`: `241 passed, 2 skipped in 48.33s` (was 201 passed, 2 skipped in 17.10s; wall time almost tripled).
+- Result at HEAD abee71a (re-run 2026-11-15), run with `env PYTHONDONTWRITEBYTECODE=1` and `-p no:cacheprovider`: `241 passed, 2 skipped in 56.43s` (48.33s at de4db0b; 201 passed in 17.10s at c7da90f).
 - Both skips are APFS rejecting non-UTF-8 names (`Errno 92`): `test_target_snapshot.py:502` (non-UTF-8 path round trip) and `test_target_snapshot_state.py:508` (restore command for a non-UTF-8 ref).
 - Suites in `skills/run-agoge/scripts/`: `test_agoge_authorization_gate.py`, `test_agoge_registry.py`, `test_allocate_prd_number.py`, `test_prd_emission_contract.py`, `test_run_integrity.py`, `test_scratch_contract.py`, `test_sidecar_contract.py`, `test_target_snapshot.py`, `test_target_snapshot_state.py` (new), `test_target_snapshot_programs.py` (new).
 - With the two flags the run wrote nothing new into the checkout (`git status --short --ignored` identical before and after; pre-existing ignored `.pytest_cache/`, `__pycache__/`, `.ruff_cache/`).
@@ -51,7 +51,6 @@ All commands run from the repo root. The product is a Claude Code plugin: markdo
 - Fail-closed on an unreadable untracked file means a target with one such file cannot be snapshotted, so the run dispatches nobody.
 - `allocate_prd_number.py`: backlog containment check in `main()` before `mkdir(parents=True)` in `claim()`, a check-then-act window. Unchanged.
 - The scratch contract in this recon's dispatch prompt still gives the `-c user.name` identity form; `references/finding-contract.md:103-105` mandates the `env GIT_AUTHOR_NAME=...` form. The dispatching master still carries stale contract text.
-- Working tree at recon: modified `docs/dev/project-management/autopilot/{ledger/,}loop-metrics.jsonl` and untracked `autopilot/reports/202611091445-*`, autopilot state, not product.
 
 ## Per-specialist strategy
 
@@ -85,5 +84,5 @@ Authorization: this project is the operator's own or explicitly authorized.
 
 ## Freshness stamp
 
-Last recon: 2026-11-10
-Target HEAD: de4db0bf74d3c041265346028bfde29341d10f89
+Last recon: 2026-11-15
+Target HEAD: abee71af9e8cad95072d72348250361f4c42598d
