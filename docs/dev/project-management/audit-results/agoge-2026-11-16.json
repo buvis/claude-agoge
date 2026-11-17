@@ -1,0 +1,18 @@
+{
+  "fixture": "claude-agoge",
+  "authorization": {"route": "profile"},
+  "target_integrity": {"status": "unchanged", "violations": [], "touched": []},
+  "findings": [
+    {"domain": "security", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "`compare` runs the target's `gpg.program` when a ref changes and `log.showSignature` is on", "lanes": ["trudy"]},
+    {"domain": "security", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A fifo or `/dev/zero` symlink under `.git` hangs the snapshot and a large git-dir file is read whole", "lanes": ["trudy", "peggy"]},
+    {"domain": "performance", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Untracked files are hashed in full, so snapshot and compare slow down with their count and size", "lanes": ["peggy"]},
+    {"domain": "journey", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "`chmod` on an untracked file is reported as unchanged", "lanes": ["walter"]},
+    {"domain": "ux", "severity": "MEDIUM", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "`--allow <dir>` does not exempt a removed ignored directory", "lanes": ["walter"]},
+    {"domain": "security", "severity": "LOW", "paths": ["skills/run-agoge/scripts/allocate_prd_number.py"], "status": "verified", "title": "The PRD allocator can write outside the repo if the backlog path is swapped during the run", "lanes": ["trudy"]},
+    {"domain": "release", "severity": "LOW", "paths": ["CHANGELOG.md", "skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "CHANGELOG 0.3.1 reads as if the snapshot runs no repo programs", "lanes": ["wendy"]},
+    {"domain": "journey", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "A fifo replacing an untracked file is reported as `untracked-removed`", "lanes": ["walter"]},
+    {"domain": "ux", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "mocked", "title": "An unreadable untracked file exits 2 with `unexpected PermissionError`", "lanes": ["walter"]},
+    {"domain": "performance", "severity": "LOW", "paths": ["skills/run-agoge/scripts/target_snapshot.py"], "status": "verified", "title": "Listing ignored files grows the snapshot file and memory with the ignored tree", "lanes": ["peggy"]},
+    {"domain": "performance", "severity": "LOW", "paths": ["skills/run-agoge/scripts/test_target_snapshot_programs.py", "skills/run-agoge/scripts/test_target_snapshot_state.py"], "status": "verified", "title": "The test suite takes about three times as long as before", "lanes": ["peggy"]}
+  ]
+}
