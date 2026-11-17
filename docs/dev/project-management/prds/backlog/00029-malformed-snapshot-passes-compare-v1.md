@@ -16,9 +16,9 @@ Users hit: anyone who edits or truncates a snapshot file by hand.
 
 ## Solution
 
-In `_load`, after the JSON parses:
+In `_load`, after the JSON parses and before the `belongs to another repo` check (so a missing `repo` reads as malformed):
 
-1. Require `type(data["version"]) is int` and equal to `VERSION`. This rejects `4.0` and `True`.
+1. Require `type(data.get("version")) is int` and equal to `VERSION`. This rejects `4.0` and `True`.
 2. Check each top-level key is present with its type. One tuple of `(key, type)` pairs is enough:
 
 | Key | Type |
@@ -27,7 +27,7 @@ In `_load`, after the JSON parses:
 | `head`, `refs`, `worktree_heads`, `submodules`, `dirty`, `untracked_fingerprints`, `gitdir` | `dict` |
 | `worktrees`, `untracked`, `ignored` | `list` |
 
-3. Require every entry of `untracked` to be a key of `untracked_fingerprints`.
+3. Require every entry of `untracked` to be a key of `untracked_fingerprints`; a miss reports the key `untracked_fingerprints`.
 
 Any miss raises `Fail(f"snapshot {path} is malformed: {key}")`. Element types inside the dicts and lists are not checked: that is the full schema table the operator did not pick.
 
@@ -35,7 +35,7 @@ Any miss raises `Fail(f"snapshot {path} is malformed: {key}")`. Element types in
 
 ### Must have
 - A snapshot with any key above missing or of the wrong type exits 2 with one line `target_snapshot: snapshot <path> is malformed: <key>`, and never `unexpected`.
-- `version: 4.0` and `version: true` exit 2 with the existing "is not version 4" line.
+- `version: float(VERSION)` (4.0 today) and `version: true` exit 2 with the existing `is not version <VERSION>` line. The tests take the number from `target_snapshot.VERSION`, never a literal: PRD 00037 bumps it.
 - A snapshot written by `snapshot` still loads.
 - `CHANGELOG.md` `[Unreleased]` `### Fixed`: `- **run-agoge**: target compare rejects a snapshot file with a missing or wrongly typed field, naming the field, instead of reporting an unexpected error or a false verdict`.
 
@@ -70,8 +70,8 @@ No traceback.
 ## Tasks
 
 ### Phase 0: Fix
-- [ ] Add the three tests named above - Acceptance: `pytest -k "snapshot_missing_field or snapshot_wrongly_typed or float_or_bool_version"` fails on the unmodified script.
-- [ ] Add the checks to `_load` (depends on: previous task) - Acceptance: the same `pytest -k` selection passes.
+- [ ] Add `test_snapshot_missing_field_is_rejected_by_name` (parametrized over `repo`, `config`, `index`, `head`, `refs`, `worktree_heads`, `submodules`, `dirty`, `untracked_fingerprints`, `gitdir`, `worktrees`, `untracked`, `ignored`: take a real snapshot, delete the key, and `compare` exits 2 with the one line `target_snapshot: snapshot <path> is malformed: <key>`), `test_snapshot_wrongly_typed_field_is_rejected_by_name` (`untracked` as the string `"abc"` and `refs` as a list give the same line with that key; an `untracked` entry missing from `untracked_fingerprints` gives it with `untracked_fingerprints`) and `test_snapshot_float_or_bool_version_is_rejected` (`float(target_snapshot.VERSION)` and `True` exit 2 with the existing `is not version` line; no literal version number in the test) - Acceptance: `pytest -k "snapshot_missing_field or snapshot_wrongly_typed or float_or_bool_version"` fails on the unmodified script.
+- [ ] In `_load`, before the `belongs to another repo` check: require `type(data.get("version")) is int` and equal to `VERSION`; check each top-level key against its type (`repo`, `config`, `index`: `str`; `head`, `refs`, `worktree_heads`, `submodules`, `dirty`, `untracked_fingerprints`, `gitdir`: `dict`; `worktrees`, `untracked`, `ignored`: `list`); require every `untracked` entry to be a key of `untracked_fingerprints`; any miss raises `Fail(f"snapshot {path} is malformed: {key}")` (depends on: previous task) - Acceptance: `pytest -k "snapshot_missing_field or snapshot_wrongly_typed or float_or_bool_version"` passes.
 - [ ] Add the CHANGELOG entry - Acceptance: `rg -F "missing or wrongly typed field" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria

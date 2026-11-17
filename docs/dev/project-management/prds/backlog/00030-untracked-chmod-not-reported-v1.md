@@ -16,7 +16,7 @@ Users hit: anyone who reads an `unchanged` verdict as "nothing at all changed".
 
 ## Solution
 
-Keep the behaviour. Add one sentence to the module docstring, beside "Edits inside ignored files are not checked": permission bits of untracked files are not checked; only content, file type and symlink target are. Fix the profile's expectation in `docs/dev/project-management/meta/agoge-profile.md` only if it sits outside `## Pins and vetoes`; that section is the operator's.
+Keep the behaviour. Add one sentence to the module docstring, beside "Edits inside ignored files are not checked": `Permission bits of untracked files are not checked; only content, file type and symlink target are.` The profile's walter row still expects `untracked-modified` here; the profile is recon's output and is not a file of this PRD (tracked as a follow-up in `docs/dev/project-management/audit-results/backlog-review-2026-11-17.md`).
 
 Option 1 (add `stat.S_IMODE` to the fingerprint and bump `VERSION` to 5) was not chosen: git itself tracks only the exec bit.
 
@@ -44,7 +44,7 @@ Option 1 (add `stat.S_IMODE` to the fingerprint and bump `VERSION` to 5) was not
 
 ## Test Strategy
 
-Reproduction from the run, restated as the pinning test (it passes before and after, since behaviour does not change):
+Reproduction from the run, restated as the pinning test. The behaviour half passes before and after. The test also asserts the docstring sentence, so it fails first: the fast-track lane stops a card whose new test is green before the change.
 
 ```
 chmod 755 u.txt (was 644), then compare: exit 0 unchanged.
@@ -54,8 +54,8 @@ Rewrite and truncate give exit 1.
 ## Tasks
 
 ### Phase 0: Document
-- [ ] Add the docstring sentence - Acceptance: `rg -F "ermission bits" skills/run-agoge/scripts/target_snapshot.py` hits inside the module docstring.
-- [ ] Add `test_untracked_mode_change_is_not_reported` - Acceptance: `pytest -k mode_change_is_not_reported` passes.
+- [ ] Add `test_untracked_mode_change_is_not_reported` (an untracked file at mode 644 is `chmod`-ed to 755 between snapshot and compare: `compare` exits 0 with status `unchanged`; and `target_snapshot.__doc__`, with whitespace collapsed, contains `Permission bits of untracked files are not checked`) - Acceptance: `pytest -k mode_change_is_not_reported` fails on the unmodified script, whose docstring lacks the sentence.
+- [ ] Add to the module docstring, beside "Edits inside ignored files are not checked", the sentence `Permission bits of untracked files are not checked; only content, file type and symlink target are.` (depends on: previous task) - Acceptance: `pytest -k mode_change_is_not_reported` passes.
 
 ## Success Criteria
 

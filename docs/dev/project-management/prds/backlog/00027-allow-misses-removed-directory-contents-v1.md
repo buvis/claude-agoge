@@ -61,8 +61,8 @@ After the fix both `--allow igndir` and `--allow igndir/` give exit 0 with no vi
 ## Tasks
 
 ### Phase 0: Fix
-- [ ] Add `test_allow_directory_exempts_its_removed_contents` and `test_allow_prefix_matches_whole_components_only` - Acceptance: `pytest -k allow_directory_exempts` fails on the unmodified script.
-- [ ] Add `_allowed` and use it in `compare`; update the docstring and the `--allow` help text (depends on: previous task) - Acceptance: `pytest -k "allow_directory or allow_prefix"` passes, and `python3 skills/run-agoge/scripts/target_snapshot.py compare --help` mentions directories.
+- [ ] Add `test_allow_directory_exempts_its_removed_contents` (an ignored `igndir/` holding `f` and `sub/g` is removed: `compare --allow igndir` and `compare --allow igndir/` each exit 0 with no violations; the same for an untracked, not ignored, directory) and `test_allow_prefix_matches_whole_components_only` (`--allow ign` still exits 1 for the removed `igndir/f`; an exact file path exempts that file and nothing else) - Acceptance: `pytest -k allow_directory_exempts` fails on the unmodified script.
+- [ ] Add `_allowed(path: str, allow: set[str]) -> bool` (strip one trailing `/` from the path and from each entry; true when the path equals an entry or starts with `entry + "/"`) and use it at every place `compare` consults `allow`; say in the module docstring and in `help=` on `--allow` that an allowed directory exempts everything under it (depends on: previous task) - Acceptance: `pytest -k "allow_directory or allow_prefix"` passes, and `python3 skills/run-agoge/scripts/target_snapshot.py compare --help` prints the word `directory`.
 - [ ] Add the CHANGELOG entry - Acceptance: `rg -F "exempts everything under that directory" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria

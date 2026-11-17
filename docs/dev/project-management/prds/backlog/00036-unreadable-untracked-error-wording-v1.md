@@ -15,7 +15,9 @@ Users hit: an operator whose repo holds an unreadable untracked file.
 
 ## Solution
 
-In `_fingerprint`, catch `PermissionError` and raise `Fail(f"cannot read {path}: permission denied")`. The result is one stderr line `target_snapshot: cannot read <path>: permission denied`, exit 2, no JSON.
+In `_fingerprint`, catch `PermissionError` and raise `Fail(f"cannot read {path}: permission denied")`. The result is one stderr line `target_snapshot: cannot read <path>: permission denied`, exit 2, no JSON. `<path>` is the repo-relative path.
+
+Once PRD 00025 has landed, `_gitdir_files` also calls `_fingerprint`, so a mode-000 git-dir file gets this message too (with its git-dir-relative path) in place of 00025's `in the git dir` wording. That is accepted. `test_unreadable_git_dir_file_names_the_file` asserts only the file name and the absence of `unexpected`, so it still passes; do not edit it.
 
 ## Requirements
 
@@ -52,9 +54,10 @@ Status is mocked: a file owned by another user cannot be created without root.
 ## Tasks
 
 ### Phase 0: Fix
-- [ ] Add `test_unreadable_untracked_file_error_is_not_called_unexpected`; watch it fail - Acceptance: `pytest -k unreadable_untracked` fails on the unmodified script.
-- [ ] Catch `PermissionError` in `_fingerprint` and add the CHANGELOG line (depends on: previous task) - Acceptance: `pytest -k unreadable_untracked` passes.
+- [ ] Add `test_unreadable_untracked_file_error_is_not_called_unexpected` in `skills/run-agoge/scripts/test_target_snapshot_state.py` (a mode-000 untracked `u.txt`: `snapshot`, and `compare` against a snapshot taken before the `chmod`, each exit 2 with exactly one stderr line `target_snapshot: cannot read u.txt: permission denied`; skip when `os.geteuid() == 0`; restore the mode in `finally`) - Acceptance: `pytest -k unreadable_untracked` fails on the unmodified script.
+- [ ] In `_fingerprint`, catch `PermissionError` and raise `Fail(f"cannot read {path}: permission denied")`, where `path` is the repo-relative path (depends on: previous task) - Acceptance: `pytest -k unreadable_untracked` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "names an unreadable untracked file" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- `pytest -k unreadable_untracked` passes; the project's full test gate passes.
+- `pytest -k unreadable_untracked` passes; the full suite passes under `dev/bin/release-checks`.

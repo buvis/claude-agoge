@@ -54,9 +54,10 @@ git log -1 --format=%an <sha> -> marker gained a third "gpgprog" line
 ## Tasks
 
 ### Phase 0: Fix
-- [ ] Add `test_compare_does_not_run_gpg_program_on_new_signed_ref`; watch it fail - Acceptance: `pytest -k gpg_program` fails on the unmodified script.
-- [ ] Add the four pairs to `_STATIC_OVERRIDES`, run the `_ref_violation` calls with them, update the docstring and the CHANGELOG line (depends on: previous task) - Acceptance: `pytest -k gpg_program` passes.
+- [ ] Add `test_compare_does_not_run_gpg_program_on_new_signed_ref` in `skills/run-agoge/scripts/test_target_snapshot_programs.py` (the target sets `gpg.program` to a marker-writing script and `log.showSignature=true`; after `snapshot`, add `refs/heads/evilref` at a commit with a `gpgsig` header built with `git hash-object -t commit -w`; `compare` exits 1 under a timeout and the marker file does not exist; then, as a control in the same test, plain `git log -1 <sha>` in that repo writes the marker) - Acceptance: `pytest -k gpg_program` fails on the unmodified script.
+- [ ] Add `("log.showSignature", "false")`, `("gpg.program", "false")`, `("gpg.ssh.program", "false")` and `("gpg.x509.program", "false")` to `_STATIC_OVERRIDES`, and name `gpg.program` and `log.showSignature` in the docstring's statement of what every git call refuses to run (depends on: previous task) - Acceptance: `pytest -k gpg_program` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "no longer runs the repo's gpg program" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- `pytest -k gpg_program` passes; the project's full test gate passes.
+- `pytest -k gpg_program` passes; the full suite passes under `dev/bin/release-checks`.

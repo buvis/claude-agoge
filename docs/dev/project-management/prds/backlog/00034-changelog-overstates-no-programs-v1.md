@@ -15,7 +15,7 @@ Users hit: anyone who reads the changelog to learn what the snapshot refuses to 
 
 ## Solution
 
-Land after PRD 00032 and after the gpg fix (PRD 00033). Edit the line PRD 00032 produced to: `- **run-agoge**: target snapshot no longer runs the repo's fsmonitor, gpg, clean or process filter programs; other repo-configured programs such as core.pager, hooks and diff.external are not covered, and with a filter disabled a file that differs from its filtered blob reads as dirty`. If PRD 00033 has not landed, omit `gpg, `.
+Land after PRD 00032 (the batch order gives this). Edit the 0.3.1 line, in whichever form it has then (the original `... fsmonitor or clean filter programs` or the line PRD 00032 produced), to: `- **run-agoge**: target snapshot no longer runs the repo's fsmonitor, clean or process filter programs; other repo-configured programs such as core.pager, hooks and diff.external are not covered, and with a filter disabled a file that differs from its filtered blob reads as dirty`. Do not add `gpg` to this line: it sits under 0.3.1, which did not ship the gpg fix. PRD 00033 adds its own `[Unreleased]` entry for gpg.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ Docstring: "it is not a claim that nothing a repo configures can run".
 ## Tasks
 
 ### Phase 0: Fix
-- [ ] Edit the entry - Acceptance: `rg -F "other repo-configured programs such as core.pager" CHANGELOG.md` hits once, and `rg -F "fsmonitor or clean filter programs" CHANGELOG.md` hits nothing.
+- [ ] Edit the entry - Acceptance: `rg -F "other repo-configured programs such as core.pager" CHANGELOG.md` hits once, and `rg -F "fsmonitor or clean filter programs" CHANGELOG.md` and `rg -F "fsmonitor, gpg" CHANGELOG.md` each hit nothing.
 
 ## Success Criteria
 

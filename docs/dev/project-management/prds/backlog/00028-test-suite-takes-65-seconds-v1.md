@@ -1,8 +1,8 @@
 ---
-lane: fast-track
+lane: solo
 design: skip
 default_model: sonnet
-model_tier_rationale: test-only change; the suite itself proves nothing was lost
+model_tier_rationale: test-only change; the suite itself proves nothing was lost. Solo lane - no new failing test exists for a fast-track card to start from; the fixtures file escalates the build to the full review
 ---
 # The test suite takes 65 s, nearly four times the 17 s baseline
 
@@ -27,7 +27,7 @@ Every test still works on its own tree, so no state is shared between tests. Tes
 ## Requirements
 
 ### Must have
-- The same tests run: `241 passed, 2 skipped` on macOS and `243 passed` on Linux, plus any tests added since this PRD was written. No test is deleted, skipped or weakened.
+- The same tests run: the pass and skip counts equal the baseline the first task records (it was `241 passed, 2 skipped` on macOS when this PRD was written; earlier PRDs in the batch add tests). No test is added, deleted, skipped or weakened.
 - No test reads or writes the module-scoped template tree after it is built; each test works on a copy.
 - The suite's wall time under `dev/bin/release-checks` drops from the 65 s measured in the run. The implementer reports the new number with `--durations=15`. Target: under 40 s. That target is a guess; the python child processes each test spawns stay.
 - No CHANGELOG entry (test-only change).
@@ -62,7 +62,7 @@ Per file alone: 14.9 s, 20.3 s, 23.5 s.
 ## Tasks
 
 ### Phase 0: Speed up
-- [ ] Record the baseline: run `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q -rs -p no:cacheprovider --durations=15` - Acceptance: wall time and pass/skip counts noted in the commit message.
+- [ ] Record the baseline: run `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q -rs -p no:cacheprovider --durations=15` - Acceptance: wall time and pass/skip counts noted in the commit message of the next task (this task changes no file).
 - [ ] Add the module-scoped template fixtures and the copy helpers (depends on: previous task) - Acceptance: one converted test passes on a copied tree.
 - [ ] Convert call sites in the three test files (depends on: previous task) - Acceptance: pass and skip counts equal the baseline; wall time is lower than the baseline and reported.
 

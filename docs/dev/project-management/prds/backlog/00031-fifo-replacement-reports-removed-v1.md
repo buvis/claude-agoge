@@ -16,7 +16,7 @@ Users hit: anyone who reads a `compare` report after a lane replaced a file with
 
 ## Solution
 
-Keep the behaviour. Add one sentence to the module docstring: an untracked path replaced by a fifo, socket or device reads as `untracked-removed`, because git does not list such files.
+Keep the behaviour. Add one sentence to the module docstring: `An untracked path replaced by a fifo, socket or device reads as untracked-removed, because git does not list such files.`
 
 Option 1 (report `untracked-modified` when the path still exists) was not chosen.
 
@@ -44,7 +44,7 @@ Option 1 (report `untracked-modified` when the path still exists) was not chosen
 
 ## Test Strategy
 
-Reproduction from the run, restated as the pinning test (it passes before and after, since behaviour does not change):
+Reproduction from the run, restated as the pinning test. The behaviour half passes before and after. The test also asserts the docstring sentence, so it fails first: the fast-track lane stops a card whose new test is green before the change.
 
 ```
 rm u.txt; mkfifo u.txt, then compare: exit 1, untracked-removed u.txt; --allow u.txt gave exit 0.
@@ -53,8 +53,8 @@ rm u.txt; mkfifo u.txt, then compare: exit 1, untracked-removed u.txt; --allow u
 ## Tasks
 
 ### Phase 0: Document
-- [ ] Add the docstring sentence - Acceptance: `rg -F "fifo, socket or device" skills/run-agoge/scripts/target_snapshot.py` hits inside the module docstring.
-- [ ] Add `test_untracked_file_replaced_by_fifo_reads_as_removed` - Acceptance: `pytest -k replaced_by_fifo_reads_as_removed` passes.
+- [ ] Add `test_untracked_file_replaced_by_fifo_reads_as_removed` (an untracked `u.txt` is removed and a fifo is made at the same path with `os.mkfifo` between snapshot and compare: `compare` exits 1 under a 10 s timeout with the one violation `untracked-removed` for `u.txt`, and `--allow u.txt` gives exit 0; and `target_snapshot.__doc__`, with whitespace collapsed, contains `replaced by a fifo, socket or device`) - Acceptance: `pytest -k replaced_by_fifo_reads_as_removed` fails on the unmodified script, whose docstring lacks the sentence.
+- [ ] Add to the module docstring the sentence `An untracked path replaced by a fifo, socket or device reads as untracked-removed, because git does not list such files.` (depends on: previous task) - Acceptance: `pytest -k replaced_by_fifo_reads_as_removed` passes.
 
 ## Success Criteria
 

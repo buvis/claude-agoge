@@ -17,6 +17,8 @@ Users hit: an unattended loop that points the allocator at a repo someone else c
 
 In `claim()`, open the backlog directory once with `os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)` after `mkdir`, and create each candidate with `os.open(name, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644, dir_fd=backlog_fd)`. Confirm the fd is inside the repo with `os.fstat(backlog_fd)` equal to `os.stat(resolved_backlog)` (same `st_dev` and `st_ino`) taken after the open. If `O_NOFOLLOW` rejects the path (`ELOOP` or `ENOTDIR`) or the identity differs, exit 2 with `allocate_prd_number: <backlog> resolves outside <repo>`. The printed path stays `<backlog>/<NNNNN>-<slug>-v1.md`.
 
+`claim()` keeps its `(repo, slug)` signature: the existing tests call it directly. `resolved_backlog` is `os.path.realpath(backlog)`, taken inside `claim()` after the open, and it must lie under `os.path.realpath(repo)`; without that the identity check compares the fd with a path that follows the same swapped link. `claim()` refuses by raising `SystemExit(f"{backlog} resolves outside {repo}")`; `main` already prints a string `SystemExit` as `allocate_prd_number: ...` with exit 2.
+
 ## Requirements
 
 ### Must have
@@ -35,7 +37,7 @@ In `claim()`, open the backlog directory once with `os.open(path, os.O_RDONLY | 
 - **Responsibility**: create the claimed file inside the checked directory, never through a re-resolved path.
 - **Exports**: none
 - New symbols: `test_claim_rejects_backlog_symlink_at_claim_time`, `test_claim_does_not_follow_backlog_swapped_after_check`
-- **Risk**: `O_NOFOLLOW` fails where `backlog` is a symlink that stays inside the repo; that case now exits 2 (it was allowed). The swap test needs a monkeypatched hook between check and create (guess).
+- **Risk**: `O_NOFOLLOW` fails where `backlog` is a symlink that stays inside the repo; that case now exits 2 (it was allowed). The swap test patches `claimed_numbers`, which runs between the open and the create (see Test Strategy).
 
 ### Dependencies
 - allocator: No dependencies (foundation)
@@ -54,9 +56,10 @@ os.listdir(<outside dir>) -> ['60000-probe-v1.md']
 ## Tasks
 
 ### Phase 0: Fix
-- [ ] Add the two tests; watch them fail - Acceptance: `pytest -k "backlog_symlink or backlog_swapped"` fails on the unmodified script.
-- [ ] Change `claim()` to the fd-relative create and add the CHANGELOG line (depends on: previous task) - Acceptance: `pytest -k "backlog_symlink or backlog_swapped"` passes.
+- [ ] Add `test_claim_rejects_backlog_symlink_at_claim_time` (`prds/backlog` is a symlink to a directory outside the repo: `claim(repo, slug)` raises `SystemExit` whose text contains `resolves outside`, and the outside directory stays empty) and `test_claim_does_not_follow_backlog_swapped_after_check` (`monkeypatch` `allocate_prd_number.claimed_numbers` so that, when called, it renames `prds/backlog` to `backlog.real`, makes `prds/backlog` a symlink to an outside directory, then returns the real result: after `claim(repo, slug)` the outside directory is empty) - Acceptance: `pytest -k "backlog_symlink or backlog_swapped"` fails on the unmodified script.
+- [ ] In `claim()`, keeping the `(repo, slug)` signature: after `mkdir`, open the backlog once with `os.open(backlog, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)`; raise `SystemExit(f"{backlog} resolves outside {repo}")` when that open fails with `ELOOP` or `ENOTDIR`, when `os.path.realpath(backlog)` is not under `os.path.realpath(repo)`, or when `os.fstat` of the fd and `os.stat` of that real path are not the same directory (`st_dev` and `st_ino`); create each candidate with `os.open(name, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644, dir_fd=backlog_fd)`; return the same `<backlog>/<NNNNN>-<slug>-v1.md` path as today (depends on: previous task) - Acceptance: `pytest -k "backlog_symlink or backlog_swapped"` passes.
+- [ ] Add the CHANGELOG entry - Acceptance: `rg -F "no longer writes outside the repo if the backlog path is swapped" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
 
-- `pytest -k "backlog_symlink or backlog_swapped"` passes; the project's full test gate passes.
+- `pytest -k "backlog_symlink or backlog_swapped"` passes; the full suite passes under `dev/bin/release-checks`.

@@ -1,5 +1,5 @@
 ---
-lane: fast-track
+lane: solo
 design: skip
 default_model: sonnet
 model_tier_rationale: one-line text edit with the exact wording given
