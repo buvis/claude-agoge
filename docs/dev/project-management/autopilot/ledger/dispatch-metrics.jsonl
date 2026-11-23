@@ -573,3 +573,22 @@
 {"kind":"handoff","site":"review","edge":"leave","at":1794275012,"phase":"review","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
 {"kind":"handoff","site":"review","edge":"leave","at":1794275212,"phase":"done","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1794275262,"phase":"done","prd":"00010-snapshot-runs-repo-configured-programs-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1795472063,"phase":"build","prd":"00024-snapshot-slow-many-untracked-files-v1.md"}
+{"id":"3eae9bae","kind":"fast-track:tess","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472159,"prompt_bytes":84164}
+{"id":"3eae9bae","ended_at":1795472237,"elapsed_s":78,"outcome":"ok","detail":null}
+{"id":"1627014e","kind":"fast-track:ivan","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472256,"prompt_bytes":30192}
+{"id":"1627014e","ended_at":1795472333,"elapsed_s":77,"outcome":"ok","detail":null}
+{"id":"8b0389b3","kind":"fast-track:fanout","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472456,"prompt_bytes":6245}
+{"id":"0b4d7921","kind":"fast-track:blake","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472458,"prompt_bytes":8150}
+{"id":"5282b7b8","kind":"fast-track:eve","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472460,"prompt_bytes":8664}
+{"id":"f2a7c172","kind":"fast-track:bob","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472461,"prompt_bytes":8894}
+{"id":"47bb8dd1","kind":"fast-track:carl","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472463,"prompt_bytes":6601}
+{"id":"8b0389b3","ended_at":1795472540,"elapsed_s":84,"outcome":"error","detail":"Workflow tool refused scriptPath outside the working directory"}
+{"id":"8d566e8b","kind":"fast-track:alice","task":"00024-snapshot-slow-many-untracked-files-v1-c1","queued_at":1795472542,"prompt_bytes":6245}
+{"id":"0b4d7921","ended_at":1795472563,"elapsed_s":105,"outcome":"ok","detail":null}
+{"id":"f2a7c172","ended_at":1795472580,"elapsed_s":119,"outcome":"ok","detail":null}
+{"id":"8d566e8b","ended_at":1795472599,"elapsed_s":57,"outcome":"ok","detail":null}
+{"id":"47bb8dd1","ended_at":1795472700,"elapsed_s":237,"outcome":"ok","detail":null}
+{"id":"f2a7c172","ended_at":1795472707,"elapsed_s":246,"outcome":"ok","detail":"codex CLI sandbox failed to start (sandbox_apply); general-purpose opus subagent substituted on the same prompt"}
+{"id":"5282b7b8","ended_at":1795473197,"elapsed_s":737,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1795473443,"phase":"done","prd":"00024-snapshot-slow-many-untracked-files-v1.md"}
