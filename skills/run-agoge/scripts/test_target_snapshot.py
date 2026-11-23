@@ -583,3 +583,79 @@ def test_fifo_replaced_by_file_is_tracked_violation(tmp_path):
     [violation] = [v for v in report["violations"] if v.get("path") == "notes.txt"]
     assert violation["kind"] == "tracked"
     assert violation["kind"] not in ("absent", "dir")
+
+
+def test_fingerprinting_many_files_stats_each_file_once(tmp_path, monkeypatch):
+    repo = tmp_path / "target"
+    leaves = [f"top{i}/leaf{i}" for i in range(4)]
+    paths = []
+    for leaf in leaves:
+        (repo / leaf).mkdir(parents=True)
+        for n in range(50):
+            rel = f"{leaf}/file{n}.txt"
+            (repo / rel).write_bytes(rel.encode())
+            paths.append(rel)
+    assert len(paths) == 200
+    real = os.path.realpath(repo)
+    calls = []
+    real_lstat = os.lstat
+
+    def counting_lstat(path, *args, **kwargs):
+        calls.append(path)
+        return real_lstat(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "lstat", counting_lstat)
+    prints = {path: target_snapshot._fingerprint(real, path) for path in paths}
+    monkeypatch.undo()
+    assert len(calls) <= 200 + 2 * 4 + 10, len(calls)
+    assert prints == {path: _sha(path.encode()) for path in paths}
+    assert len(set(prints.values())) == 200
+
+
+def test_fingerprints_unchanged_by_symlink_cache(tmp_path):
+    repo = tmp_path / "target"
+    (repo / "inner").mkdir(parents=True)
+    outside = tmp_path / "target-outside"
+    outside.mkdir()
+    (outside / "leak.txt").write_bytes(b"outside bytes\n")
+    (repo / "a.txt").write_bytes(b"alpha\n")
+    (repo / "b.txt").write_bytes(b"beta\n")
+    (repo / "inner" / "c.txt").write_bytes(b"gamma\n")
+    os.symlink("a.txt", repo / "link-a")
+    os.symlink("b.txt", repo / "link-b")
+    os.symlink(str(outside / "leak.txt"), repo / "link-out")
+    os.symlink("inner", repo / "inner-link")
+    os.symlink(str(outside), repo / "out-link")
+    os.mkfifo(repo / "pipe")
+    real = os.path.realpath(repo)
+    fp = target_snapshot._fingerprint
+    for _ in range(2):
+        assert fp(real, "a.txt") == _sha(b"alpha\n")
+        assert fp(real, "b.txt") == _sha(b"beta\n")
+        assert fp(real, "link-a") == "link:" + _sha(b"a.txt")
+        assert fp(real, "link-b") == "link:" + _sha(b"b.txt")
+        assert fp(real, "link-out") == "link:" + _sha(os.fsencode(str(outside / "leak.txt")))
+        assert fp(real, "out-link") == "link:" + _sha(os.fsencode(str(outside)))
+        assert fp(real, "pipe") == "special:10000"
+        assert fp(real, "inner") == "dir"
+        assert fp(real, "missing.txt") == "absent"
+        assert fp(real, "inner/missing.txt") == "absent"
+        assert fp(real, "inner/c.txt") == _sha(b"gamma\n")
+        assert fp(real, "inner-link/c.txt") == _sha(b"gamma\n")
+        assert fp(real, "out-link/leak.txt") == "external-symlink"
+        assert fp(real, "out-link/nothing.txt") == "external-symlink"
+
+
+def test_fingerprint_of_unreadable_file_raises(tmp_path):
+    if os.geteuid() == 0:
+        pytest.skip("root reads files regardless of mode")
+    repo = tmp_path / "target"
+    repo.mkdir()
+    locked = repo / "locked.txt"
+    locked.write_bytes(b"secret\n")
+    locked.chmod(0o000)
+    try:
+        with pytest.raises(PermissionError):
+            target_snapshot._fingerprint(os.path.realpath(repo), "locked.txt")
+    finally:
+        locked.chmod(0o644)
