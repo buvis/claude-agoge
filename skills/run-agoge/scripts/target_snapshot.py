@@ -43,6 +43,7 @@ than git itself would.
 from __future__ import annotations
 
 import argparse
+import functools
 import hashlib
 import json
 import os
@@ -232,30 +233,35 @@ def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _external_symlink_ancestor(repo: str, path: str) -> bool:
-    """True when a directory component of `path` is a symlink escaping `repo`."""
-    check = repo
-    for part in os.path.dirname(path).split(os.sep):
-        if not part:
-            continue
-        check = os.path.join(check, part)
-        if os.path.islink(check):
-            real = os.path.realpath(check)
-            if os.path.commonpath([real, repo]) != repo:
-                return True
+@functools.lru_cache(maxsize=None)
+def _external_symlink_dir(repo: str, rel_dir: str) -> bool:
+    """True when `rel_dir` or one of its ancestors is a symlink escaping `repo`.
+
+    Memoized per directory, so fingerprinting many files under one directory
+    stats each ancestor once per process.
+    """
+    if not rel_dir:
+        return False
+    parent, _name = os.path.split(rel_dir)
+    if _external_symlink_dir(repo, parent):
+        return True
+    check = os.path.join(repo, rel_dir)
+    if os.path.islink(check):
+        real = os.path.realpath(check)
+        return os.path.commonpath([real, repo]) != repo
     return False
 
 
 def _fingerprint(repo: str, path: str) -> str:
-    if _external_symlink_ancestor(repo, path):
+    if _external_symlink_dir(repo, os.path.dirname(path)):
         return "external-symlink"
     full = os.path.join(repo, path)
-    if os.path.islink(full):
-        return "link:" + _sha(os.fsencode(os.readlink(full)))
     try:
         st = os.lstat(full)
     except OSError:
         return "absent"
+    if stat.S_ISLNK(st.st_mode):
+        return "link:" + _sha(os.fsencode(os.readlink(full)))
     if stat.S_ISDIR(st.st_mode):
         return "dir"
     if not stat.S_ISREG(st.st_mode):

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **run-agoge**: target snapshot stats each untracked file once and checks each directory for an escaping symlink once, so cost no longer multiplies with path depth
+
 ## [0.3.1] - 2026-11-16
 
 ### Fixed
