@@ -316,8 +316,10 @@ def _gitdir_files(repo: str) -> dict[str, str]:
             top = rel.split(os.sep)[0]
             if top in GITDIR_UNCHECKED:
                 continue
-            with open(path, "rb") as handle:
-                files[rel] = _sha(handle.read())
+            try:
+                files[rel] = _fingerprint(git_dir, rel)
+            except OSError as exc:
+                raise Fail(f"cannot read {rel} in the git dir: {exc.strerror}") from exc
     return files
 
 
