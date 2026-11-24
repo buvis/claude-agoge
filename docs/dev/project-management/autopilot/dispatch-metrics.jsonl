@@ -592,3 +592,5 @@
 {"id":"f2a7c172","ended_at":1795472707,"elapsed_s":246,"outcome":"ok","detail":"codex CLI sandbox failed to start (sandbox_apply); general-purpose opus subagent substituted on the same prompt"}
 {"id":"5282b7b8","ended_at":1795473197,"elapsed_s":737,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1795473443,"phase":"done","prd":"00024-snapshot-slow-many-untracked-files-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795554517,"phase":"done","prd":"00024-snapshot-slow-many-untracked-files-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795554576,"phase":"build","prd":"00024-snapshot-slow-many-untracked-files-v1.md"}

@@ -1,0 +1,30 @@
+# Decision Audit Log: 00024-snapshot-slow-many-untracked-files-v1
+
+PRD: `00024-snapshot-slow-many-untracked-files-v1.md`
+Started: 2026-11-24T21:09:05Z
+Completed: 2026-11-24T21:09:05Z
+Autonomous: 0  |  Deferred: 3  |  Doubts: 0
+
+### [deferred] 2026-11-24T21:09:05Z
+
+**Decision**: Ancestor propagation in _external_symlink_dir is unpinned: deleting the parent recursion (target_snapshot.py:245-247) leaves every snapshot test green, while a file two levels below an escaping symlink is then read outside the repo
+
+**Choice**: deferred
+
+**Rationale**: fast-track lane reworks only confirmed CRITICAL or HIGH; fix: in test_fingerprints_unchanged_by_symlink_cache add outside/sub/deep.txt and assert out-link/sub/deep.txt and inner/out-nested/sub/deep.txt give external-symlink (Eve, review-1 row R4)
+
+### [deferred] 2026-11-24T21:09:05Z
+
+**Decision**: Symlink cache in _external_symlink_dir lives for the process, not one snapshot: a second in-process fingerprint after a directory is swapped for an outside symlink hashes the outside file (measured by Eve); backlog PRD 00037 takes a snapshot and compares in one process
+
+**Choice**: deferred
+
+**Rationale**: fast-track lane reworks only confirmed CRITICAL or HIGH; the PRD accepted the one-snapshot-per-process invariant as a risk; fix: call _external_symlink_dir.cache_clear() first in take_snapshot, correct the docstring, add an in-process test (Eve, review-1 row R5; Blake R7 and Bob R10 raised the same at LOW)
+
+### [deferred] 2026-11-24T21:09:05Z
+
+**Decision**: parent, _name = os.path.split(rel_dir) at target_snapshot.py:245 binds an unused name
+
+**Choice**: deferred
+
+**Rationale**: fast-track lane reworks only confirmed CRITICAL or HIGH; fix: parent = os.path.dirname(rel_dir), behaviour unchanged (Eve and Bob, review-1 row R2)
