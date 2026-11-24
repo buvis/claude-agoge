@@ -1,14 +1,146 @@
 [
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "The baseline numbers are missing from the T2 commit message. Task 1 says the baseline must be noted in the next task's commit message. c5f644c has no wall time or pass/skip counts. They appear only in the T3 message (53.67 s, 254 passed, 2 skipped).", "file": null, "reason": "The baseline is recorded, in the T3 commit message (53.67 s, 254 passed, 2 skipped). Landed commit messages are immutable here; rewriting history to move a number between two commits is not a fix worth a rebase."},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The wall-time target is not met on this run: the suite took 54.9 s against the 65 s baseline, and the PRD target is under 40 s. The PRD calls the target a guess and requires only that the time drops, so this is not a defect.", "file": null, "reason": "The PRD states the under-40 s figure is a guess and requires only that wall time drops from the 65 s baseline on the same machine. It did. The reviewer agrees this is not a defect."},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The fail-first replay could not collect the three touched test files at the base commit, because the `template_target` fixtures do not exist there. The converted tests therefore have no evidence that they still fail for their original reasons.", "file": null, "reason": "Expected for this change: the converted tests import fixtures that do not exist at base, so collection at base cannot succeed by construction. The PRD's own Test Strategy names pass/skip parity as the regression check, and parity holds (254 passed, 2 skipped, identical to the pre-change tree per Blake's same-machine run)."},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "The same gap in the state file: the per-test `_add_submodule` call has no stay-on-builder comment, and no `template_target_with_submodule` fixture is used there.", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:428", "reason": "Duplicate of R1, whose text names this same site; R1's fix task covers it."},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "`_big_file_target` still builds a plain repo per test. The large file setup works on a copy, so the comment about its cost does not establish the PRD's exception. Pass in the plain template and keep the large file setup local.", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:597", "reason": "single-voice; and the PRD permits staying on the per-test builder with a stated reason, which this site already carries (Blake verified the rationale comment is present)."},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "The mechanical check flags the existing either-or assertion. An entry under a category in `GITDIR_UNCHECKED` can be absent from the snapshot and still pass.", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:394", "reason": "Duplicate of R10, which carries the same claim with two finders; R10's fix task covers it."},
-  {"cycle": 1, "disposition": "discarded", "severity": "medium", "issue": "test_untouched_linked_worktree_and_submodule_compare_unchanged builds submodule from scratch instead of using template_target_with_submodule", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:425", "reason": "Duplicate of R1, whose text names this same test; R1's fix task covers it."},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The mech-check `or` hedge on `test_every_gitdir_entry_is_checked_or_listed` (`rel in gitdir or top in GITDIR_UNCHECKED`) is a real \"checked or listed\" membership invariant, not a tautology. The test existed before this diff and was only switched to the copy helper. Leave it as is, or add a comment saying the `or` is the invariant.", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:394", "reason": "This is the refutation of R9/R10 rather than a separate defect; R10's fix task adds the clarifying comment it asks for."},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The linked-worktree test still builds a submodule per test and gives no reason for the exception. Document why the worktree must be created before the submodule, if that order is part of the test.", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:425", "reason": "Duplicate of R1, whose fix task either converts this test to the submodule template or records the reason it cannot be."},
-  {"cycle": 1, "disposition": "discarded", "severity": "low", "issue": "The replay collected zero tests, so it provides no evidence that a converted test still detects its original regression.", "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:565", "reason": "Duplicate of R5, discarded for the same reason: collection at base cannot succeed for tests importing new fixtures, and pass/skip parity is the PRD's named regression check."},
-  {"cycle": 1, "disposition": "settled-deferral", "severity": "medium", "issue": "`test_target_snapshot.py` is 809 lines, over the 800-line cap. The cap was already flagged in the 00027 review, and this diff leaves the count unchanged, so the file stays over. Split the file or move tests out.", "file": "skills/run-agoge/scripts/test_target_snapshot.py:809", "reason": "Pre-existing and unchanged by this diff (the 00027 review already raised it). Splitting a test module is a separate change with its own risk; deferred to batch end for its own PRD rather than smuggled into a fixture-performance change."},
-  {"cycle": 1, "disposition": "settled-deferral", "severity": "high", "issue": "Wall-time goal is not met in substance. HEAD took 55.18 s and the pre-change tree 56.99 s on the same machine, a gain of about 3%, which is noise level. The PRD target is under 40 s. The measured result suggests the time is dominated elsewhere, probably the python child process each test spawns, so the fix barely addresses the stated problem.", "file": "skills/run-agoge/scripts/conftest.py:6", "reason": "Requirements ambiguity resolved against the PRD's own text: it requires only that wall time drops from the 65 s baseline, calls the under-40 s figure a guess, and states explicitly that the per-test python child processes stay. Both the must-have and the success criterion are met. The remaining headroom is the child-process spawn cost, which this PRD excluded by design; deferred to batch end as a candidate for its own PRD. The in-scope part of the complaint (per-test submodule builds still present) is fixed by this cycle's R1 task."}
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The baseline numbers are missing from the T2 commit message. Task 1 says the baseline must be noted in the next task's commit message. c5f644c has no wall time or pass/skip counts. They appear only in the T3 message (53.67 s, 254 passed, 2 skipped).",
+    "file": null,
+    "reason": "The baseline is recorded, in the T3 commit message (53.67 s, 254 passed, 2 skipped). Landed commit messages are immutable here; rewriting history to move a number between two commits is not a fix worth a rebase."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The wall-time target is not met on this run: the suite took 54.9 s against the 65 s baseline, and the PRD target is under 40 s. The PRD calls the target a guess and requires only that the time drops, so this is not a defect.",
+    "file": null,
+    "reason": "The PRD states the under-40 s figure is a guess and requires only that wall time drops from the 65 s baseline on the same machine. It did. The reviewer agrees this is not a defect."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The fail-first replay could not collect the three touched test files at the base commit, because the `template_target` fixtures do not exist there. The converted tests therefore have no evidence that they still fail for their original reasons.",
+    "file": null,
+    "reason": "Expected for this change: the converted tests import fixtures that do not exist at base, so collection at base cannot succeed by construction. The PRD's own Test Strategy names pass/skip parity as the regression check, and parity holds (254 passed, 2 skipped, identical to the pre-change tree per Blake's same-machine run)."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The same gap in the state file: the per-test `_add_submodule` call has no stay-on-builder comment, and no `template_target_with_submodule` fixture is used there.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:428",
+    "reason": "Duplicate of R1, whose text names this same site; R1's fix task covers it."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "`_big_file_target` still builds a plain repo per test. The large file setup works on a copy, so the comment about its cost does not establish the PRD's exception. Pass in the plain template and keep the large file setup local.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:597",
+    "reason": "single-voice; and the PRD permits staying on the per-test builder with a stated reason, which this site already carries (Blake verified the rationale comment is present)."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The mechanical check flags the existing either-or assertion. An entry under a category in `GITDIR_UNCHECKED` can be absent from the snapshot and still pass.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:394",
+    "reason": "Duplicate of R10, which carries the same claim with two finders; R10's fix task covers it."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "test_untouched_linked_worktree_and_submodule_compare_unchanged builds submodule from scratch instead of using template_target_with_submodule",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:425",
+    "reason": "Duplicate of R1, whose text names this same test; R1's fix task covers it."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The mech-check `or` hedge on `test_every_gitdir_entry_is_checked_or_listed` (`rel in gitdir or top in GITDIR_UNCHECKED`) is a real \"checked or listed\" membership invariant, not a tautology. The test existed before this diff and was only switched to the copy helper. Leave it as is, or add a comment saying the `or` is the invariant.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:394",
+    "reason": "This is the refutation of R9/R10 rather than a separate defect; R10's fix task adds the clarifying comment it asks for."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The linked-worktree test still builds a submodule per test and gives no reason for the exception. Document why the worktree must be created before the submodule, if that order is part of the test.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:425",
+    "reason": "Duplicate of R1, whose fix task either converts this test to the submodule template or records the reason it cannot be."
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The replay collected zero tests, so it provides no evidence that a converted test still detects its original regression.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:565",
+    "reason": "Duplicate of R5, discarded for the same reason: collection at base cannot succeed for tests importing new fixtures, and pass/skip parity is the PRD's named regression check."
+  },
+  {
+    "cycle": 1,
+    "disposition": "settled-deferral",
+    "severity": "medium",
+    "issue": "`test_target_snapshot.py` is 809 lines, over the 800-line cap. The cap was already flagged in the 00027 review, and this diff leaves the count unchanged, so the file stays over. Split the file or move tests out.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:809",
+    "reason": "Pre-existing and unchanged by this diff (the 00027 review already raised it). Splitting a test module is a separate change with its own risk; deferred to batch end for its own PRD rather than smuggled into a fixture-performance change."
+  },
+  {
+    "cycle": 1,
+    "disposition": "settled-deferral",
+    "severity": "high",
+    "issue": "Wall-time goal is not met in substance. HEAD took 55.18 s and the pre-change tree 56.99 s on the same machine, a gain of about 3%, which is noise level. The PRD target is under 40 s. The measured result suggests the time is dominated elsewhere, probably the python child process each test spawns, so the fix barely addresses the stated problem.",
+    "file": "skills/run-agoge/scripts/conftest.py:6",
+    "reason": "Requirements ambiguity resolved against the PRD's own text: it requires only that wall time drops from the 65 s baseline, calls the under-40 s figure a guess, and states explicitly that the per-test python child processes stay. Both the must-have and the success criterion are met. The remaining headroom is the child-process spawn cost, which this PRD excluded by design; deferred to batch end as a candidate for its own PRD. The in-scope part of the complaint (per-test submodule builds still present) is fixed by this cycle's R1 task."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "Task 4 adds a comment to `_source_submodule`, but the callers can select a template from `source` before dispatch. All three submodule filter cases still build a submodule per case.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_programs.py:226",
+    "reason": "single-voice; and the PRD permits staying on the per-test builder with a stated reason, which this site now carries (the cycle-1 R1 task added it, and Alice accepted the comment)."
+  },
+  {
+    "cycle": 2,
+    "disposition": "settled-deferral",
+    "severity": "low",
+    "issue": "Wall-time gain is small. The 40 s target is unmet and the drop is near noise: the implementer's own numbers are 53.67 s to 49.91 s (c3d1956), against the 65 s figure in the PRD.",
+    "file": "skills/run-agoge/scripts/conftest.py:6",
+    "reason": "Re-raise of the cycle-1 settled deferral at the same file: the PRD requires only that wall time drops and calls the under-40 s figure a guess. The remaining headroom is the per-test python child process the PRD excluded by design."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The baseline wall time and counts are not in the commit message of the next task (c5f644c, T2) as the Phase 0 task 1 acceptance requires. They appear in the T3 message.",
+    "file": null,
+    "reason": "single-voice; and already discarded in cycle 1 for the same reason: the baseline is recorded in the T3 commit message and landed commit messages are immutable here."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "test_every_gitdir_entry_is_checked_or_listed was rewritten from `assert A or B` to `if B: continue; assert A`. The two forms are logically equivalent, so the test is not weakened. The fail-first replay reports this same test passing against the pre-change code.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot_state.py:394",
+    "reason": "The replay row states a computed fact that is expected of a behavior-preserving refactor: the rework only clarified the assertion the cycle-1 R10 task asked it to clarify, so it passes at base by design. Blake and Alice both read the two forms as equivalent."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Nothing prevents a test from mutating the module-scoped templates. Every call site goes through `_copy_target`, which uses `copytree(symlinks=True)` into `tmp_path`.",
+    "file": "skills/run-agoge/scripts/snapshot_fixtures.py:72",
+    "reason": "single-voice; the reviewer verified no call site mutates a template, so this is a hardening idea rather than a defect, and enforcement machinery is outside a fixture-performance PRD."
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Both dispatch logs record two successful completions with different elapsed times for each cycle-1 reviewer dispatch. Verify that the metrics summary counts each dispatch once and uses the intended duration.",
+    "file": "docs/dev/project-management/autopilot/dispatch-metrics.jsonl:660",
+    "reason": "single-voice, and about autopilot's own telemetry file rather than this PRD's change. Out of scope for 00028."
+  }
 ]
