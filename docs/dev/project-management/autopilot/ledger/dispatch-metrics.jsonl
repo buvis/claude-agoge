@@ -630,3 +630,22 @@
 {"kind":"handoff","site":"done","edge":"leave","at":1795559025,"phase":"done","prd":"00026-untracked-files-hashed-in-full-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1795559054,"phase":"done","prd":"00026-untracked-files-hashed-in-full-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795559115,"phase":"build","prd":"00026-untracked-files-hashed-in-full-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1795559308,"phase":"build","prd":"00027-allow-misses-removed-directory-contents-v1.md"}
+{"id":"e19a28fe","kind":"fast-track:tess","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559404,"prompt_bytes":86987}
+{"id":"e19a28fe","ended_at":1795559579,"elapsed_s":175,"outcome":"ok","detail":null}
+{"id":"3f96515d","kind":"fast-track:ivan","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559600,"prompt_bytes":35496}
+{"id":"3f96515d","ended_at":1795559742,"elapsed_s":142,"outcome":"ok","detail":null}
+{"id":"0015a656","kind":"fast-track:fanout","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559868,"prompt_bytes":3733}
+{"id":"5e22c3db","kind":"fast-track:blake","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559870,"prompt_bytes":7831}
+{"id":"40edfe53","kind":"fast-track:eve","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559871,"prompt_bytes":4807}
+{"id":"67bb2b41","kind":"fast-track:bob","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559872,"prompt_bytes":9268}
+{"id":"f952697c","kind":"fast-track:carl","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795559874,"prompt_bytes":6525}
+{"id":"5e22c3db","ended_at":1795560275,"elapsed_s":405,"outcome":"ok","detail":null}
+{"id":"40edfe53","ended_at":1795560276,"elapsed_s":405,"outcome":"ok","detail":null}
+{"id":"0015a656","ended_at":1795560277,"elapsed_s":409,"outcome":"error","detail":"workflow file missing"}
+{"id":"fd9673ec","kind":"fast-track:alice","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795560279,"prompt_bytes":3733}
+{"id":"fd9673ec","ended_at":1795560399,"elapsed_s":120,"outcome":"ok","detail":null}
+{"id":"67bb2b41","ended_at":1795560406,"elapsed_s":534,"outcome":"error","detail":"codex blocked by its own PreToolUse fact-forcing gate, no review produced"}
+{"id":"353591d8","kind":"fast-track:bob","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795560408,"prompt_bytes":9268}
+{"id":"353591d8","ended_at":1795560452,"elapsed_s":44,"outcome":"ok","detail":null}
+{"id":"f952697c","ended_at":1795560621,"elapsed_s":747,"outcome":"ok","detail":null}
