@@ -314,6 +314,73 @@ def test_allowed_path_is_not_tracked_removed_or_touched(tmp_path):
     assert report["touched"] == ["new.txt", "new.txt.extra"]
 
 
+def test_allow_directory_exempts_its_removed_contents(tmp_path):
+    target, env = _build_target(tmp_path)
+    (target / ".gitignore").write_text("igndir/\n")
+    _git(target, env, "add", ".gitignore")
+    _git(target, env, "commit", "-q", "-m", "add gitignore")
+    (target / "igndir").mkdir()
+    (target / "igndir" / "f").write_text("f\n")
+    (target / "igndir" / "sub").mkdir()
+    (target / "igndir" / "sub" / "g").write_text("g\n")
+    (target / "untdir").mkdir()
+    (target / "untdir" / "f").write_text("f\n")
+    (target / "untdir" / "sub").mkdir()
+    (target / "untdir" / "sub" / "g").write_text("g\n")
+    before = _snap(tmp_path, target, env)
+
+    shutil.rmtree(target / "igndir")
+    shutil.rmtree(target / "untdir")
+
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    kinds = {v["kind"] for v in report["violations"]}
+    assert "ignored-removed" in kinds
+    assert "untracked-removed" in kinds
+
+    for allow in (("igndir", "untdir"), ("igndir/", "untdir/")):
+        code, report = _compare(tmp_path, target, before, env, allow=allow)
+        assert code == 0
+        assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+
+def test_allow_prefix_matches_whole_components_only(tmp_path):
+    target, env = _build_target(tmp_path)
+    (target / ".gitignore").write_text("igndir/\n")
+    _git(target, env, "add", ".gitignore")
+    _git(target, env, "commit", "-q", "-m", "add gitignore")
+    (target / "igndir").mkdir()
+    (target / "igndir" / "f").write_text("f\n")
+    before = _snap(tmp_path, target, env)
+    shutil.rmtree(target / "igndir")
+
+    # "ign" is a prefix of "igndir" but not a whole path component: it must
+    # not exempt anything under igndir.
+    code, report = _compare(tmp_path, target, before, env, allow=("ign",))
+    assert code == 1
+    assert any(
+        v["kind"] == "ignored-removed" and v.get("path", "").startswith("igndir")
+        for v in report["violations"]
+    )
+
+    code, report = _compare(tmp_path, target, before, env, allow=("igndir",))
+    assert code == 0
+    assert report["violations"] == []
+
+    # An exact file path exempts that file only, not a same-prefix sibling.
+    before2 = _snap(tmp_path, target, env, name="before2.json")
+    (target / "notes.txt").write_bytes(NOTES_V2)
+    code, report = _compare(tmp_path, target, before2, env, allow=("notes.txt",))
+    assert code == 0
+    assert report["violations"] == []
+
+    code, report = _compare(tmp_path, target, before2, env, allow=("notes",))
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("tracked", "notes.txt"),
+    ]
+
+
 def test_restore_commands_put_refs_back(tmp_path):
     target, env = _build_target(tmp_path)
     before = _snap(tmp_path, target, env)
