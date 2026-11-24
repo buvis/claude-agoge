@@ -14,7 +14,8 @@ import pytest
 import target_snapshot
 from snapshot_fixtures import (
     NOTES_V1, NOTES_V2, SCRIPT, _add_submodule, _assert_exit2, _assert_scratch_ignored,
-    _build_target, _compare, _git, _pair_env, _run, _sha, _snap, _write_packed_refs,
+    _build_target, _compare, _copy_target, _git, _pair_env, _run, _sha, _snap,
+    _write_packed_refs,
 )
 
 
@@ -52,8 +53,8 @@ def _commit_gitignore(target, env, *rules):
     _git(target, env, "commit", "-q", "-m", "ignore")
 
 
-def test_overwritten_untracked_file_is_untracked_modified_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_overwritten_untracked_file_is_untracked_modified_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "sub").mkdir()
     (target / "sub/keep.txt").write_text("k\n")
     _git(target, env, "add", "sub/keep.txt")
@@ -90,8 +91,8 @@ def test_overwritten_untracked_file_is_untracked_modified_violation(tmp_path):
     ]
 
 
-def test_deleted_ignored_file_is_ignored_removed_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_deleted_ignored_file_is_ignored_removed_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, ".env")
     (target / "sub").mkdir()
     (target / "sub/.gitignore").write_text("cache.bin\n")
@@ -116,8 +117,8 @@ def test_deleted_ignored_file_is_ignored_removed_violation(tmp_path):
     ]
 
 
-def test_deleted_ignored_dir_is_ignored_removed_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_deleted_ignored_dir_is_ignored_removed_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "vault/")
     (target / "vault").mkdir()
     (target / "vault/a.txt").write_text("a\n")
@@ -133,8 +134,8 @@ def test_deleted_ignored_dir_is_ignored_removed_violation(tmp_path):
     ]
 
 
-def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, ".env")
     (target / "notes.md").write_bytes(NOTES_V1)
     (target / ".env").write_text("SECRET=1\n")
@@ -154,8 +155,8 @@ def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path):
     ]
 
 
-def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "vault/")
     (target / "vault").mkdir()
     (target / "vault/a.txt").write_text("a\n")
@@ -173,8 +174,8 @@ def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_
     ]
 
 
-def test_deleted_empty_ignored_dir_is_ignored_removed_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_deleted_empty_ignored_dir_is_ignored_removed_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "empty/")
     (target / "empty").mkdir()
     before = _snap(tmp_path, target, env)
@@ -185,10 +186,10 @@ def test_deleted_empty_ignored_dir_is_ignored_removed_violation(tmp_path):
     assert report["violations"] == [{"kind": "ignored-removed", "path": "empty/"}]
 
 
-def test_ignored_fifo_does_not_hang(tmp_path):
+def test_ignored_fifo_does_not_hang(tmp_path, template_target):
     if not hasattr(os, "mkfifo"):
         pytest.skip("os.mkfifo unavailable")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "*.pipe")
     os.mkfifo(target / "x.pipe")
     os.mkfifo(target / "untracked.fifo")
@@ -201,10 +202,10 @@ def test_ignored_fifo_does_not_hang(tmp_path):
     assert json.loads(result.stdout)["violations"] == []
 
 
-def test_ignored_contents_are_never_read(tmp_path):
+def test_ignored_contents_are_never_read(tmp_path, template_target):
     if os.geteuid() == 0:
         pytest.skip("root reads mode-000 files")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "secret.key", "vault/")
     (target / "secret.key").write_text("s\n")
     (target / "vault").mkdir()
@@ -230,8 +231,8 @@ def test_ignored_contents_are_never_read(tmp_path):
     assert _sha(b"a\n") not in before.read_text()
 
 
-def test_allow_exempts_ignored_children_by_exact_path(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_allow_exempts_ignored_children_by_exact_path(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "vault/", "empty/")
     (target / "vault").mkdir()
     (target / "vault/a.txt").write_text("a\n")
@@ -266,8 +267,8 @@ def test_allow_exempts_ignored_children_by_exact_path(tmp_path):
     ]
 
 
-def test_added_remote_is_config_violation_without_url(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_added_remote_is_config_violation_without_url(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     url = "https://example.invalid/secret-repo-token.git"
     _git(target, env, "remote", "add", "upstream", url)
@@ -279,8 +280,8 @@ def test_added_remote_is_config_violation_without_url(tmp_path):
     assert "secret-repo-token" not in result.stdout + result.stderr
 
 
-def test_changed_config_value_is_config_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_changed_config_value_is_config_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _git(target, env, "config", "user.email", "cy@example.test")
     before = _snap(tmp_path, target, env)
     # Same key, same number of entries, only the value differs.
@@ -290,8 +291,8 @@ def test_changed_config_value_is_config_violation(tmp_path):
     assert report["violations"] == [{"kind": "config"}]
 
 
-def test_added_worktree_is_worktrees_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_added_worktree_is_worktrees_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     worktree = tmp_path / "wt"
     _git(target, env, "worktree", "add", "-q", "--detach", str(worktree), "HEAD")
@@ -307,8 +308,8 @@ def test_added_worktree_is_worktrees_violation(tmp_path):
     )
 
 
-def test_swapped_worktree_is_worktrees_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_swapped_worktree_is_worktrees_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     first = tmp_path / "wt-first"
     second = tmp_path / "wt-second"
     _git(target, env, "worktree", "add", "-q", "--detach", str(first), "HEAD")
@@ -327,8 +328,8 @@ def test_swapped_worktree_is_worktrees_violation(tmp_path):
     )
 
 
-def test_new_hook_is_gitdir_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_new_hook_is_gitdir_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     hooks = target / ".git" / "hooks"
     hooks.mkdir(exist_ok=True)
@@ -340,8 +341,8 @@ def test_new_hook_is_gitdir_violation(tmp_path):
     assert any(v["kind"] == "gitdir" for v in report["violations"])
 
 
-def test_changed_info_exclude_is_gitdir_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_changed_info_exclude_is_gitdir_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     info = target / ".git" / "info"
     info.mkdir(exist_ok=True)
     (info / "exclude").write_text("# seed\n")
@@ -352,8 +353,8 @@ def test_changed_info_exclude_is_gitdir_violation(tmp_path):
     assert any(v["kind"] == "gitdir" for v in report["violations"])
 
 
-def test_changed_info_attributes_is_gitdir_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_changed_info_attributes_is_gitdir_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     info = target / ".git" / "info"
     info.mkdir(exist_ok=True)
     (info / "attributes").write_text("# seed\n")
@@ -364,8 +365,8 @@ def test_changed_info_attributes_is_gitdir_violation(tmp_path):
     assert any(v["kind"] == "gitdir" for v in report["violations"])
 
 
-def test_new_hook_on_linked_worktree_is_gitdir_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_new_hook_on_linked_worktree_is_gitdir_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     worktree = tmp_path / "wt"
     _git(target, env, "worktree", "add", "-q", "--detach", str(worktree), "HEAD")
     before = _snap(tmp_path, worktree, env)
@@ -379,8 +380,8 @@ def test_new_hook_on_linked_worktree_is_gitdir_violation(tmp_path):
     assert any(v["kind"] == "gitdir" for v in report["violations"])
 
 
-def test_every_gitdir_entry_is_checked_or_listed(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_every_gitdir_entry_is_checked_or_listed(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
     gitdir = snapshot["gitdir"]
@@ -393,9 +394,9 @@ def test_every_gitdir_entry_is_checked_or_listed(tmp_path):
             assert rel in gitdir or top in target_snapshot.GITDIR_UNCHECKED, rel
 
 
-def test_inherited_git_dir_does_not_redirect_snapshot(tmp_path):
-    target, env = _build_target(tmp_path)
-    decoy, decoy_env = _build_target(tmp_path, name="decoy")
+def test_inherited_git_dir_does_not_redirect_snapshot(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
+    decoy, decoy_env = _copy_target(template_target, tmp_path, name="decoy")
     (decoy / "decoy-marker.txt").write_text("decoy\n")
     _git(decoy, decoy_env, "add", "-A")
     _git(decoy, decoy_env, "commit", "-q", "-m", "decoy marker")
@@ -421,8 +422,8 @@ def _kinds(report):
     return [v["kind"] for v in report["violations"]]
 
 
-def test_untouched_linked_worktree_and_submodule_compare_unchanged(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_untouched_linked_worktree_and_submodule_compare_unchanged(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     _git(target, env, "worktree", "add", "-q", "--detach", str(tmp_path / "wt"), "HEAD")
     _add_submodule(tmp_path, target, env)
     before = _snap(tmp_path, target, env)
@@ -431,8 +432,8 @@ def test_untouched_linked_worktree_and_submodule_compare_unchanged(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_detached_linked_worktree_is_worktree_head_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_detached_linked_worktree_is_worktree_head_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     worktree = tmp_path / "wt"
     _git(target, env, "worktree", "add", "-q", "--detach", str(worktree), "HEAD")
     before = _snap(tmp_path, target, env)
@@ -444,9 +445,9 @@ def test_detached_linked_worktree_is_worktree_head_violation(tmp_path):
     assert _kinds(report) == ["worktree-head"]
 
 
-def test_submodule_commit_is_submodule_violation(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_submodule_commit_is_submodule_violation(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     before = _snap(tmp_path, target, env)
     _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
     code, report = _compare(tmp_path, target, before, env)
@@ -454,9 +455,9 @@ def test_submodule_commit_is_submodule_violation(tmp_path):
     assert "submodule" in _kinds(report)
 
 
-def test_submodule_untracked_file_is_submodule_violation(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_submodule_untracked_file_is_submodule_violation(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     before = _snap(tmp_path, target, env)
     (sub / "planted.txt").write_text("planted\n")
     code, report = _compare(tmp_path, target, before, env)
@@ -464,8 +465,8 @@ def test_submodule_untracked_file_is_submodule_violation(tmp_path):
     assert "submodule" in _kinds(report)
 
 
-def test_malformed_ref_name_in_snapshot_exits_2(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_malformed_ref_name_in_snapshot_exits_2(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
     head = snapshot["refs"].pop("refs/heads/master")
@@ -476,8 +477,8 @@ def test_malformed_ref_name_in_snapshot_exits_2(tmp_path):
     assert result.stdout == ""
 
 
-def test_malformed_ref_value_in_snapshot_exits_2(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_malformed_ref_value_in_snapshot_exits_2(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
     snapshot["refs"]["refs/heads/master"] = "--no-deref"
@@ -487,9 +488,9 @@ def test_malformed_ref_value_in_snapshot_exits_2(tmp_path):
     assert result.stdout == ""
 
 
-def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     (sub / "notes.txt").write_bytes(NOTES_V1)
     before = _snap(tmp_path, target, env)
     code, report = _compare(tmp_path, target, before, env)
@@ -500,14 +501,14 @@ def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path):
     assert "submodule" in _kinds(report)
 
 
-def test_restore_command_puts_non_utf8_ref_back(tmp_path):
+def test_restore_command_puts_non_utf8_ref_back(tmp_path, template_target):
     probe = tmp_path / os.fsdecode(b"probe-\xff")
     try:
         probe.write_text("probe\n")
     except OSError as exc:
         pytest.skip(f"filesystem rejects non-UTF-8 names: {exc}")
 
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     sha = _git(target, env, "rev-parse", "HEAD")
     bad_ref = b"refs/heads/bad-\xff"
     _write_packed_refs(target, sha, bad_ref)
@@ -532,8 +533,8 @@ def test_restore_command_puts_non_utf8_ref_back(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_utf8_restore_command_is_unchanged(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_utf8_restore_command_is_unchanged(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     old = _git(target, env, "rev-parse", "HEAD")
     before = _snap(tmp_path, target, env)
     new = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "second change")
@@ -561,8 +562,8 @@ def _write_non_uniform_file(path, size):
             written += take
 
 
-def test_fingerprint_matches_whole_file_sha256(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_fingerprint_matches_whole_file_sha256(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     big = target / "big.bin"
     # Bigger than a typical 1 MiB chunk, with content that straddles any
     # chunk boundary non-uniformly, so a buggy chunked reimplementation
@@ -593,6 +594,9 @@ def _big_file_target(tmp_path):
     and so leaves the content as the only way to tell the file changed.
     Returns (target, env, snapshot path).
     """
+    # Stays on the per-test builder: the big.bin write, add and commit below
+    # dominate this fixture's cost, not the plain `git init`, so copying a
+    # template would not speed it up.
     target, env = _build_target(tmp_path)
     big = target / "big.bin"
     size = target_snapshot.SAMPLE_ABOVE
@@ -630,10 +634,10 @@ def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
     assert code == 1, report
 
 
-def test_fifo_in_git_dir_does_not_hang_snapshot(tmp_path):
+def test_fifo_in_git_dir_does_not_hang_snapshot(tmp_path, template_target):
     if not hasattr(os, "mkfifo"):
         pytest.skip("os.mkfifo unavailable")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     hooks = target / ".git" / "hooks"
     hooks.mkdir(exist_ok=True)
     info = target / ".git" / "info"
@@ -656,10 +660,10 @@ def test_fifo_in_git_dir_does_not_hang_snapshot(tmp_path):
     assert result.returncode == 0, result.stderr
 
 
-def test_git_dir_symlink_recorded_by_target_not_content(tmp_path):
+def test_git_dir_symlink_recorded_by_target_not_content(tmp_path, template_target):
     if not hasattr(os, "mkfifo"):
         pytest.skip("os.mkfifo unavailable")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     hooks = target / ".git" / "hooks"
     hooks.mkdir(exist_ok=True)
     (hooks / "regular").write_text("content\n")
@@ -677,10 +681,10 @@ def test_git_dir_symlink_recorded_by_target_not_content(tmp_path):
     assert gitdir["hooks/fifo"].startswith("special:")
 
 
-def test_changed_git_dir_special_file_is_reported(tmp_path):
+def test_changed_git_dir_special_file_is_reported(tmp_path, template_target):
     if not hasattr(os, "mkfifo"):
         pytest.skip("os.mkfifo unavailable")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     hooks = target / ".git" / "hooks"
     hooks.mkdir(exist_ok=True)
     hook = hooks / "pre-commit"
@@ -711,8 +715,8 @@ def test_changed_git_dir_special_file_is_reported(tmp_path):
     assert "hooks/link" in gitdir_paths
 
 
-def test_large_git_dir_file_peak_rss_under_48_mib(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_large_git_dir_file_peak_rss_under_48_mib(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     hooks = target / ".git" / "hooks"
     hooks.mkdir(exist_ok=True)
     hook = hooks / "big-hook"
@@ -729,10 +733,10 @@ def test_large_git_dir_file_peak_rss_under_48_mib(tmp_path):
     )
 
 
-def test_unreadable_git_dir_file_names_the_file(tmp_path):
+def test_unreadable_git_dir_file_names_the_file(tmp_path, template_target):
     if os.geteuid() == 0:
         pytest.skip("root reads mode-000 files")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     info = target / ".git" / "info"
     info.mkdir(exist_ok=True)
     secret = info / "secret-hook-data"

@@ -10,7 +10,7 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    _add_submodule, _assert_exit2, _assert_scratch_ignored, _build_target, _compare,
+    _add_submodule, _assert_exit2, _assert_scratch_ignored, _compare, _copy_target,
     _git, _git_dir_state, _pair_env, _run, _snap,
 )
 
@@ -121,8 +121,8 @@ def _assert_submodule_head(snapshot_path, head):
     )
 
 
-def test_snapshot_does_not_run_fsmonitor(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_snapshot_does_not_run_fsmonitor(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path, name="fsmonitor.sh")
     _git(target, env, "config", "--local", "core.fsmonitor", str(script))
 
@@ -147,8 +147,8 @@ def test_snapshot_does_not_run_fsmonitor(tmp_path):
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_clean_filter(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_snapshot_does_not_run_clean_filter(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
     _configure_filter(target, env, ["--local"], driver, script)
@@ -240,8 +240,8 @@ _FILTER_SOURCES = {
 
 @pytest.mark.parametrize("kind", ["clean", "process"])
 @pytest.mark.parametrize("source", list(_FILTER_SOURCES))
-def test_snapshot_does_not_run_filter_from_any_source(tmp_path, source, kind):
-    target, env = _build_target(tmp_path)
+def test_snapshot_does_not_run_filter_from_any_source(tmp_path, source, kind, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
     env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, driver, script, kind)
@@ -272,8 +272,8 @@ def test_snapshot_does_not_run_filter_from_any_source(tmp_path, source, kind):
 
 
 @pytest.mark.parametrize("shape", ["plain", "equals", "dots"])
-def test_snapshot_does_not_run_clean_filter_named(tmp_path, shape):
-    target, env = _build_target(tmp_path)
+def test_snapshot_does_not_run_clean_filter_named(tmp_path, shape, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver(shape)
     _configure_filter(target, env, ["--local"], driver, script)
@@ -294,8 +294,8 @@ def test_snapshot_does_not_run_clean_filter_named(tmp_path, shape):
     assert code == 0, report
 
 
-def test_snapshot_handles_clean_filter_named_with_a_space(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_snapshot_handles_clean_filter_named_with_a_space(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver("space")
     _configure_filter(target, env, ["--local"], driver, script)
@@ -340,8 +340,8 @@ def test_snapshot_handles_clean_filter_named_with_a_space(tmp_path):
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_required_process_filter(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_snapshot_does_not_run_required_process_filter(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path, name="process.sh")
     driver = _driver()
     (target / ".gitattributes").write_text(f"*.txt filter={driver}\n")
@@ -372,9 +372,9 @@ def test_snapshot_does_not_run_required_process_filter(tmp_path):
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     sub_script, sub_log = _marker(tmp_path, name="sub-filter.sh")
     parent_script, parent_log = _marker(tmp_path, name="parent-filter.sh")
     sub_driver, parent_driver = _driver(), _driver()
@@ -423,9 +423,9 @@ def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path):
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     script, log = _marker(tmp_path, name="sub-fsmonitor.sh")
     _git(sub, env, "config", "--local", "core.fsmonitor", str(script))
 
@@ -451,9 +451,9 @@ def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path):
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
     script, log = _marker(tmp_path)
     driver = _driver()
@@ -502,8 +502,8 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path):
 
 
 @pytest.mark.parametrize("source", ["local", "global", "include-if", "submodule"])
-def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_path, source):
-    target, env = _build_target(tmp_path)
+def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_path, source, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
     env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, driver, script, "clean")
@@ -553,9 +553,9 @@ def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_p
     assert code == 0, report
 
 
-def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path):
-    target, env = _build_target(tmp_path)
-    sub = _add_submodule(tmp_path, target, env)
+def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path, template_target_with_submodule):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
+    sub = target / "sub"
     _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
 
     # `diff.ignoreSubmodules=all` is observable through _dirty's own
@@ -572,8 +572,8 @@ def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path):
     )
 
 
-def test_unreadable_included_config_exits_2_and_runs_nothing(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_unreadable_included_config_exits_2_and_runs_nothing(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     _configure_filter(target, env, ["--local"], _driver(), script)
     (target / "notes.txt").write_bytes(b"notes v1\n")
