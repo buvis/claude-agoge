@@ -9,15 +9,15 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    NOTES_V1, NOTES_V2, SHARED_PREFIX, _assert_exit2, _build_target, _compare,
+    NOTES_V1, NOTES_V2, SHARED_PREFIX, _assert_exit2, _compare, _copy_target,
     _git, _git_dir_state, _run, _sha, _snap, _write_packed_refs,
 )
 
 STAGED = SHARED_PREFIX + b"staged edit\n"
 
 
-def test_untouched_target_compares_unchanged(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_untouched_target_compares_unchanged(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     (target / "other.txt").write_text("other\n")
     head = _git(target, env, "rev-parse", "HEAD")
@@ -34,8 +34,8 @@ def test_untouched_target_compares_unchanged(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_snapshot_and_compare_write_nothing_in_target(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_snapshot_and_compare_write_nothing_in_target(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     notes = target / "notes.txt"
     st = notes.stat()
     os.utime(notes, ns=(st.st_atime_ns, st.st_mtime_ns + 100_000_000_000))
@@ -49,8 +49,8 @@ def test_snapshot_and_compare_write_nothing_in_target(tmp_path):
     assert _git_dir_state(target) == git_state_before
 
 
-def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     old = _git(target, env, "rev-parse", "HEAD")
     before = _snap(tmp_path, target, env)
     commit_env = {
@@ -94,8 +94,8 @@ def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path)
     assert report["touched"] == []
 
 
-def test_new_tag_is_ref_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_new_tag_is_ref_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     head = _git(target, env, "rev-parse", "HEAD")
     before = _snap(tmp_path, target, env)
     _git(target, env, "tag", "v2")
@@ -114,8 +114,8 @@ def test_new_tag_is_ref_violation(tmp_path):
         assert v["restore"] == f"git -C {repo} update-ref -d {v['ref']} {head}"
 
 
-def test_moved_remote_tracking_ref_is_ref_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_moved_remote_tracking_ref_is_ref_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     old = _git(target, env, "rev-parse", "refs/remotes/origin/master")
     before = _snap(tmp_path, target, env)
     new = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "remote work")
@@ -136,8 +136,8 @@ def test_moved_remote_tracking_ref_is_ref_violation(tmp_path):
     )
 
 
-def test_branch_switch_is_head_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_branch_switch_is_head_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     head = _git(target, env, "rev-parse", "HEAD")
     _git(target, env, "branch", "feature")
     before = _snap(tmp_path, target, env)
@@ -151,8 +151,8 @@ def test_branch_switch_is_head_violation(tmp_path):
     }]
 
 
-def test_moved_detached_head_is_head_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_moved_detached_head_is_head_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     head = _git(target, env, "rev-parse", "HEAD")
     _git(target, env, "checkout", "-q", "--detach", "HEAD")
     before = _snap(tmp_path, target, env)
@@ -167,8 +167,8 @@ def test_moved_detached_head_is_head_violation(tmp_path):
     }]
 
 
-def test_deleted_ref_is_ref_violation_with_recreating_restore(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_deleted_ref_is_ref_violation_with_recreating_restore(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     head = _git(target, env, "rev-parse", "HEAD")
     _git(target, env, "branch", "gone")
     before = _snap(tmp_path, target, env)
@@ -203,8 +203,8 @@ def test_deleted_ref_is_ref_violation_with_recreating_restore(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_staged_change_is_index_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_staged_change_is_index_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     (target / "README.md").write_bytes(STAGED)
     _git(target, env, "add", "README.md")
@@ -221,8 +221,8 @@ def test_staged_change_is_index_violation(tmp_path):
     }
 
 
-def test_editing_already_modified_file_is_tracked_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_editing_already_modified_file_is_tracked_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "notes.txt").write_bytes(NOTES_V1)
     (target / "notes.txt.orig").write_text("orig v1\n")
     before = _snap(tmp_path, target, env)
@@ -237,8 +237,8 @@ def test_editing_already_modified_file_is_tracked_violation(tmp_path):
     }]
 
 
-def test_reverting_modified_file_is_tracked_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_reverting_modified_file_is_tracked_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "notes.txt").write_bytes(NOTES_V1)
     (target / "notes.txt.orig").write_text("orig v1\n")
     before = _snap(tmp_path, target, env)
@@ -253,8 +253,8 @@ def test_reverting_modified_file_is_tracked_violation(tmp_path):
     }]
 
 
-def test_removed_untracked_file_is_untracked_removed_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_removed_untracked_file_is_untracked_removed_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     (target / "scratch.txt.keep").write_text("keep\n")
     before = _snap(tmp_path, target, env)
@@ -266,8 +266,8 @@ def test_removed_untracked_file_is_untracked_removed_violation(tmp_path):
     assert report["touched"] == []
 
 
-def test_new_untracked_file_is_touched_and_exits_zero(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_new_untracked_file_is_touched_and_exits_zero(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     before = _snap(tmp_path, target, env)
     (target / "zeta.txt").write_text("z\n")
@@ -283,8 +283,8 @@ def test_new_untracked_file_is_touched_and_exits_zero(tmp_path):
     }
 
 
-def test_allowed_path_is_not_tracked_removed_or_touched(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_allowed_path_is_not_tracked_removed_or_touched(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / "notes.txt").write_bytes(NOTES_V1)
     (target / "notes.txt.orig").write_text("orig v1\n")
     (target / "scratch.txt").write_text("scratch\n")
@@ -314,8 +314,8 @@ def test_allowed_path_is_not_tracked_removed_or_touched(tmp_path):
     assert report["touched"] == ["new.txt", "new.txt.extra"]
 
 
-def test_allow_directory_exempts_its_removed_contents(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_allow_directory_exempts_its_removed_contents(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / ".gitignore").write_text("igndir/\n")
     _git(target, env, "add", ".gitignore")
     _git(target, env, "commit", "-q", "-m", "add gitignore")
@@ -344,8 +344,8 @@ def test_allow_directory_exempts_its_removed_contents(tmp_path):
         assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_allow_prefix_matches_whole_components_only(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_allow_prefix_matches_whole_components_only(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     (target / ".gitignore").write_text("igndir/\n")
     _git(target, env, "add", ".gitignore")
     _git(target, env, "commit", "-q", "-m", "add gitignore")
@@ -381,8 +381,8 @@ def test_allow_prefix_matches_whole_components_only(tmp_path):
     ]
 
 
-def test_restore_commands_put_refs_back(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_restore_commands_put_refs_back(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     _git(target, env, "tag", "v9")
     _git(target, env, "branch", "side")
@@ -405,8 +405,8 @@ def test_restore_commands_put_refs_back(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     sub = target / "sub"
     sub.mkdir()
     (sub / "child.txt").write_text("child v1\n")
@@ -428,8 +428,8 @@ def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_
     assert "external-symlink" in violations["sub/child.txt"]["after"]
 
 
-def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     inside = target / "snap.json"
     _assert_exit2(_run(tmp_path, env, "snapshot", str(target), str(inside)))
     assert not inside.exists()
@@ -443,7 +443,7 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     sibling.parent.mkdir()
     assert _run(tmp_path, env, "snapshot", str(target), str(sibling)).returncode == 0
 
-    other, _ = _build_target(tmp_path, name="other")
+    other, _ = _copy_target(template_target, tmp_path, name="other")
     other_snap = _snap(tmp_path, other, env, name="other.json")
     result = _run(tmp_path, env, "compare", str(target), str(other_snap))
     _assert_exit2(result)
@@ -452,8 +452,8 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     # Same basename, different real path: still another repo.
     (tmp_path / "a").mkdir()
     (tmp_path / "b").mkdir()
-    twin_a, _ = _build_target(tmp_path, name="a/target")
-    twin_b, _ = _build_target(tmp_path, name="b/target")
+    twin_a, _ = _copy_target(template_target, tmp_path, name="a/target")
+    twin_b, _ = _copy_target(template_target, tmp_path, name="b/target")
     twin_snap = _snap(tmp_path, twin_a, env, name="twin-a.json")
     result = _run(tmp_path, env, "compare", str(twin_b), str(twin_snap))
     _assert_exit2(result)
@@ -478,8 +478,8 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path):
     assert not unborn_out.exists()
 
 
-def test_previous_version_snapshot_exits_2_with_one_line(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_previous_version_snapshot_exits_2_with_one_line(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
     assert snapshot["version"] == target_snapshot.VERSION
@@ -520,8 +520,8 @@ def test_text_keeps_filesystem_bytes_and_trailing_space():
     assert target_snapshot._text(result) == "/a/\udcff b "
 
 
-def test_repo_dir_with_trailing_space_round_trips(tmp_path):
-    target, env = _build_target(tmp_path, name="target ")
+def test_repo_dir_with_trailing_space_round_trips(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path, name="target ")
     before = _snap(tmp_path, target, env)
     assert json.loads(before.read_text())["repo"] == os.path.realpath(target)
     code, report = _compare(tmp_path, target, before, env)
@@ -529,8 +529,8 @@ def test_repo_dir_with_trailing_space_round_trips(tmp_path):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_non_utf8_refs_round_trip_through_snapshot(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_non_utf8_refs_round_trip_through_snapshot(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     sha = _git(target, env, "rev-parse", "HEAD")
     first, second = b"refs/heads/\xff", b"refs/heads/\xfe"
     _write_packed_refs(target, sha, first)
@@ -553,13 +553,13 @@ def test_non_utf8_refs_round_trip_through_snapshot(tmp_path):
     assert violation["after"] == sha
 
 
-def test_non_utf8_paths_round_trip(tmp_path):
+def test_non_utf8_paths_round_trip(tmp_path, template_target):
     repo_name = os.fsdecode(b"target-\xff")
     tracked_name = os.fsdecode(b"tracked-\xfe.txt")
     untracked_name = os.fsdecode(b"untracked-\xfd.txt")
     later_name = os.fsdecode(b"later-\xfc.txt")
     try:
-        target, env = _build_target(tmp_path, name=repo_name)
+        target, env = _copy_target(template_target, tmp_path, name=repo_name)
         (target / tracked_name).write_bytes(NOTES_V1)
         _git(target, env, "add", "-A")
         _git(target, env, "commit", "-q", "-m", "add tracked")
@@ -584,10 +584,10 @@ def test_non_utf8_paths_round_trip(tmp_path):
     assert report["touched"] == [later_name]
 
 
-def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path):
+def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path, template_target):
     if os.geteuid() == 0:
         pytest.skip("root reads files regardless of mode")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     notes = target / "notes.txt"
     notes.write_bytes(NOTES_V1)
     notes.chmod(0o000)
@@ -603,10 +603,10 @@ def test_unreadable_dirty_file_exits_2_with_one_line(tmp_path):
         notes.chmod(0o644)
 
 
-def test_unreadable_untracked_file_exits_2_with_one_line(tmp_path):
+def test_unreadable_untracked_file_exits_2_with_one_line(tmp_path, template_target):
     if os.geteuid() == 0:
         pytest.skip("root reads files regardless of mode")
-    target, env = _build_target(tmp_path)
+    target, env = _copy_target(template_target, tmp_path)
     notes = target / "notes.md"
     notes.write_bytes(NOTES_V1)
     notes.chmod(0o000)
@@ -622,8 +622,8 @@ def test_unreadable_untracked_file_exits_2_with_one_line(tmp_path):
         notes.chmod(0o644)
 
 
-def test_fifo_in_place_of_tracked_file_does_not_hang(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_fifo_in_place_of_tracked_file_does_not_hang(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     notes = target / "notes.txt"
     notes.unlink()
@@ -635,8 +635,8 @@ def test_fifo_in_place_of_tracked_file_does_not_hang(tmp_path):
     assert result.returncode in (0, 1), result.stderr
 
 
-def test_fifo_replaced_by_file_is_tracked_violation(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_fifo_replaced_by_file_is_tracked_violation(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     notes = target / "notes.txt"
     notes.unlink()
@@ -764,8 +764,8 @@ def test_file_above_cap_is_sampled(tmp_path):
     assert target_snapshot._fingerprint(real, "big.bin") == expected
 
 
-def test_sampled_file_head_tail_and_size_edits_are_reported(tmp_path):
-    target, env = _build_target(tmp_path)
+def test_sampled_file_head_tail_and_size_edits_are_reported(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
     big = target / "big.bin"
     size = target_snapshot.SAMPLE_ABOVE + 1
     with open(big, "wb") as handle:

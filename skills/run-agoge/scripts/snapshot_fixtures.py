@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -57,6 +58,19 @@ def _build_target(tmp_path, name="target"):
     _git(target, env, "update-ref", "refs/remotes/origin/master", "HEAD")
     _git(target, env, "tag", "v1.0")
     return target, env
+
+
+def _copy_target(template, tmp_path, name="target"):
+    """A private copy of a module-scoped `template` repo, in the shape `_build_target` returns.
+
+    The template keeps its absolute paths (notably a submodule's `url` in
+    `.git/config`), so a test that asserts on such a path, or that edits the
+    submodule's source repo rather than its checked-out worktree, must stay
+    on `_build_target`/`_add_submodule` instead.
+    """
+    target = tmp_path / name
+    shutil.copytree(template, target, symlinks=True)
+    return target, _env_for(tmp_path)
 
 
 def _run(tmp_path, env, *args, timeout=None):
