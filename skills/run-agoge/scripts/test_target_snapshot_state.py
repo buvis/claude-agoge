@@ -391,7 +391,9 @@ def test_every_gitdir_entry_is_checked_or_listed(tmp_path, template_target):
             path = Path(root) / name
             rel = str(path.relative_to(git_dir))
             top = rel.split(os.sep)[0]
-            assert rel in gitdir or top in target_snapshot.GITDIR_UNCHECKED, rel
+            if top in target_snapshot.GITDIR_UNCHECKED:
+                continue
+            assert rel in gitdir, f"{rel} neither snapshotted nor in GITDIR_UNCHECKED"
 
 
 def test_inherited_git_dir_does_not_redirect_snapshot(tmp_path, template_target):
