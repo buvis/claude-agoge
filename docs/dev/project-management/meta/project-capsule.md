@@ -31,9 +31,10 @@ Generated: 2026-11-09
 
 ### Batch 202611232314 (in progress)
 - [x] 00024-snapshot-slow-many-untracked-files-v1.md (fast-track, 1 card)
-- [ ] 00025 .. 00037 (backlog/, 13 PRDs)
+- [x] 00025-gitdir-walk-hangs-on-fifo-v1.md (fast-track, 1 card)
+- [ ] 00026 .. 00037 (backlog/, 12 PRDs)
 
-Observations: 00024 stats each untracked file once and memoises the symlink-ancestor check (`_external_symlink_dir`, lru_cache). 3 MEDIUM items deferred to `autopilot/deferred/202611232314-deferred.json`: unpinned ancestor recursion test, process-lifetime cache (call `cache_clear()` in `take_snapshot`; matters for 00037), unused `_name` binding. A formatter hook rewrites `skills/run-agoge/scripts/*.py` after edits; AST-check vs HEAD and `git checkout --` the churn. Codex sandbox fails here; pytest via `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q`.
+Observations: 00024 stats each untracked file once and memoises the symlink-ancestor check (`_external_symlink_dir`, lru_cache). 3 MEDIUM items deferred to `autopilot/deferred/202611232314-deferred.json`: unpinned ancestor recursion test, process-lifetime cache (call `cache_clear()` in `take_snapshot`; matters for 00037), unused `_name` binding. 00025 fixed the git-dir walk hanging on a FIFO (fast-track lane, 1 review pass, no findings survived). A formatter hook rewrites `skills/run-agoge/scripts/*.py` after edits; AST-check vs HEAD and `git checkout --` the churn. Codex sandbox fails here; pytest via `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q`.
 
 ### Batch 202611091445 (closed)
 - [x] 00009-integrity-check-misses-untracked-edits-v1.md (1 cycle)
