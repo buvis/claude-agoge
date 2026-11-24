@@ -628,3 +628,5 @@
 {"id":"650db9e2","ended_at":1795558438,"elapsed_s":340,"outcome":"ok","detail":null}
 {"id":"1b3aa9f7","ended_at":1795558617,"elapsed_s":526,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"done","edge":"leave","at":1795559025,"phase":"done","prd":"00026-untracked-files-hashed-in-full-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795559054,"phase":"done","prd":"00026-untracked-files-hashed-in-full-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795559115,"phase":"build","prd":"00026-untracked-files-hashed-in-full-v1.md"}
