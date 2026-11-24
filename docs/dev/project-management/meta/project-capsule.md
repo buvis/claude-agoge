@@ -33,9 +33,11 @@ Generated: 2026-11-09
 - [x] 00024-snapshot-slow-many-untracked-files-v1.md (fast-track, 1 card)
 - [x] 00025-gitdir-walk-hangs-on-fifo-v1.md (fast-track, 1 card)
 - [x] 00026-untracked-files-hashed-in-full-v1.md (fast-track, 1 card)
-- [ ] 00027 .. 00040 (backlog/, 14 PRDs)
+- [x] 00027-allow-misses-removed-directory-contents-v1.md (fast-track, 1 card)
+- [x] 00028-test-suite-takes-65-seconds-v1.md (full lane, 2 cycles)
+- [ ] 00029 .. 00040 (backlog/, 12 PRDs)
 
-Observations: 00024 stats each untracked file once and memoises the symlink-ancestor check (`_external_symlink_dir`, lru_cache). 3 MEDIUM items deferred to `autopilot/deferred/202611232314-deferred.json`: unpinned ancestor recursion test, process-lifetime cache (call `cache_clear()` in `take_snapshot`; matters for 00037), unused `_name` binding. 00025 fixed the git-dir walk hanging on a FIFO (fast-track lane, 1 review pass, no findings survived). 00026 samples large untracked files instead of hashing them whole (fast-track lane, 1 review pass, no findings survived). A formatter hook rewrites `skills/run-agoge/scripts/*.py` after edits; AST-check vs HEAD and `git checkout --` the churn. Codex sandbox fails here; pytest via `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q`.
+Observations: 00024 stats each untracked file once and memoises the symlink-ancestor check (`_external_symlink_dir`, lru_cache). 3 MEDIUM items deferred to `autopilot/deferred/202611232314-deferred.json`: unpinned ancestor recursion test, process-lifetime cache (call `cache_clear()` in `take_snapshot`; matters for 00037), unused `_name` binding. 00025 fixed the git-dir walk hanging on a FIFO (fast-track lane, 1 review pass, no findings survived). 00026 samples large untracked files instead of hashing them whole (fast-track lane, 1 review pass, no findings survived). 00028 (full lane, 2 review cycles): tail-sweep converted the remaining per-test submodule builder site to the shared fixture; final suite 254 passed, 2 skipped, 47.61s. Two items deferred to `autopilot/deferred/202611232314-deferred.json` and minted as hold-triage stubs (00041, 00042): `test_target_snapshot.py` still over the 800-line cap, and the wall-time gain over the pre-change tree was noise-level (~3%), well short of the PRD's under-40s target - the dominant cost is likely the per-test python child process, not addressed by this PRD's changes. A formatter hook rewrites `skills/run-agoge/scripts/*.py` after edits; AST-check vs HEAD and `git checkout --` the churn. Codex sandbox fails here; pytest via `uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q`.
 
 ### Batch 202611091445 (closed)
 - [x] 00009-integrity-check-misses-untracked-edits-v1.md (1 cycle)

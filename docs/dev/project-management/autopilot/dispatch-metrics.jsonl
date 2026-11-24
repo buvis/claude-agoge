@@ -676,3 +676,5 @@
 {"id":"8b00ffd3","kind":"pat","task":"6","queued_at":1795564218,"prompt_bytes":6145}
 {"id":"8b00ffd3","ended_at":1795564365,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
 {"kind":"handoff","site":"review","edge":"leave","at":1795564365,"phase":"done","prd":"00028-test-suite-takes-65-seconds-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795564389,"phase":"done","prd":"00028-test-suite-takes-65-seconds-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795564498,"phase":"build","prd":"00028-test-suite-takes-65-seconds-v1.md"}
