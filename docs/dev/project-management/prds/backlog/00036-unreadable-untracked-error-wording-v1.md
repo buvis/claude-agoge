@@ -32,7 +32,7 @@ Once PRD 00025 has landed, `_gitdir_files` also calls `_fingerprint`, so a mode-
 ## Implementation
 
 ### Module: snapshot errors
-- **Location**: `skills/run-agoge/scripts/target_snapshot.py`, `skills/run-agoge/scripts/test_target_snapshot_state.py`, `CHANGELOG.md`
+- **Location**: `skills/run-agoge/scripts/target_snapshot.py`, `skills/run-agoge/scripts/test_target_snapshot_state.py`, `skills/run-agoge/scripts/test_target_snapshot.py`, `CHANGELOG.md`
 - **Responsibility**: report an unreadable untracked file in the documented form.
 - **Exports**: none
 - New symbols: `test_unreadable_untracked_file_error_is_not_called_unexpected`
@@ -56,6 +56,7 @@ Status is mocked: a file owned by another user cannot be created without root.
 ### Phase 0: Fix
 - [ ] Add `test_unreadable_untracked_file_error_is_not_called_unexpected` in `skills/run-agoge/scripts/test_target_snapshot_state.py` (a mode-000 untracked `u.txt`: `snapshot`, and `compare` against a snapshot taken before the `chmod`, each exit 2 with exactly one stderr line `target_snapshot: cannot read u.txt: permission denied`; skip when `os.geteuid() == 0`; restore the mode in `finally`) - Acceptance: `pytest -k unreadable_untracked` fails on the unmodified script.
 - [ ] In `_fingerprint`, catch `PermissionError` and raise `Fail(f"cannot read {path}: permission denied")`, where `path` is the repo-relative path (depends on: previous task) - Acceptance: `pytest -k unreadable_untracked` passes.
+- [ ] In `skills/run-agoge/scripts/test_target_snapshot.py`, `test_fingerprint_of_unreadable_file_raises` (added outside its card by PRD 00024) expects `PermissionError` from `_fingerprint`, which the previous task replaces. In its `with` line, change the expected exception from `PermissionError` to `target_snapshot.Fail` and add the keyword argument `match="cannot read locked.txt: permission denied"`. Premise: `rg -c "def test_fingerprint_of_unreadable_file_raises" skills/run-agoge/scripts/test_target_snapshot.py` prints 1; if it prints nothing, skip this task and report (depends on: previous task) - Acceptance: `pytest -k fingerprint_of_unreadable_file_raises` passes.
 - [ ] Add the CHANGELOG entry - Acceptance: `rg -F "names an unreadable untracked file" CHANGELOG.md` hits under `[Unreleased]` `### Fixed`.
 
 ## Success Criteria
