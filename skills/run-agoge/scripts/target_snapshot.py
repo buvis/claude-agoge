@@ -276,7 +276,7 @@ def _fingerprint(repo: str, path: str) -> str:
         mib = 1024 * 1024
         with open(full, "rb") as handle:
             head = handle.read(mib)
-            handle.seek(max(size - mib, len(head)))
+            handle.seek(size - mib)
             tail = handle.read(mib)
         return f"sample:{size}:{_sha(head + tail)}"
     digest = hashlib.sha256()

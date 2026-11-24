@@ -585,87 +585,6 @@ def test_fingerprint_matches_whole_file_sha256(tmp_path):
     assert violation["after"] == f" M {hashlib.sha256(full_bytes).hexdigest()}"
 
 
-def _mib_pattern(seed):
-    """1 MiB of non-uniform, deterministic bytes, distinct for different seeds."""
-    return bytes((i + seed) % 256 for i in range(256)) * 4096
-
-
-def test_file_at_cap_is_hashed_whole(tmp_path):
-    repo = tmp_path / "target"
-    repo.mkdir()
-    big = repo / "big.bin"
-    size = target_snapshot.SAMPLE_ABOVE
-    big.touch()
-    os.truncate(big, size)
-    assert big.stat().st_size == size
-    real = os.path.realpath(repo)
-    assert target_snapshot._fingerprint(real, "big.bin") == _sha(b"\0" * size)
-
-
-def test_file_above_cap_is_sampled(tmp_path):
-    repo = tmp_path / "target"
-    repo.mkdir()
-    big = repo / "big.bin"
-    size = target_snapshot.SAMPLE_ABOVE + 1
-    mib = 1024 * 1024
-    head = _mib_pattern(0)
-    tail = _mib_pattern(128)
-    with open(big, "wb") as handle:
-        handle.write(head)
-        handle.truncate(size)
-        handle.seek(size - mib)
-        handle.write(tail)
-    assert big.stat().st_size == size
-    real = os.path.realpath(repo)
-    expected = f"sample:{size}:{_sha(head + tail)}"
-    assert target_snapshot._fingerprint(real, "big.bin") == expected
-
-
-def test_sampled_file_head_tail_and_size_edits_are_reported(tmp_path):
-    target, env = _build_target(tmp_path)
-    big = target / "big.bin"
-    size = target_snapshot.SAMPLE_ABOVE + 1
-    with open(big, "wb") as handle:
-        handle.write(b"h")
-        handle.truncate(size)
-    before = _snap(tmp_path, target, env)
-
-    # A change to the first byte must be detected.
-    with open(big, "r+b") as handle:
-        handle.seek(0)
-        handle.write(b"H")
-    code, report = _compare(tmp_path, target, before, env)
-    assert code == 1
-    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
-        ("untracked-modified", "big.bin"),
-    ]
-
-    # Revert, then change the last byte: also detected.
-    with open(big, "r+b") as handle:
-        handle.seek(0)
-        handle.write(b"h")
-    with open(big, "r+b") as handle:
-        handle.seek(size - 1)
-        handle.write(b"T")
-    code, report = _compare(tmp_path, target, before, env)
-    assert code == 1
-    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
-        ("untracked-modified", "big.bin"),
-    ]
-
-    # Revert, then append one byte: the size change alone is detected.
-    with open(big, "r+b") as handle:
-        handle.seek(size - 1)
-        handle.write(b"\0")
-    with open(big, "ab") as handle:
-        handle.write(b"x")
-    code, report = _compare(tmp_path, target, before, env)
-    assert code == 1
-    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
-        ("untracked-modified", "big.bin"),
-    ]
-
-
 def _big_file_target(tmp_path):
     """Target with a committed big.bin at SAMPLE_ABOVE bytes, snapshotted, then dirtied.
 
@@ -697,8 +616,9 @@ def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
 
     # resource.getrusage(RUSAGE_CHILDREN) is cumulative over every child this
     # pytest process has ever reaped, with no way to reset it. The fixture's
-    # own `git add` of a 200 MiB file already drives that ceiling past the
-    # budget (git mmaps/hashes the whole blob), before `compare` even runs,
+    # own `git add` of a SAMPLE_ABOVE (64 MiB) file already drives that
+    # ceiling past the budget (git mmaps/hashes the whole blob), before
+    # `compare` even runs,
     # so that counter cannot isolate this one subprocess's RSS. Wrap the
     # `compare` invocation in `/usr/bin/time` instead, which reports the
     # peak RSS of exactly that one child process.
@@ -796,7 +716,7 @@ def test_large_git_dir_file_peak_rss_under_48_mib(tmp_path):
     hooks = target / ".git" / "hooks"
     hooks.mkdir(exist_ok=True)
     hook = hooks / "big-hook"
-    size = 64 * 1024 * 1024
+    size = target_snapshot.SAMPLE_ABOVE
     with open(hook, "wb") as handle:
         handle.seek(size - 1)
         handle.write(b"\0")
@@ -849,7 +769,7 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     # A careless or hostile caller sets the threshold above the file size. The
     # module's own `-c core.bigFileThreshold=1m` is on the command line, which
     # beats the environment transport, so PRD 00019's peak-RSS guard survives.
-    # Measured on git 2.56.0 for this fixture: ~8 MiB when 1m wins, ~207 MiB
+    # Measured on git 2.56.0 for this fixture: ~8 MiB when 1m wins, ~72 MiB
     # when the inherited 4g wins.
     hostile_env = _pair_env(
         env, ("core.bigFileThreshold", "4g"), ("core.excludesFile", excludes),

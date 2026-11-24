@@ -659,3 +659,84 @@ def test_fingerprint_of_unreadable_file_raises(tmp_path):
             target_snapshot._fingerprint(os.path.realpath(repo), "locked.txt")
     finally:
         locked.chmod(0o644)
+
+
+def _mib_pattern(seed):
+    """1 MiB of non-uniform, deterministic bytes, distinct for different seeds."""
+    return bytes((i + seed) % 256 for i in range(256)) * 4096
+
+
+def test_file_at_cap_is_hashed_whole(tmp_path):
+    repo = tmp_path / "target"
+    repo.mkdir()
+    big = repo / "big.bin"
+    size = target_snapshot.SAMPLE_ABOVE
+    big.touch()
+    os.truncate(big, size)
+    assert big.stat().st_size == size
+    real = os.path.realpath(repo)
+    assert target_snapshot._fingerprint(real, "big.bin") == _sha(b"\0" * size)
+
+
+def test_file_above_cap_is_sampled(tmp_path):
+    repo = tmp_path / "target"
+    repo.mkdir()
+    big = repo / "big.bin"
+    size = target_snapshot.SAMPLE_ABOVE + 1
+    mib = 1024 * 1024
+    head = _mib_pattern(0)
+    tail = _mib_pattern(128)
+    with open(big, "wb") as handle:
+        handle.write(head)
+        handle.truncate(size)
+        handle.seek(size - mib)
+        handle.write(tail)
+    assert big.stat().st_size == size
+    real = os.path.realpath(repo)
+    expected = f"sample:{size}:{_sha(head + tail)}"
+    assert target_snapshot._fingerprint(real, "big.bin") == expected
+
+
+def test_sampled_file_head_tail_and_size_edits_are_reported(tmp_path):
+    target, env = _build_target(tmp_path)
+    big = target / "big.bin"
+    size = target_snapshot.SAMPLE_ABOVE + 1
+    with open(big, "wb") as handle:
+        handle.write(b"h")
+        handle.truncate(size)
+    before = _snap(tmp_path, target, env)
+
+    # A change to the first byte must be detected.
+    with open(big, "r+b") as handle:
+        handle.seek(0)
+        handle.write(b"H")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("untracked-modified", "big.bin"),
+    ]
+
+    # Revert, then change the last byte: also detected.
+    with open(big, "r+b") as handle:
+        handle.seek(0)
+        handle.write(b"h")
+    with open(big, "r+b") as handle:
+        handle.seek(size - 1)
+        handle.write(b"T")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("untracked-modified", "big.bin"),
+    ]
+
+    # Revert, then append one byte: the size change alone is detected.
+    with open(big, "r+b") as handle:
+        handle.seek(size - 1)
+        handle.write(b"\0")
+    with open(big, "ab") as handle:
+        handle.write(b"\0")
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("untracked-modified", "big.bin"),
+    ]

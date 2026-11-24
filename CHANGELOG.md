@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **run-agoge**: target snapshot stats each untracked file once and checks each directory for an escaping symlink once, so cost no longer multiplies with path depth
-- **run-agoge**: an untracked or dirty file above 64 MiB is fingerprinted by its size and its first and last MiB, so a multi-GB file no longer costs minutes to hash; a same-size edit in the middle of such a file is not detected
+- **run-agoge**: target snapshot fingerprints a file above 64 MiB by its size and its first and last MiB, so cost no longer grows with file bytes; an edit in the middle of such a file that keeps its size is not detected
 
 ### Fixed
 
