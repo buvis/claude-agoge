@@ -30,6 +30,28 @@
       "reason": "fast-track lane reworks only confirmed CRITICAL or HIGH; fix: parent = os.path.dirname(rel_dir), behaviour unchanged (Eve and Bob, review-1 row R2)",
       "status": "deferred",
       "prd": "00024-snapshot-slow-many-untracked-files-v1.md"
+    },
+    {
+      "type": "review-deferral",
+      "cycle": 1,
+      "ref": "R2",
+      "issue": "test_target_snapshot.py is 809 lines, over the 800-line cap. Pre-existing and unchanged by this diff (also flagged in the 00027 review). Split the file or move tests out.",
+      "severity": "medium",
+      "consensus": "3/4",
+      "file": "skills/run-agoge/scripts/test_target_snapshot.py:809",
+      "reason": "Pre-existing, unchanged by this diff; splitting a test module is a separate change with its own risk and belongs in its own PRD, not in a fixture-performance change.",
+      "prd": "00028-test-suite-takes-65-seconds-v1.md"
+    },
+    {
+      "type": "review-deferral",
+      "cycle": 1,
+      "ref": "R6",
+      "issue": "Wall-time gain is noise level: HEAD 55.18 s against 56.99 s pre-change on the same machine (about 3%), against a stated 40 s target. The remaining time is dominated by the python child process each test spawns.",
+      "severity": "high",
+      "consensus": "1/4",
+      "file": "skills/run-agoge/scripts/conftest.py:6",
+      "reason": "Resolved against the PRD text: it requires only that wall time drops from the 65 s baseline, calls the under-40 s figure a guess, and states the per-test python child processes stay. Both the must-have and the success criterion are met. Cutting the child-process spawn cost is excluded by this PRD and deferred as a candidate for its own PRD; the in-scope part (per-test submodule builds still present) is fixed by this cycle rework task.",
+      "prd": "00028-test-suite-takes-65-seconds-v1.md"
     }
   ]
 }

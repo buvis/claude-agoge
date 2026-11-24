@@ -652,3 +652,11 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1795560837,"phase":"build","prd":"00028-test-suite-takes-65-seconds-v1.md"}
 {"kind":"handoff","site":"build","edge":"resume","at":1795560856,"phase":"build","prd":"00028-test-suite-takes-65-seconds-v1.md"}
 {"kind":"handoff","site":"build","edge":"leave","at":1795561795,"phase":"review","prd":"00028-test-suite-takes-65-seconds-v1.md"}
+{"kind":"handoff","site":"review","edge":"resume","at":1795561830,"phase":"review","prd":"00028-test-suite-takes-65-seconds-v1.md"}
+{"id":"0ced8c39","kind":"bob","task":"review-00028-c1","queued_at":1795561934,"prompt_bytes":13463}
+{"id":"d68be853","kind":"carl","task":"review-00028-c1","queued_at":1795561934,"prompt_bytes":6600}
+{"id":"0ced8c39","ended_at":1795562371,"elapsed_s":437,"outcome":"ok","detail":null}
+{"id":"d68be853","ended_at":1795562371,"elapsed_s":437,"outcome":"ok","detail":null}
+{"id":"0ced8c39","ended_at":1795562659,"elapsed_s":725,"outcome":"ok","detail":null}
+{"id":"d68be853","ended_at":1795562659,"elapsed_s":725,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"review","edge":"leave","at":1795562701,"phase":"review","prd":"00028-test-suite-takes-65-seconds-v1.md"}
