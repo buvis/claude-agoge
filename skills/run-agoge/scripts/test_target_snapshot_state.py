@@ -629,6 +629,127 @@ def test_large_dirty_file_snapshot_peak_rss_under_48_mib(tmp_path):
     assert code == 1, report
 
 
+def test_fifo_in_git_dir_does_not_hang_snapshot(tmp_path):
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("os.mkfifo unavailable")
+    target, env = _build_target(tmp_path)
+    hooks = target / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    info = target / ".git" / "info"
+    info.mkdir(exist_ok=True)
+    os.mkfifo(hooks / "ff")
+    (info / "lf").symlink_to(hooks / "ff")
+    out = tmp_path / "snaps" / "fifo.json"
+    out.parent.mkdir()
+    result = _run(tmp_path, env, "snapshot", str(target), str(out), timeout=10)
+    assert result.returncode == 0, result.stderr
+    result = _run(tmp_path, env, "compare", str(target), str(out), timeout=10)
+    assert result.returncode == 0, result.stderr
+
+    # A symlink to /dev/zero reads without bound: a budget-tight timeout so a
+    # red run cannot fill memory before the subprocess is killed.
+    (hooks / "z").symlink_to("/dev/zero")
+    result = _run(tmp_path, env, "snapshot", str(target), str(out), timeout=2)
+    assert result.returncode == 0, result.stderr
+    result = _run(tmp_path, env, "compare", str(target), str(out), timeout=2)
+    assert result.returncode == 0, result.stderr
+
+
+def test_git_dir_symlink_recorded_by_target_not_content(tmp_path):
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("os.mkfifo unavailable")
+    target, env = _build_target(tmp_path)
+    hooks = target / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    (hooks / "regular").write_text("content\n")
+    os.mkfifo(hooks / "fifo")
+    outside = tmp_path / "outside-target.txt"
+    outside.write_text("outside\n")
+    (hooks / "link").symlink_to(outside)
+    out = tmp_path / "snaps" / "before.json"
+    out.parent.mkdir()
+    result = _run(tmp_path, env, "snapshot", str(target), str(out), timeout=10)
+    assert result.returncode == 0, result.stderr
+    gitdir = json.loads(out.read_text())["gitdir"]
+    assert gitdir["hooks/regular"] == _sha(b"content\n")
+    assert gitdir["hooks/link"] == "link:" + _sha(os.fsencode(str(outside)))
+    assert gitdir["hooks/fifo"].startswith("special:")
+
+
+def test_changed_git_dir_special_file_is_reported(tmp_path):
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("os.mkfifo unavailable")
+    target, env = _build_target(tmp_path)
+    hooks = target / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    hook = hooks / "pre-commit"
+    hook.write_text("#!/bin/sh\necho hook\n")
+    outside_a = tmp_path / "outside-a.txt"
+    outside_b = tmp_path / "outside-b.txt"
+    outside_a.write_text("a\n")
+    outside_b.write_text("b\n")
+    link = hooks / "link"
+    link.symlink_to(outside_a)
+    out = tmp_path / "snaps" / "before.json"
+    out.parent.mkdir()
+    result = _run(tmp_path, env, "snapshot", str(target), str(out), timeout=10)
+    assert result.returncode == 0, result.stderr
+
+    # Between snapshot and compare: a regular hook becomes a fifo, and the
+    # symlink is repointed to a different outside target.
+    hook.unlink()
+    os.mkfifo(hook)
+    link.unlink()
+    link.symlink_to(outside_b)
+
+    result = _run(tmp_path, env, "compare", str(target), str(out), timeout=10)
+    assert result.returncode == 1, result.stderr
+    report = json.loads(result.stdout)
+    gitdir_paths = {v["path"] for v in report["violations"] if v["kind"] == "gitdir"}
+    assert "hooks/pre-commit" in gitdir_paths
+    assert "hooks/link" in gitdir_paths
+
+
+def test_large_git_dir_file_peak_rss_under_48_mib(tmp_path):
+    target, env = _build_target(tmp_path)
+    hooks = target / ".git" / "hooks"
+    hooks.mkdir(exist_ok=True)
+    hook = hooks / "big-hook"
+    size = 64 * 1024 * 1024
+    with open(hook, "wb") as handle:
+        handle.seek(size - 1)
+        handle.write(b"\0")
+    budget = 48 * 1024 * 1024
+    out = tmp_path / "snaps" / "before.json"
+    out.parent.mkdir()
+    peak_rss = _peak_rss(tmp_path, env, "snapshot", str(target), str(out))
+    assert peak_rss < budget, (
+        f"subprocess peak RSS {peak_rss} bytes exceeded {budget} byte budget"
+    )
+
+
+def test_unreadable_git_dir_file_names_the_file(tmp_path):
+    if os.geteuid() == 0:
+        pytest.skip("root reads mode-000 files")
+    target, env = _build_target(tmp_path)
+    info = target / ".git" / "info"
+    info.mkdir(exist_ok=True)
+    secret = info / "secret-hook-data"
+    secret.write_text("s\n")
+    os.chmod(secret, 0)
+    try:
+        out = tmp_path / "snaps" / "before.json"
+        out.parent.mkdir()
+        result = _run(tmp_path, env, "snapshot", str(target), str(out))
+    finally:
+        os.chmod(secret, 0o600)
+    assert result.returncode == 2
+    lines = result.stderr.splitlines()
+    assert len(lines) == 1
+    assert "secret-hook-data" in lines[0]
+    assert "unexpected" not in lines[0]
+
+
 def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     target, env, before = _big_file_target(tmp_path)
 
