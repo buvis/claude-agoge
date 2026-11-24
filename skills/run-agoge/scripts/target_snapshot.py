@@ -55,6 +55,8 @@ import sys
 
 VERSION = 4
 
+SAMPLE_ABOVE = 64 * 1024 * 1024
+
 GITDIR_UNCHECKED = frozenset({
     "HEAD", "config", "index", "packed-refs",
     "COMMIT_EDITMSG", "FETCH_HEAD", "ORIG_HEAD", "MERGE_HEAD", "MERGE_MSG",
@@ -266,6 +268,14 @@ def _fingerprint(repo: str, path: str) -> str:
         return "dir"
     if not stat.S_ISREG(st.st_mode):
         return f"special:{stat.S_IFMT(st.st_mode):o}"
+    size = st.st_size
+    if size > SAMPLE_ABOVE:
+        mib = 1024 * 1024
+        with open(full, "rb") as handle:
+            head = handle.read(mib)
+            handle.seek(max(size - mib, len(head)))
+            tail = handle.read(mib)
+        return f"sample:{size}:{_sha(head + tail)}"
     digest = hashlib.sha256()
     with open(full, "rb") as handle:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
