@@ -223,6 +223,10 @@ def _source_worktree(tmp_path, target, env, driver, script, kind):
 
 
 def _source_submodule(tmp_path, target, env, driver, script, kind):
+    # Can't take the module-scoped template_target_with_submodule fixture:
+    # this function is one of several dispatched generically from
+    # _FILTER_SOURCES against a plain template_target, so the submodule has
+    # to be added here, inline, to match the other sources' shape.
     sub = _add_submodule(tmp_path, target, env)
     _configure_filter(sub, env, ["--local"], driver, script, kind)
     return env, sub
