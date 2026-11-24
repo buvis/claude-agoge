@@ -649,3 +649,4 @@
 {"id":"353591d8","kind":"fast-track:bob","task":"00027-allow-misses-removed-directory-contents-v1-c1","queued_at":1795560408,"prompt_bytes":9268}
 {"id":"353591d8","ended_at":1795560452,"elapsed_s":44,"outcome":"ok","detail":null}
 {"id":"f952697c","ended_at":1795560621,"elapsed_s":747,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"build","edge":"leave","at":1795560837,"phase":"build","prd":"00028-test-suite-takes-65-seconds-v1.md"}
