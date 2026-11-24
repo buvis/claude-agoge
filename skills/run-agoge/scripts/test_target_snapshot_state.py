@@ -13,7 +13,7 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    NOTES_V1, NOTES_V2, SCRIPT, _add_submodule, _assert_exit2, _assert_scratch_ignored,
+    NOTES_V1, NOTES_V2, SCRIPT, _assert_exit2, _assert_scratch_ignored,
     _build_target, _compare, _copy_target, _git, _pair_env, _run, _sha, _snap,
     _write_packed_refs,
 )
@@ -424,10 +424,11 @@ def _kinds(report):
     return [v["kind"] for v in report["violations"]]
 
 
-def test_untouched_linked_worktree_and_submodule_compare_unchanged(tmp_path, template_target):
-    target, env = _copy_target(template_target, tmp_path)
+def test_untouched_linked_worktree_and_submodule_compare_unchanged(
+    tmp_path, template_target_with_submodule
+):
+    target, env = _copy_target(template_target_with_submodule, tmp_path)
     _git(target, env, "worktree", "add", "-q", "--detach", str(tmp_path / "wt"), "HEAD")
-    _add_submodule(tmp_path, target, env)
     before = _snap(tmp_path, target, env)
     code, report = _compare(tmp_path, target, before, env)
     assert code == 0
