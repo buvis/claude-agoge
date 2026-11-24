@@ -12,7 +12,8 @@ worktrees, worktree-head, submodule, index, gitdir, tracked,
 untracked-removed, untracked-modified, ignored-removed)
 plus newly `touched` untracked paths. `--allow` exempts a repo-relative path
 from tracked, untracked-removed, untracked-modified, ignored-removed and
-touched only. Edits inside ignored files are not checked; only the removal of
+touched only; an allowed directory (with or without a trailing slash)
+exempts everything under it. Edits inside ignored files are not checked; only the removal of
 an ignored file or directory is. An unreadable untracked file (mode 000, or
 owned by another user) makes `snapshot` and `compare` exit 2, same as an
 unreadable tracked file: untracked files are fingerprinted too, so failing
@@ -420,6 +421,17 @@ def _ref_violation(repo: str, name: str, before: str | None, after: str | None) 
     return violation
 
 
+def _allowed(path: str, allow: set[str]) -> bool:
+    """True when `path` equals an allowed entry or lies under one as a whole
+    path component (so "igndir" exempts "igndir/sub/g" but "ign" does not).
+    """
+    for entry in allow:
+        entry = entry.rstrip("/")
+        if path == entry or path.startswith(entry + "/"):
+            return True
+    return False
+
+
 def compare(repo: str, before: dict, allow: set[str]) -> dict:
     after = take_snapshot(repo)
     violations: list[dict] = []
@@ -451,17 +463,21 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
             violations.append({"kind": "gitdir", "path": path, "before": old, "after": new})
     for path in sorted(set(before["dirty"]) | set(after["dirty"])):
         old, new = before["dirty"].get(path), after["dirty"].get(path)
-        if old != new and path not in allow:
+        if old != new and not _allowed(path, allow):
             violations.append({"kind": "tracked", "path": path, "before": old, "after": new})
     current = set(after["untracked"])
-    for path in sorted(set(before["untracked"]) - current - allow):
-        violations.append({"kind": "untracked-removed", "path": path})
-    for path in sorted(set(before["untracked"]) & current - allow):
-        if before["untracked_fingerprints"][path] != after["untracked_fingerprints"][path]:
+    for path in sorted(set(before["untracked"]) - current):
+        if not _allowed(path, allow):
+            violations.append({"kind": "untracked-removed", "path": path})
+    for path in sorted(set(before["untracked"]) & current):
+        if not _allowed(path, allow) and (
+            before["untracked_fingerprints"][path] != after["untracked_fingerprints"][path]
+        ):
             violations.append({"kind": "untracked-modified", "path": path})
-    for path in sorted(set(before["ignored"]) - set(after["ignored"]) - allow):
-        violations.append({"kind": "ignored-removed", "path": path})
-    touched = sorted(current - set(before["untracked"]) - allow)
+    for path in sorted(set(before["ignored"]) - set(after["ignored"])):
+        if not _allowed(path, allow):
+            violations.append({"kind": "ignored-removed", "path": path})
+    touched = sorted(p for p in current - set(before["untracked"]) if not _allowed(p, allow))
     status = "changed" if violations else "unchanged"
     return {"status": status, "violations": violations, "touched": touched}
 
@@ -509,7 +525,11 @@ def main(argv: list[str]) -> int:
     comp = sub.add_parser("compare")
     comp.add_argument("repo")
     comp.add_argument("before")
-    comp.add_argument("--allow", action="append", default=[])
+    comp.add_argument(
+        "--allow", action="append", default=[],
+        help="repo-relative path to exempt; an allowed directory, with or "
+        "without a trailing slash, exempts everything under it",
+    )
     args = parser.parse_args(argv[1:])
     try:
         return run(args)
