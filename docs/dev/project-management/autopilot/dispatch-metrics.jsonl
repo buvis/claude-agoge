@@ -701,3 +701,21 @@
 {"kind":"handoff","site":"done","edge":"resume","at":1795566426,"phase":"done","prd":"00029-malformed-snapshot-passes-compare-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795566497,"phase":"build","prd":"00030-untracked-chmod-not-reported-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795566506,"phase":"build","prd":"00029-malformed-snapshot-passes-compare-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1795566514,"phase":"build","prd":"00030-untracked-chmod-not-reported-v1.md"}
+{"id":"c0a6cf7e","kind":"fast-track:tess","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795566598,"prompt_bytes":102857}
+{"id":"c0a6cf7e","ended_at":1795566696,"elapsed_s":98,"outcome":"ok","detail":null}
+{"id":"6bab8b7a","kind":"fast-track:ivan","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795566728,"prompt_bytes":40948}
+{"id":"6bab8b7a","ended_at":1795566828,"elapsed_s":100,"outcome":"ok","detail":null}
+{"id":"f59dac37","kind":"fast-track:fanout","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795566998,"prompt_bytes":6233}
+{"id":"c8743f85","kind":"fast-track:blake","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795567000,"prompt_bytes":7190}
+{"id":"2fd7c201","kind":"fast-track:eve","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795567001,"prompt_bytes":5639}
+{"id":"795b2c13","kind":"fast-track:bob","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795567002,"prompt_bytes":14028}
+{"id":"e45ec400","kind":"fast-track:carl","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795567004,"prompt_bytes":6589}
+{"id":"795b2c13","ended_at":1795567092,"elapsed_s":90,"outcome":"ok","detail":null}
+{"id":"f59dac37","ended_at":1795567094,"elapsed_s":96,"outcome":"error","detail":"workflow INVALID_ARGS: diff is required and must be a non-empty unified diff"}
+{"id":"3efcab10","kind":"fast-track:alice","task":"00030-untracked-chmod-not-reported-v1-c1","queued_at":1795567095,"prompt_bytes":6233}
+{"id":"c8743f85","ended_at":1795567212,"elapsed_s":212,"outcome":"ok","detail":null}
+{"id":"3efcab10","ended_at":1795567308,"elapsed_s":213,"outcome":"ok","detail":null}
+{"id":"e45ec400","ended_at":1795567309,"elapsed_s":305,"outcome":"ok","detail":null}
+{"id":"2fd7c201","ended_at":1795567419,"elapsed_s":418,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"done","edge":"resume","at":1795567644,"phase":"done","prd":"00030-untracked-chmod-not-reported-v1.md"}
