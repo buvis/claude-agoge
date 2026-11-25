@@ -876,3 +876,11 @@
 {"id":"2e76c1d4","kind":"pat","task":"6","queued_at":1795584455,"prompt_bytes":4616}
 {"id":"2e76c1d4","ended_at":1795584594,"elapsed_s":null,"outcome":"ok","detail":"closed-by: artifact"}
 {"kind":"handoff","site":"review","edge":"leave","at":1795584594,"phase":"review","prd":"00039-adopt-ruff-format-v1.md"}
+{"kind":"handoff","site":"review","edge":"resume","at":1795584619,"phase":"review","prd":"00039-adopt-ruff-format-v1.md"}
+{"id":"379ad886","kind":"bob","task":"review-00039c2","queued_at":1795584743,"prompt_bytes":19670}
+{"id":"4eba70e9","kind":"carl","task":"review-00039c2","queued_at":1795584743,"prompt_bytes":13096}
+{"id":"379ad886","ended_at":1795585033,"elapsed_s":290,"outcome":"ok","detail":null}
+{"id":"4eba70e9","ended_at":1795585033,"elapsed_s":290,"outcome":"ok","detail":null}
+{"id":"379ad886","ended_at":1795585178,"elapsed_s":435,"outcome":"ok","detail":null}
+{"id":"4eba70e9","ended_at":1795585178,"elapsed_s":435,"outcome":"ok","detail":null}
+{"kind":"handoff","site":"review","edge":"leave","at":1795585232,"phase":"review","prd":"00039-adopt-ruff-format-v1.md"}

@@ -70,5 +70,37 @@
     "issue": "AGENTS.md recommends uvx commands which fail with Operation not permitted under agent seatbelt sandbox",
     "file": "AGENTS.md:6",
     "reason": "single-voice; the sandbox-compatible command form is fixed under the HIGH finding R3, which updates AGENTS.md with it"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Ruff is unpinned, as the PRD accepts. The CI job runs `pip install ruff` (latest) and `release-checks` fetches latest through uv. A ruff release that reflows the tree turns the gate red with no code change. Residual risk the PRD already names.",
+    "file": ".github/workflows/test.yml:22",
+    "reason": "single-voice; the PRD explicitly accepts the unpinned-ruff risk, and the reviewer states it as residual risk rather than a defect"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "`skills/run-agoge/scripts/conftest.py` is not in the PRD's file list. The task required formatting it and naming it in the report. It is already formatted and absent from the format commit's diff, so no violation, only a reporting obligation.",
+    "file": "skills/run-agoge/scripts/conftest.py",
+    "reason": "single-voice; the reviewer states there is no violation, only a reporting obligation already met by this review file"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The review record changes the proposed format probe from valid, unformatted Python to a syntax error. A syntax error checks parser rejection and gives no evidence that the gate rejects valid formatting drift.",
+    "file": "docs/dev/project-management/reviews/00039-adopt-ruff-format-v1-review-1.md:132",
+    "reason": "single-voice; it asks to rewrite a prior cycle's review record, which is an immutable audit artifact, and the probe it describes was never queued as a check"
+  },
+  {
+    "cycle": 2,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Two dispatch IDs each have two successful completion records with different elapsed times. The log leaves the completion time ambiguous for both dispatches.",
+    "file": "docs/dev/project-management/autopilot/dispatch-metrics.jsonl:873",
+    "reason": "single-voice; autopilot dispatch telemetry is outside this PRD's scope, and the reviewer filed it under KNOWN himself"
   }
 ]
