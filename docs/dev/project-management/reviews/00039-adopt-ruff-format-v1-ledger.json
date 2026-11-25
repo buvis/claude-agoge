@@ -1,0 +1,74 @@
+[
+  {
+    "cycle": 1,
+    "disposition": "settled-deferral",
+    "severity": "low",
+    "issue": "Pre-existing over-50-line functions that the PRD forbids touching beyond formatting: take_snapshot (72 lines), compare (65), main (61), claim (52), test_env_identity_beats_exported_author (117) and others. No new function crosses the limit, but the reformat lengthened some of them.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:402",
+    "reason": "pre-existing debt outside this PRD's formatter-only scope (\"no manual edits\"); function/file size debt is owned by PRD 00041"
+  },
+  {
+    "cycle": 1,
+    "disposition": "settled-deferral",
+    "severity": "low",
+    "issue": "Pre-existing file-size debt (deferred as 00041) is now larger after reformatting: test_target_snapshot.py is 1126 lines and test_target_snapshot_state.py is 1038, both over the 800-line cap. The 800-line cap is not met, but this PRD (format only, \"no manual edits\") cannot fix it.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1",
+    "reason": "pre-existing debt owned by PRD 00041; splitting these test files is beyond a formatter-only PRD"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The project capsule still tells maintainers to discard formatter changes with `git checkout --`. That can discard Python edits along with the formatting and conflicts with the new commit instructions.",
+    "file": "docs/dev/project-management/meta/project-capsule.md:51",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "medium",
+    "issue": "The supplied checks cover clean scripts. They do not exercise the new requirement that a format failure stops the release and CI gates before pytest.",
+    "file": "dev/bin/release-checks:12",
+    "reason": "single-voice"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Ruff is unpinned in dev/bin/release-checks (`uvx ruff`) and in CI (`pip install pytest ruff`), so a ruff release that reflows the tree turns both gates red. The PRD accepts this risk and the comment in ruff.toml names the remedy (`required-version`). Recorded only.",
+    "file": "ruff.toml:1",
+    "reason": "single-voice; the PRD explicitly accepts this risk"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The aggregate diff and task table do not establish that the required style commit contains only formatter output.",
+    "file": null,
+    "reason": "single-voice; Alice and Carl both proved AST identity across the format commit, so the claim is answered"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "The existing snapshot loader passes ref values directly to `re.fullmatch`. A non-string value reaches the generic exception handler instead of the malformed-ref diagnostic.",
+    "file": "skills/run-agoge/scripts/target_snapshot.py:639",
+    "reason": "single-voice; pre-existing behaviour outside the formatter-only scope, and Bob filed it under KNOWN himself"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "Two formatted test files still exceed 800 lines. Both already exceeded the limit before formatting.",
+    "file": "skills/run-agoge/scripts/test_target_snapshot.py:1103",
+    "reason": "single-voice; duplicate of the file-size deferral already settled this cycle"
+  },
+  {
+    "cycle": 1,
+    "disposition": "discarded",
+    "severity": "low",
+    "issue": "AGENTS.md recommends uvx commands which fail with Operation not permitted under agent seatbelt sandbox",
+    "file": "AGENTS.md:6",
+    "reason": "single-voice; the sandbox-compatible command form is fixed under the HIGH finding R3, which updates AGENTS.md with it"
+  }
+]
