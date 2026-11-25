@@ -810,3 +810,5 @@
 {"id":"5924d882","ended_at":1795575229,"elapsed_s":466,"outcome":"ok","detail":null}
 {"id":"9e7ff994","ended_at":1795575550,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
 {"kind":"handoff","site":"build","edge":"leave","at":1795575550,"phase":"done","prd":"00036-unreadable-untracked-error-wording-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795575818,"phase":"done","prd":"00036-unreadable-untracked-error-wording-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795575874,"phase":"build","prd":"00036-unreadable-untracked-error-wording-v1.md"}
