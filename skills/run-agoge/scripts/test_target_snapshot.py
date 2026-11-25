@@ -580,7 +580,7 @@ def test_previous_version_snapshot_exits_2_with_one_line(tmp_path, template_targ
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
     assert snapshot["version"] == target_snapshot.VERSION
-    assert target_snapshot.VERSION == 4
+    assert target_snapshot.VERSION == 5
 
     # Control: the same keys re-serialized at the current version still compare.
     current = tmp_path / "snaps" / "current-version.json"

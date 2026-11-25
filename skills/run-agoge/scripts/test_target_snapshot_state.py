@@ -817,3 +817,105 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     )
     code, report = _compare(tmp_path, target, before, hostile_env)
     assert code == 1, report
+
+
+def _ignored_cap_target(tmp_path, template_target, monkeypatch, cap):
+    """Target ignoring `vault/`, `cache/` and `*.log`, run in-process at `cap`.
+
+    The process environment becomes exactly the fixture's git environment, so
+    the in-process git calls see the same HOME and identity as `_run` would.
+    Returns (target, real repo path).
+    """
+    target, env = _copy_target(template_target, tmp_path)
+    _commit_gitignore(target, env, "vault/", "cache/", "*.log")
+    for key in list(os.environ):
+        monkeypatch.delenv(key)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(target_snapshot, "IGNORED_FILE_CAP", cap)
+    return target, os.path.realpath(target)
+
+
+def _write_files(target, *names):
+    for name in names:
+        (target / name).parent.mkdir(parents=True, exist_ok=True)
+        (target / name).write_text(f"{name}\n")
+
+
+def test_ignored_listing_over_cap_records_directories_only(tmp_path, template_target, monkeypatch):
+    target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
+    _write_files(target, "vault/a.txt", "vault/b.txt", "vault/deep/c.txt",
+                 "cache/a.bin", "cache/b.bin", "x.log")
+    before = target_snapshot.take_snapshot(repo)
+    assert before["ignored"] == ["cache/", "vault/"]
+    assert type(before["ignored_overflow"]) is int
+    assert before["ignored_overflow"] == 6
+    # A same-prefix sibling that is not ignored stays untracked, not ignored.
+    _write_files(target, "vaulted/keep.txt")
+
+    shutil.rmtree(target / "vault")
+    (target / "cache/a.bin").unlink()
+    report = target_snapshot.compare(repo, before, set())
+    assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/"}]
+    assert report["touched"] == ["vaulted/keep.txt"]
+
+    report = target_snapshot.compare(repo, before, {"vault"})
+    assert report["violations"] == []
+
+
+def test_ignored_listing_at_cap_records_every_file(tmp_path, template_target, monkeypatch):
+    target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 4)
+    _write_files(target, "vault/a.txt", "vault/b.txt", "cache/a.bin", "x.log")
+    snapshot = target_snapshot.take_snapshot(repo)
+    assert snapshot["ignored"] == [
+        "cache/", "cache/a.bin", "vault/", "vault/a.txt", "vault/b.txt", "x.log",
+    ]
+    assert "ignored_overflow" not in snapshot
+
+    # At the cap an ignored file's removal is still named on its own.
+    (target / "x.log").unlink()
+    report = target_snapshot.compare(repo, snapshot, set())
+    assert report["violations"] == [{"kind": "ignored-removed", "path": "x.log"}]
+
+
+def test_ignored_listing_crossing_cap_reports_no_file_removals(tmp_path, template_target, monkeypatch):
+    target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
+    _write_files(target, "vault/a.txt", "vault/b.txt", "x.log")
+    before = target_snapshot.take_snapshot(repo)
+    assert "ignored_overflow" not in before
+    assert "vault/a.txt" in before["ignored"]
+
+    _write_files(target, "vault/c.txt")
+    assert target_snapshot.take_snapshot(repo)["ignored_overflow"] == 4
+    report = target_snapshot.compare(repo, before, set())
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+    # The directory entry is still checked across the crossing.
+    shutil.rmtree(target / "vault")
+    _write_files(target, "cache/a.bin", "cache/b.bin", "cache/c.bin", "cache/d.bin")
+    report = target_snapshot.compare(repo, before, set())
+    assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/"}]
+
+
+def test_v4_snapshot_refused_after_ignored_cap(tmp_path, template_target, monkeypatch, capsys):
+    target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
+    _write_files(target, "vault/a.txt", "vault/b.txt", "cache/a.bin", "x.log")
+    snapshot = target_snapshot.take_snapshot(repo)
+    assert snapshot["version"] == 5
+    snaps = tmp_path / "snaps"
+    snaps.mkdir(exist_ok=True)
+    current = snaps / "v5.json"
+    current.write_text(json.dumps(snapshot))
+    stale = snaps / "v4.json"
+    stale.write_text(json.dumps({**snapshot, "version": 4}))
+
+    assert target_snapshot.main(["target_snapshot.py", "compare", str(target), str(current)]) == 0
+    capsys.readouterr()
+    code = target_snapshot.main(["target_snapshot.py", "compare", str(target), str(stale)])
+    out, err = capsys.readouterr()
+    assert code == 2
+    assert out == ""
+    lines = err.splitlines()
+    assert len(lines) == 1
+    assert "is not version 5" in lines[0]
+    assert str(stale) in lines[0]
