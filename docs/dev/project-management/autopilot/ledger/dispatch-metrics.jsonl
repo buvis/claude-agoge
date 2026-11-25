@@ -905,3 +905,5 @@
 {"id":"2ce88a94","ended_at":1795586705,"elapsed_s":588,"outcome":"ok","detail":null}
 {"id":"2ee78017","ended_at":1795586705,"elapsed_s":585,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1795586870,"phase":"done","prd":"00040-gitdir-directory-symlink-unseen-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795586965,"phase":"done","prd":"00040-gitdir-directory-symlink-unseen-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795587041,"phase":"done","prd":"00040-gitdir-directory-symlink-unseen-v1.md"}
