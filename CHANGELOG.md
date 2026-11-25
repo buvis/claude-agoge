@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **run-agoge**: target snapshot stats each untracked file once and checks each directory for an escaping symlink once, so cost no longer multiplies with path depth
 - **run-agoge**: target snapshot fingerprints a file above 64 MiB by its size and its first and last MiB, so cost no longer grows with file bytes; an edit in the middle of such a file that keeps its size is not detected
+- **run-agoge**: target snapshot stops listing individual ignored files above 20000 (recording ignored directories and a file count instead), so the snapshot no longer grows with ignored files; older snapshots must be retaken (snapshot version 5)
 
 ### Fixed
 

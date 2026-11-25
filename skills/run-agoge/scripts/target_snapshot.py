@@ -24,6 +24,10 @@ Each linked worktree's HEAD and each initialized submodule's full state
 submodule (gitlink with no `.git` on disk) is unchecked, same as an unlisted
 worktree outside `worktree list`.
 
+Above 20000 ignored files, the snapshot records ignored directories only, plus
+the file count as `ignored_overflow`; a compare whose fresh snapshot is over
+that cap checks only the removal of ignored directories, not of single files.
+
 Above 64 MiB a file is fingerprinted by its size and its first and last MiB,
 so a same-size edit in the middle of such a file is not detected.
 
@@ -61,9 +65,11 @@ import stat
 import subprocess
 import sys
 
-VERSION = 4
+VERSION = 5
 
 SAMPLE_ABOVE = 64 * 1024 * 1024
+
+IGNORED_FILE_CAP = 20000
 
 GITDIR_UNCHECKED = frozenset({
     "HEAD", "config", "index", "packed-refs",
@@ -375,9 +381,18 @@ def take_snapshot(repo: str) -> dict:
     untracked_out = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout
     untracked = sorted(os.fsdecode(p) for p in untracked_out.split(b"\0") if p)
     ignored: set[str] = set()
+    overflow = 0
     for extra in ([], ["--directory"]):
         out = _git(repo, "ls-files", "-o", "-i", "--exclude-standard", *extra, "-z").stdout
-        ignored.update(os.fsdecode(p) for p in out.split(b"\0") if p)
+        found = [os.fsdecode(p) for p in out.split(b"\0") if p]
+        if not extra and len(found) > IGNORED_FILE_CAP:
+            overflow = len(found)
+            continue
+        ignored.update(found)
+    extras = {}
+    if overflow:
+        ignored = {p for p in ignored if p.endswith("/")}
+        extras["ignored_overflow"] = overflow
     return {
         "version": VERSION,
         "repo": repo,
@@ -393,6 +408,7 @@ def take_snapshot(repo: str) -> dict:
         "untracked_fingerprints": {path: _fingerprint(repo, path) for path in untracked},
         "ignored": sorted(ignored),
         "gitdir": _gitdir_files(repo),
+        **extras,
     }
 
 
@@ -486,6 +502,8 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
         ):
             violations.append({"kind": "untracked-modified", "path": path})
     for path in sorted(set(before["ignored"]) - set(after["ignored"])):
+        if "ignored_overflow" in after and not path.endswith("/"):
+            continue
         if not _allowed(path, allow):
             violations.append({"kind": "ignored-removed", "path": path})
     touched = sorted(p for p in current - set(before["untracked"]) if not _allowed(p, allow))
