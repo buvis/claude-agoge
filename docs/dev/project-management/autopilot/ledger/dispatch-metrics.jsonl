@@ -794,3 +794,19 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1795573989,"phase":"done","prd":"00035-allocator-backlog-path-race-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1795574013,"phase":"done","prd":"00035-allocator-backlog-path-race-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795574087,"phase":"build","prd":"00035-allocator-backlog-path-race-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1795574094,"phase":"build","prd":"00036-unreadable-untracked-error-wording-v1.md"}
+{"id":"9e7ff994","kind":"fast-track:tess","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574196,"prompt_bytes":147034}
+{"id":"b8c60a51","kind":"fast-track:ivan","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574363,"prompt_bytes":38468}
+{"id":"b8c60a51","ended_at":1795574508,"elapsed_s":145,"outcome":"ok","detail":null}
+{"id":"db980351","kind":"fast-track:fanout","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574751,"prompt_bytes":6245}
+{"id":"5f03a5a1","kind":"fast-track:blake","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574754,"prompt_bytes":8100}
+{"id":"4ea938da","kind":"fast-track:eve","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574757,"prompt_bytes":6942}
+{"id":"7ce9cb56","kind":"fast-track:bob","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574760,"prompt_bytes":18659}
+{"id":"5924d882","kind":"fast-track:carl","task":"00036-unreadable-untracked-error-wording-v1-c1","queued_at":1795574763,"prompt_bytes":6601}
+{"id":"db980351","ended_at":1795575223,"elapsed_s":472,"outcome":"ok","detail":null}
+{"id":"5f03a5a1","ended_at":1795575226,"elapsed_s":472,"outcome":"ok","detail":null}
+{"id":"4ea938da","ended_at":1795575227,"elapsed_s":470,"outcome":"ok","detail":null}
+{"id":"7ce9cb56","ended_at":1795575228,"elapsed_s":468,"outcome":"ok","detail":null}
+{"id":"5924d882","ended_at":1795575229,"elapsed_s":466,"outcome":"ok","detail":null}
+{"id":"9e7ff994","ended_at":1795575550,"elapsed_s":null,"outcome":"lost","detail":"open at build/leave handoff"}
+{"kind":"handoff","site":"build","edge":"leave","at":1795575550,"phase":"done","prd":"00036-unreadable-untracked-error-wording-v1.md"}
