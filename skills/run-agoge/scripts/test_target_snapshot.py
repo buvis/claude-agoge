@@ -944,4 +944,7 @@ def test_untracked_file_replaced_by_fifo_reads_as_removed(tmp_path, template_tar
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
     doc = " ".join(target_snapshot.__doc__.split())
-    assert "replaced by a fifo, socket or device" in doc
+    assert (
+        "An untracked path replaced by a fifo, socket or device reads as "
+        "untracked-removed, because git does not list such files."
+    ) in doc
