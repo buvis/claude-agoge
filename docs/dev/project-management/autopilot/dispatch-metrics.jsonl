@@ -766,3 +766,5 @@
 {"kind":"handoff","site":"build","edge":"leave","at":1795571343,"phase":"done","prd":"00033-gpg-program-runs-on-compare-v1-c1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1795571413,"phase":"done","prd":"00033-gpg-program-runs-on-compare-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795571485,"phase":"build","prd":"00033-gpg-program-runs-on-compare-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1795571490,"phase":"build","prd":"00034-changelog-overstates-no-programs-v1.md"}
+{"kind":"handoff","site":"build","edge":"leave","at":1795572211,"phase":"done","prd":"00034-changelog-overstates-no-programs-v1.md"}
