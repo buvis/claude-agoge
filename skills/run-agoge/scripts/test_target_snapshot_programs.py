@@ -611,14 +611,7 @@ def test_unreadable_included_config_exits_2_and_runs_nothing(tmp_path, template_
 
 
 def test_compare_does_not_run_gpg_program_on_new_signed_ref(tmp_path, template_target):
-    """A new ref carrying a `gpgsig` header must not run the target's gpg.program.
-
-    `_ref_violation` runs `git log -1 <sha>` and `git reflog show` on a
-    changed ref. With `log.showSignature=true` and `gpg.program` set, a plain
-    `git log` on a signed commit appends a signature-verification line, which
-    launches the configured program - a hostile repo can create such a ref
-    itself, before `compare` ever sees it.
-    """
+    """A new ref carrying a `gpgsig` header must not run the target's gpg.program."""
     target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path, name="gpg.sh")
     _git(target, env, "config", "--local", "log.showSignature", "true")

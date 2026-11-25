@@ -36,14 +36,14 @@ Exit 0 when unchanged, 1 when changed, 2 when the check cannot run (one
 error also exits 2. Every git call runs with `--no-optional-locks` and nothing
 is ever written inside <repo>.
 
-Every git call also refuses to run the target's own `core.fsmonitor` hook and
-its `clean`/`process` filter drivers: the drivers effective in the repo and in
-every initialized submodule are discovered from git's configuration and
-disabled through command-scope configuration, so the target's config can never
-name a program this script runs. That covers those two vectors only - it is not
-a claim that nothing a repo configures can run (`core.pager`, `core.hooksPath`
-hooks, `diff.external`, `core.alternateRefsCommand` and credential helpers are
-out of scope). With a normalizing filter disabled, a file whose worktree bytes
+Every git call also refuses to run the target's own `core.fsmonitor` hook, its
+`gpg.program` (and `log.showSignature`), and its `clean`/`process` filter
+drivers: the drivers effective in the repo and in every initialized submodule
+are discovered from git's configuration and disabled through command-scope
+configuration, so the target's config can never name a program this script
+runs. That is not a claim that nothing a repo configures can run (`core.pager`,
+`core.hooksPath` hooks, `diff.external`, `core.alternateRefsCommand` and
+credential helpers are out of scope). With a normalizing filter disabled, a file whose worktree bytes
 differ from its filtered blob reads as modified, so `dirty` can list more paths
 than git itself would.
 """
@@ -92,6 +92,9 @@ _GIT_CONFIG_INDEXED_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
 _STATIC_OVERRIDES: tuple[tuple[str, str], ...] = (
     ("core.fsmonitor", "false"),
     ("log.showSignature", "false"),
+    ("gpg.program", "false"),
+    ("gpg.ssh.program", "false"),
+    ("gpg.x509.program", "false"),
 )
 
 _FILTER_KEY_REGEX = r"^filter\..*\.(clean|process|required)$"
