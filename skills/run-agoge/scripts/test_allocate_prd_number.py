@@ -399,3 +399,33 @@ def test_claim_does_not_follow_backlog_swapped_after_check(
     assert backlog.is_symlink()  # the swap really happened during the claim
     assert list(outside.rglob("*")) == []
     assert (prds / "backlog.real" / "00001-swapped-slug-v1.md").is_file()
+
+
+def test_claim_refuses_prds_ancestor_swapped_before_open(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An ancestor (`prds`) swapped for an outside symlink right before the
+    backlog open must be refused, not followed into a write outside the repo:
+    O_NOFOLLOW guards only the final path component."""
+    outside = tmp_path_factory.mktemp("outside-swapped-prds")
+    (outside / "backlog").mkdir()
+    prds = tmp_path / "docs" / "dev" / "project-management" / "prds"
+    backlog = prds / "backlog"
+    real_open = os.open
+    swapped = []
+
+    def swap_then_open(path, *args, **kwargs):
+        if path == backlog and not swapped:
+            swapped.append(True)
+            prds.rename(prds.parent / "prds.real")
+            prds.symlink_to(outside, target_is_directory=True)
+        return real_open(path, *args, **kwargs)
+
+    monkeypatch.setattr(os, "open", swap_then_open)
+    with pytest.raises(SystemExit) as raised:
+        claim(tmp_path, "swapped-prds")
+    assert swapped  # the swap really happened during the claim
+    assert "resolves outside" in str(raised.value)
+    assert [p for p in outside.rglob("*") if not p.is_dir()] == []

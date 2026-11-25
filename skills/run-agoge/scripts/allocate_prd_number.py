@@ -54,15 +54,24 @@ def claim(repo: Path, slug: str) -> Path:
 
     backlog = repo / "docs" / "dev" / "project-management" / "prds" / "backlog"
     backlog.mkdir(parents=True, exist_ok=True)
-    real_repo = repo.resolve()
-    if os.path.commonpath([str(backlog.resolve()), str(real_repo)]) != str(real_repo):
-        raise SystemExit(f"{backlog} resolves outside {real_repo}")
-
-    # Pin the checked directory: O_NOFOLLOW refuses a backlog that became a
-    # symlink after the check, and creating through the fd keeps a later swap
-    # from redirecting the file.
-    dir_fd = os.open(backlog, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    # Open first, then check: O_NOFOLLOW refuses a backlog that is a symlink,
+    # the realpath check refuses one that leaves the repo, and the identity
+    # check proves the fd is the directory that was checked, so an ancestor
+    # swapped around the open cannot redirect the file.
     try:
+        dir_fd = os.open(backlog, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except OSError as exc:
+        if exc.errno in (errno.ELOOP, errno.ENOTDIR):
+            raise SystemExit(f"{backlog} resolves outside {repo}")
+        raise
+    try:
+        resolved_backlog = os.path.realpath(backlog)
+        real_repo = os.path.realpath(repo)
+        if os.path.commonpath([resolved_backlog, real_repo]) != real_repo:
+            raise SystemExit(f"{backlog} resolves outside {repo}")
+        opened, checked = os.fstat(dir_fd), os.stat(resolved_backlog)
+        if (opened.st_dev, opened.st_ino) != (checked.st_dev, checked.st_ino):
+            raise SystemExit(f"{backlog} resolves outside {repo}")
         # Writers with different slugs never collide on a file name, so the
         # exclusive create alone cannot keep them off one number. Serialize the
         # scan-and-create on a lock held on the backlog/ directory itself,
