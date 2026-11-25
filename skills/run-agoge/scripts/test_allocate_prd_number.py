@@ -15,6 +15,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import allocate_prd_number
 import pytest
 from allocate_prd_number import claim, claimed_numbers
 
@@ -360,3 +361,41 @@ def test_cli_bad_slug_exits_2_with_one_line(tmp_path: Path) -> None:
     assert len(lines) == 1
     assert lines[0].startswith("allocate_prd_number: ")
     assert not (tmp_path / "docs" / "dev" / "project-management" / "prds" / "backlog").exists()
+
+
+def test_claim_rejects_backlog_symlink_at_claim_time(
+    tmp_path: Path, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """`claim` itself, not only the CLI check, must refuse a backlog that leaves the repo."""
+    outside = tmp_path_factory.mktemp("outside-claim-backlog")
+    prds = tmp_path / "docs" / "dev" / "project-management" / "prds"
+    prds.mkdir(parents=True)
+    (prds / "backlog").symlink_to(outside, target_is_directory=True)
+    with pytest.raises(SystemExit) as raised:
+        claim(tmp_path, "escaping-slug")
+    assert "resolves outside" in str(raised.value)
+    assert list(outside.rglob("*")) == []
+
+
+def test_claim_does_not_follow_backlog_swapped_after_check(
+    tmp_path: Path,
+    tmp_path_factory: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A backlog swapped for an outside symlink mid-claim must not receive the file."""
+    outside = tmp_path_factory.mktemp("outside-swapped-backlog")
+    prds = tmp_path / "docs" / "dev" / "project-management" / "prds"
+    backlog = prds / "backlog"
+    real_scan = allocate_prd_number.claimed_numbers
+
+    def scan_then_swap(repo: Path) -> set[int]:
+        result = real_scan(repo)
+        backlog.rename(prds / "backlog.real")
+        backlog.symlink_to(outside, target_is_directory=True)
+        return result
+
+    monkeypatch.setattr(allocate_prd_number, "claimed_numbers", scan_then_swap)
+    claim(tmp_path, "swapped-slug")
+    assert backlog.is_symlink()  # the swap really happened during the claim
+    assert list(outside.rglob("*")) == []
+    assert (prds / "backlog.real" / "00001-swapped-slug-v1.md").is_file()
