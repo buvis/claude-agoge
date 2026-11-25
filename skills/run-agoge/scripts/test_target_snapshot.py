@@ -39,7 +39,44 @@ def test_snapshot_missing_field_is_rejected_by_name(tmp_path, template_target, k
     )
 
 
-def test_snapshot_wrongly_typed_field_is_rejected_by_name(tmp_path, template_target):
+WRONG_TYPE_VALUES = {
+    "repo": 1,
+    "config": 1,
+    "index": 1,
+    "head": "x",
+    "refs": "abc",
+    "worktree_heads": "abc",
+    "submodules": "abc",
+    "dirty": "abc",
+    "untracked_fingerprints": "abc",
+    "gitdir": "abc",
+    "worktrees": "abc",
+    "untracked": "abc",
+    "ignored": "abc",
+}
+
+
+@pytest.mark.parametrize("key", MALFORMED_SNAPSHOT_KEYS)
+def test_snapshot_wrongly_typed_field_is_rejected_by_name(tmp_path, template_target, key):
+    target, env = _copy_target(template_target, tmp_path)
+    (target / "scratch.txt").write_text("scratch\n")
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    assert snapshot["untracked"] == ["scratch.txt"]
+
+    data = {**snapshot, key: WRONG_TYPE_VALUES[key]}
+    malformed = tmp_path / "snaps" / f"wrongtype-{key}.json"
+    malformed.parent.mkdir(exist_ok=True)
+    malformed.write_text(json.dumps(data))
+    result = _run(tmp_path, env, "compare", str(target), str(malformed))
+    _assert_exit2(result)
+    assert result.stdout == "", key
+    assert result.stderr.strip() == (
+        f"target_snapshot: snapshot {malformed} is malformed: {key}"
+    ), key
+
+
+def test_snapshot_untracked_fingerprints_missing_entry_is_rejected(tmp_path, template_target):
     target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     before = _snap(tmp_path, target, env)
@@ -48,25 +85,16 @@ def test_snapshot_wrongly_typed_field_is_rejected_by_name(tmp_path, template_tar
 
     fingerprints_missing_entry = dict(snapshot["untracked_fingerprints"])
     del fingerprints_missing_entry["scratch.txt"]
-
-    cases = [
-        ("untracked", {**snapshot, "untracked": "abc"}),
-        ("refs", {**snapshot, "refs": list(snapshot["refs"])}),
-        (
-            "untracked_fingerprints",
-            {**snapshot, "untracked_fingerprints": fingerprints_missing_entry},
-        ),
-    ]
-    for name, data in cases:
-        malformed = tmp_path / "snaps" / f"wrongtype-{name}.json"
-        malformed.parent.mkdir(exist_ok=True)
-        malformed.write_text(json.dumps(data))
-        result = _run(tmp_path, env, "compare", str(target), str(malformed))
-        _assert_exit2(result)
-        assert result.stdout == "", name
-        assert result.stderr.strip() == (
-            f"target_snapshot: snapshot {malformed} is malformed: {name}"
-        ), name
+    data = {**snapshot, "untracked_fingerprints": fingerprints_missing_entry}
+    malformed = tmp_path / "snaps" / "wrongtype-untracked_fingerprints-missing.json"
+    malformed.parent.mkdir(exist_ok=True)
+    malformed.write_text(json.dumps(data))
+    result = _run(tmp_path, env, "compare", str(target), str(malformed))
+    _assert_exit2(result)
+    assert result.stdout == ""
+    assert result.stderr.strip() == (
+        f"target_snapshot: snapshot {malformed} is malformed: untracked_fingerprints"
+    )
 
 
 def test_snapshot_float_or_bool_version_is_rejected(tmp_path, template_target):
