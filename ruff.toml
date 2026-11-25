@@ -1,0 +1,7 @@
+# Formatter defaults and ruff's default lint rules. Ruff is not pinned: set required-version if a release reflows the tree.
+[lint]
+select = ["E4", "E7", "E9", "F"]
+
+[lint.per-file-ignores]
+# registry is a pytest fixture, imported to be used as a test argument.
+"skills/run-agoge/scripts/test_agoge_authorization_gate.py" = ["F401", "F811"]
