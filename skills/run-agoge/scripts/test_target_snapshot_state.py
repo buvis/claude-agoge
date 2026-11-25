@@ -1038,9 +1038,7 @@ def test_v4_snapshot_refused_after_ignored_cap(
     assert str(stale) in lines[0]
 
 
-def test_retargeted_directory_symlink_in_git_dir_is_reported(
-    tmp_path, template_target
-):
+def test_retargeted_directory_symlink_in_git_dir_is_reported(tmp_path, template_target):
     target, env = _copy_target(template_target, tmp_path)
     first = tmp_path / "first-hooks"
     second = tmp_path / "second-hooks"
