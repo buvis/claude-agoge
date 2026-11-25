@@ -764,3 +764,5 @@
 {"id":"bb0edec4","kind":"fast-track:delta","task":"00033-gpg-program-runs-on-compare-v1-c1","queued_at":1795570673,"prompt_bytes":7054}
 {"id":"bb0edec4","ended_at":1795571205,"elapsed_s":532,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1795571343,"phase":"done","prd":"00033-gpg-program-runs-on-compare-v1-c1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795571413,"phase":"done","prd":"00033-gpg-program-runs-on-compare-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795571485,"phase":"build","prd":"00033-gpg-program-runs-on-compare-v1.md"}
