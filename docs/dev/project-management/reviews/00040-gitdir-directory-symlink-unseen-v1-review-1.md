@@ -3,7 +3,7 @@ head_sha: 0d1f84e2cc121022ac2faf7934aa57a9c78b9bb9
 reviewers: fanout, blake, eve, bob, carl
 ---
 
-## Alice
+## Fanout
 
 **00040-gitdir-directory-symlink-unseen-v1-c1**
 [ALICE] ✅ No issues found
