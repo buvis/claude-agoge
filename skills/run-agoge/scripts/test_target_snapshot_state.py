@@ -758,6 +758,28 @@ def test_unreadable_git_dir_file_names_the_file(tmp_path, template_target):
     assert "unexpected" not in lines[0]
 
 
+def test_unreadable_untracked_file_error_is_not_called_unexpected(tmp_path, template_target):
+    if os.geteuid() == 0:
+        pytest.skip("root reads mode-000 files")
+    target, env = _copy_target(template_target, tmp_path)
+    unreadable = target / "u.txt"
+    unreadable.write_text("u\n")
+    before = _snap(tmp_path, target, env)
+    os.chmod(unreadable, 0)
+    try:
+        out = tmp_path / "snaps" / "after.json"
+        out.parent.mkdir(exist_ok=True)
+        snapshot_result = _run(tmp_path, env, "snapshot", str(target), str(out))
+        compare_result = _run(tmp_path, env, "compare", str(target), str(before))
+    finally:
+        os.chmod(unreadable, 0o600)
+    for result in (snapshot_result, compare_result):
+        assert result.returncode == 2
+        lines = result.stderr.splitlines()
+        assert len(lines) == 1
+        assert lines[0] == "target_snapshot: cannot read u.txt: permission denied"
+
+
 def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     target, env, before = _big_file_target(tmp_path)
 
