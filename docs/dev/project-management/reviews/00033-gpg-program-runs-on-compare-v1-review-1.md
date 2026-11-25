@@ -3,7 +3,7 @@ head_sha: ef249c26333ad734503b5680e54f823e85cba75f
 reviewers: fanout, blake, eve, bob, carl
 ---
 
-## Alice
+## Fanout (consensus)
 
 **00033-gpg-program-runs-on-compare-v1-c1**
 Round 1 (fanout workflow): 2 HIGH confirmed — gpg.program/ssh/x509 overrides missing from `_STATIC_OVERRIDES`, and the CHANGELOG entry failed the card's own acceptance string. Both fixed in the rework commit `ef249c2`; no re-run of this lens (fanout's own adversarial verify already confirmed both, so no victor dispatch was needed).
