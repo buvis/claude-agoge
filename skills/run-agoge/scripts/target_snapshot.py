@@ -482,17 +482,35 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
     return {"status": status, "violations": violations, "touched": touched}
 
 
+_REQUIRED_FIELDS = (
+    "repo", "config", "index", "head", "refs", "worktree_heads", "submodules",
+    "dirty", "untracked_fingerprints", "gitdir", "worktrees", "untracked",
+    "ignored",
+)
+
+
 def _load(path: str, repo: str) -> dict:
     try:
         with open(path) as handle:
             data = json.load(handle)
     except (OSError, ValueError) as exc:
         raise Fail(f"cannot read snapshot {path}: {exc}") from exc
-    if not isinstance(data, dict) or data.get("version") != VERSION:
+    if not isinstance(data, dict) or type(data.get("version")) is not int or data["version"] != VERSION:
         raise Fail(f"snapshot {path} is not version {VERSION}")
+    for key in _REQUIRED_FIELDS:
+        if key not in data:
+            raise Fail(f"snapshot {path} is malformed: {key}")
+    if not isinstance(data["untracked"], list):
+        raise Fail(f"snapshot {path} is malformed: untracked")
+    if not isinstance(data["refs"], dict):
+        raise Fail(f"snapshot {path} is malformed: refs")
+    if not isinstance(data["untracked_fingerprints"], dict) or any(
+        p not in data["untracked_fingerprints"] for p in data["untracked"]
+    ):
+        raise Fail(f"snapshot {path} is malformed: untracked_fingerprints")
     if os.path.realpath(str(data.get("repo"))) != repo:
         raise Fail(f"snapshot {path} belongs to another repo")
-    for name, oid in data.get("refs", {}).items():
+    for name, oid in data["refs"].items():
         if not name.startswith("refs/") or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", oid):
             raise Fail(f"snapshot {path} has a malformed ref")
     return data
