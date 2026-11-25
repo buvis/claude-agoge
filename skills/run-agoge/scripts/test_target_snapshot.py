@@ -819,7 +819,7 @@ def test_fingerprint_of_unreadable_file_raises(tmp_path):
     locked.write_bytes(b"secret\n")
     locked.chmod(0o000)
     try:
-        with pytest.raises(PermissionError):
+        with pytest.raises(target_snapshot.Fail, match="cannot read locked.txt: permission denied"):
             target_snapshot._fingerprint(os.path.realpath(repo), "locked.txt")
     finally:
         locked.chmod(0o644)

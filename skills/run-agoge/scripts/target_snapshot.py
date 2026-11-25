@@ -281,18 +281,21 @@ def _fingerprint(repo: str, path: str) -> str:
     if not stat.S_ISREG(st.st_mode):
         return f"special:{stat.S_IFMT(st.st_mode):o}"
     size = st.st_size
-    if size > SAMPLE_ABOVE:
-        mib = 1024 * 1024
+    try:
+        if size > SAMPLE_ABOVE:
+            mib = 1024 * 1024
+            with open(full, "rb") as handle:
+                head = handle.read(mib)
+                handle.seek(size - mib)
+                tail = handle.read(mib)
+            return f"sample:{size}:{_sha(head + tail)}"
+        digest = hashlib.sha256()
         with open(full, "rb") as handle:
-            head = handle.read(mib)
-            handle.seek(size - mib)
-            tail = handle.read(mib)
-        return f"sample:{size}:{_sha(head + tail)}"
-    digest = hashlib.sha256()
-    with open(full, "rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+    except PermissionError:
+        raise Fail(f"cannot read {path}: permission denied") from None
 
 
 def _resolve_repo(repo_arg: str) -> str:
