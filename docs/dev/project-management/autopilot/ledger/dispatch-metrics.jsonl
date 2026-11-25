@@ -698,3 +698,6 @@
 {"id":"0e4fa090","kind":"fast-track:delta","task":"00029-malformed-snapshot-passes-compare-v1-c1","queued_at":1795565827,"prompt_bytes":5427}
 {"id":"0e4fa090","ended_at":1795566165,"elapsed_s":338,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1795566397,"phase":"done","prd":"00029-malformed-snapshot-passes-compare-v1-c1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795566426,"phase":"done","prd":"00029-malformed-snapshot-passes-compare-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795566497,"phase":"build","prd":"00030-untracked-chmod-not-reported-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795566506,"phase":"build","prd":"00029-malformed-snapshot-passes-compare-v1.md"}
