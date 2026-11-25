@@ -834,3 +834,5 @@
 {"id":"6f1fc4e5","kind":"fast-track:delta","task":"00037-ignored-listing-grows-snapshot-v1-c1","queued_at":1795577707,"prompt_bytes":4881}
 {"id":"6f1fc4e5","ended_at":1795578354,"elapsed_s":647,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1795578531,"phase":"done","prd":"00037-ignored-listing-grows-snapshot-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795579920,"phase":"done","prd":"00037-ignored-listing-grows-snapshot-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795579990,"phase":"build","prd":"00037-ignored-listing-grows-snapshot-v1.md"}
