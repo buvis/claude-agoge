@@ -66,3 +66,7 @@ This PRD runs after every lower-numbered PRD in the backlog: those PRDs cite lit
 ## Success Criteria
 
 - `uvx ruff format --check skills/run-agoge/scripts` and `uvx ruff check skills/run-agoge/scripts` exit 0; the full suite passes under `dev/bin/release-checks`, which now runs both.
+
+## Waiver
+
+`dev/bin/release-checks` runs `uv run --with ruff ruff format --check` and `uv run --with ruff ruff check` instead of the `uvx ruff ...` form the Phase 1 task literally specified (commit `a4eeb1f`, "fix(release-checks): use sandbox-safe uv run invocation for ruff"). `uvx` fails under this host's sandbox profile; `uv run --with ruff ruff ...` is equivalent and sandbox-safe. The Phase 1 acceptance check `rg -c "^uvx ruff " dev/bin/release-checks` now prints 0 by design — the deviation is accepted, not a regression.
