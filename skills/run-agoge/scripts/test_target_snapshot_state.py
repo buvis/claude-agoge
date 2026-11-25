@@ -1036,3 +1036,26 @@ def test_v4_snapshot_refused_after_ignored_cap(
     assert len(lines) == 1
     assert "is not version 5" in lines[0]
     assert str(stale) in lines[0]
+
+
+def test_retargeted_directory_symlink_in_git_dir_is_reported(
+    tmp_path, template_target
+):
+    target, env = _copy_target(template_target, tmp_path)
+    first = tmp_path / "first-hooks"
+    second = tmp_path / "second-hooks"
+    first.mkdir()
+    second.mkdir()
+    (first / "pre-commit").write_text("#!/bin/sh\necho first\n")
+    (second / "pre-commit").write_text("#!/bin/sh\necho second\n")
+    (target / ".git" / "linked-hooks").symlink_to(first)
+    before = _snap(tmp_path, target, env)
+    (target / ".git" / "linked-hooks").unlink()
+    (target / ".git" / "linked-hooks").symlink_to(second)
+    code, report = _compare(tmp_path, target, before, env)
+    assert code == 1
+    [violation] = [v for v in report["violations"] if v["kind"] == "gitdir"]
+    assert violation["path"] == "linked-hooks"
+    assert violation["before"].startswith("link:")
+    assert violation["after"].startswith("link:")
+    assert violation["before"] != violation["after"]
