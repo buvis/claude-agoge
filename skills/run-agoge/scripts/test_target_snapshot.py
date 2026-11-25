@@ -9,8 +9,8 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    NOTES_V1, NOTES_V2, SHARED_PREFIX, _assert_exit2, _compare, _copy_target,
-    _git, _git_dir_state, _run, _sha, _snap, _write_packed_refs,
+    NOTES_V1, NOTES_V2, SHARED_PREFIX, _assert_exit2, _build_target, _compare,
+    _copy_target, _git, _git_dir_state, _run, _sha, _snap, _write_packed_refs,
 )
 
 STAGED = SHARED_PREFIX + b"staged edit\n"
@@ -539,6 +539,56 @@ def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_
     violations = {v["path"]: v for v in report["violations"] if v["kind"] == "tracked"}
     assert violations["sub/child.txt"]["after"] != f" D {_sha((outside / 'child.txt').read_bytes())}"
     assert "external-symlink" in violations["sub/child.txt"]["after"]
+
+
+def test_compare_in_one_process_rechecks_swapped_directory(tmp_path, monkeypatch):
+    target, env = _build_target(tmp_path)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    sub = target / "sub"
+    sub.mkdir()
+    (sub / "child.txt").write_text("child v1\n")
+    _git(target, env, "add", "-A")
+    _git(target, env, "commit", "-q", "-m", "add sub/child.txt")
+    (sub / "child.txt").write_text("child v2\n")
+
+    before = target_snapshot.take_snapshot(os.path.realpath(target))
+
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "child.txt").write_text("not the real child\n")
+    _git(target, env, "rm", "-q", "-r", "--cached", "sub")
+    shutil.rmtree(sub)
+    sub.symlink_to(outside)
+
+    report = target_snapshot.compare(os.path.realpath(target), before, set())
+    violations = {v["path"]: v for v in report["violations"] if v["kind"] == "tracked"}
+    after = violations["sub/child.txt"]["after"]
+    assert "external-symlink" in after
+    assert _sha(b"not the real child\n") not in after
+
+
+def test_fingerprint_of_very_deep_path_is_absent(tmp_path):
+    repo = tmp_path / "target"
+    repo.mkdir()
+    real = os.path.realpath(repo)
+    deep = "d/" * 3000 + "f.txt"
+    assert target_snapshot._fingerprint(real, deep) == "absent"
+
+
+def test_file_below_nested_external_symlink_is_external(tmp_path):
+    repo = tmp_path / "target"
+    (repo / "inner").mkdir(parents=True)
+    outside = tmp_path / "outside"
+    (outside / "sub").mkdir(parents=True)
+    (outside / "sub" / "deep.txt").write_text("deep\n")
+    (repo / "out-link").symlink_to(outside)
+    (repo / "inner" / "out-nested").symlink_to(outside)
+    real = os.path.realpath(repo)
+    assert target_snapshot._fingerprint(real, "out-link/sub/deep.txt") == "external-symlink"
+    assert target_snapshot._fingerprint(
+        real, "inner/out-nested/sub/deep.txt"
+    ) == "external-symlink"
 
 
 def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path, template_target):
