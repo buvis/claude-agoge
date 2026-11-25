@@ -858,3 +858,6 @@
 {"id":"a251abe5","kind":"fast-track:delta","task":"00038-symlink-cache-outlives-snapshot-v1-c1","queued_at":1795582131,"prompt_bytes":5420}
 {"id":"a251abe5","ended_at":1795582319,"elapsed_s":188,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"done","edge":"leave","at":1795582550,"phase":"done","prd":"00038-symlink-cache-outlives-snapshot-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795582582,"phase":"done","prd":"00038-symlink-cache-outlives-snapshot-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795582639,"phase":"build","prd":"00039-adopt-ruff-format-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795582648,"phase":"build","prd":"00038-symlink-cache-outlives-snapshot-v1.md"}
