@@ -54,28 +54,41 @@ def claim(repo: Path, slug: str) -> Path:
 
     backlog = repo / "docs" / "dev" / "project-management" / "prds" / "backlog"
     backlog.mkdir(parents=True, exist_ok=True)
+    real_repo = repo.resolve()
+    if os.path.commonpath([str(backlog.resolve()), str(real_repo)]) != str(real_repo):
+        raise SystemExit(f"{backlog} resolves outside {real_repo}")
 
-    # Writers with different slugs never collide on a file name, so the
-    # exclusive create alone cannot keep them off one number. Serialize the
-    # scan-and-create on a lock held on the prds/ directory itself, which
-    # leaves no lock file behind.
-    lock_fd = os.open(backlog.parent, os.O_RDONLY)
+    # Pin the checked directory: O_NOFOLLOW refuses a backlog that became a
+    # symlink after the check, and creating through the fd keeps a later swap
+    # from redirecting the file.
+    dir_fd = os.open(backlog, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        # Writers with different slugs never collide on a file name, so the
+        # exclusive create alone cannot keep them off one number. Serialize the
+        # scan-and-create on a lock held on the backlog/ directory itself,
+        # which leaves no lock file behind.
+        fcntl.flock(dir_fd, fcntl.LOCK_EX)
         number = max(claimed_numbers(repo), default=0) + 1
         for _ in range(MAX_ATTEMPTS):
-            target = backlog / f"{number:05d}-{slug}-v1.md"
+            name = f"{number:05d}-{slug}-v1.md"
             try:
                 # Exclusive create still guards against a writer that does not
                 # take the lock (a hand-made file, another tool).
-                os.close(os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644))
-                return target
+                os.close(
+                    os.open(
+                        name,
+                        os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
+                        0o644,
+                        dir_fd=dir_fd,
+                    )
+                )
+                return backlog / name
             except OSError as exc:
                 if exc.errno != errno.EEXIST:
                     raise
                 number += 1
     finally:
-        os.close(lock_fd)
+        os.close(dir_fd)
     raise SystemExit(f"no free PRD number after {MAX_ATTEMPTS} attempts from {number}")
 
 
