@@ -922,3 +922,26 @@ def test_untracked_mode_change_is_not_reported(tmp_path, template_target):
 
     doc = " ".join(target_snapshot.__doc__.split())
     assert "Permission bits of untracked files are not checked; only content, file type and symlink target are." in doc
+
+
+def test_untracked_file_replaced_by_fifo_reads_as_removed(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
+    scratch = target / "u.txt"
+    scratch.write_text("scratch\n")
+    before = _snap(tmp_path, target, env)
+    scratch.unlink()
+    os.mkfifo(scratch)
+    try:
+        result = _run(tmp_path, env, "compare", str(target), str(before), timeout=10)
+    except subprocess.TimeoutExpired:
+        pytest.fail("compare hung on an untracked path replaced by a FIFO")
+    assert result.returncode == 1, result.stderr
+    report = json.loads(result.stdout)
+    assert report["violations"] == [{"kind": "untracked-removed", "path": "u.txt"}]
+
+    code, report = _compare(tmp_path, target, before, env, allow=("u.txt",))
+    assert code == 0
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+    doc = " ".join(target_snapshot.__doc__.split())
+    assert "replaced by a fifo, socket or device" in doc
