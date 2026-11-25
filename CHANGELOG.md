@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: target compare no longer runs the repo's gpg program when inspecting a changed ref
 - **run-agoge**: target snapshot fingerprints paths more than 1000 directories deep and checks directory symlinks again on every snapshot
 - **run-agoge**: PRD number allocator no longer writes outside the repo if the backlog path is swapped during the run
+- **run-agoge**: target snapshot now reports a directory symlink in the git dir that is added, removed, or retargeted
 
 ## [0.3.1] - 2026-11-16
 

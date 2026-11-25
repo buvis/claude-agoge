@@ -385,8 +385,11 @@ def _gitdir_files(repo: str) -> dict[str, str]:
         _git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
     )
     files: dict[str, str] = {}
-    for root, _dirs, names in os.walk(git_dir):
-        for name in names:
+    for root, dirs, names in os.walk(git_dir):
+        # os.walk (followlinks=False) lists a symlinked directory in `dirs`
+        # without descending into it, so it is never fingerprinted unless
+        # handled here explicitly.
+        for name in [n for n in dirs if os.path.islink(os.path.join(root, n))] + names:
             path = os.path.join(root, name)
             rel = os.path.relpath(path, git_dir)
             top = rel.split(os.sep)[0]
