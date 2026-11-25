@@ -861,3 +861,5 @@
 {"kind":"handoff","site":"done","edge":"resume","at":1795582582,"phase":"done","prd":"00038-symlink-cache-outlives-snapshot-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795582639,"phase":"build","prd":"00039-adopt-ruff-format-v1.md"}
 {"kind":"handoff","site":"done","edge":"leave","at":1795582648,"phase":"build","prd":"00038-symlink-cache-outlives-snapshot-v1.md"}
+{"kind":"handoff","site":"build","edge":"resume","at":1795582659,"phase":"build","prd":"00039-adopt-ruff-format-v1.md"}
+{"kind":"handoff","site":"build","edge":"leave","at":1795583413,"phase":"review","prd":"00039-adopt-ruff-format-v1.md"}
