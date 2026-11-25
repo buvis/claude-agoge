@@ -76,6 +76,22 @@ def test_snapshot_wrongly_typed_field_is_rejected_by_name(tmp_path, template_tar
     ), key
 
 
+@pytest.mark.parametrize("value", ["x", True])
+def test_snapshot_non_int_ignored_overflow_is_rejected_by_name(tmp_path, template_target, value):
+    target, env = _copy_target(template_target, tmp_path)
+    before = _snap(tmp_path, target, env)
+    snapshot = json.loads(before.read_text())
+    malformed = tmp_path / "snaps" / "wrongtype-ignored_overflow.json"
+    malformed.parent.mkdir(exist_ok=True)
+    malformed.write_text(json.dumps({**snapshot, "ignored_overflow": value}))
+    result = _run(tmp_path, env, "compare", str(target), str(malformed))
+    _assert_exit2(result)
+    assert result.stdout == ""
+    assert result.stderr.strip() == (
+        f"target_snapshot: snapshot {malformed} is malformed: ignored_overflow"
+    )
+
+
 def test_snapshot_untracked_fingerprints_missing_entry_is_rejected(tmp_path, template_target):
     target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")

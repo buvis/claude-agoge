@@ -897,6 +897,18 @@ def test_ignored_listing_crossing_cap_reports_no_file_removals(tmp_path, templat
     assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/"}]
 
 
+def test_crossing_cap_keeps_nested_repo_dir_named_by_plain_listing(tmp_path, template_target, monkeypatch):
+    target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
+    _write_files(target, "vault/a.txt", "vault/b.txt")
+    subprocess.run(["git", "init", "-q", str(target / "vault/inner")], check=True)
+    before = target_snapshot.take_snapshot(repo)
+    assert "vault/inner/" in before["ignored"]
+
+    _write_files(target, "vault/c.txt")
+    report = target_snapshot.compare(repo, before, set())
+    assert report == {"status": "unchanged", "violations": [], "touched": []}
+
+
 def test_v4_snapshot_refused_after_ignored_cap(tmp_path, template_target, monkeypatch, capsys):
     target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
     _write_files(target, "vault/a.txt", "vault/b.txt", "cache/a.bin", "x.log")

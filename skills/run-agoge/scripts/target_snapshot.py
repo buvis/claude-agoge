@@ -25,7 +25,7 @@ submodule (gitlink with no `.git` on disk) is unchecked, same as an unlisted
 worktree outside `worktree list`.
 
 Above 20000 ignored files, the snapshot records ignored directories only, plus
-the file count as `ignored_overflow`; a compare whose fresh snapshot is over
+the file count as `ignored_overflow`; a compare where either snapshot is over
 that cap checks only the removal of ignored directories, not of single files.
 
 Above 64 MiB a file is fingerprinted by its size and its first and last MiB,
@@ -387,7 +387,7 @@ def take_snapshot(repo: str) -> dict:
         found = [os.fsdecode(p) for p in out.split(b"\0") if p]
         if not extra and len(found) > IGNORED_FILE_CAP:
             overflow = len(found)
-            continue
+            found = [p for p in found if p.endswith("/")]
         ignored.update(found)
     extras = {}
     if overflow:
@@ -502,7 +502,7 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
         ):
             violations.append({"kind": "untracked-modified", "path": path})
     for path in sorted(set(before["ignored"]) - set(after["ignored"])):
-        if "ignored_overflow" in after and not path.endswith("/"):
+        if ("ignored_overflow" in before or "ignored_overflow" in after) and not path.endswith("/"):
             continue
         if not _allowed(path, allow):
             violations.append({"kind": "ignored-removed", "path": path})
@@ -530,6 +530,8 @@ def _load(path: str, repo: str) -> dict:
     for key, expected_type in _REQUIRED_FIELD_TYPES.items():
         if key not in data or not isinstance(data[key], expected_type):
             raise Fail(f"snapshot {path} is malformed: {key}")
+    if "ignored_overflow" in data and type(data["ignored_overflow"]) is not int:
+        raise Fail(f"snapshot {path} is malformed: ignored_overflow")
     if any(
         p not in data["untracked_fingerprints"] for p in data["untracked"]
     ):
