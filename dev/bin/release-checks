@@ -9,6 +9,6 @@
 # untrue.
 set -euo pipefail
 
-uvx ruff format --check skills/run-agoge/scripts
-uvx ruff check skills/run-agoge/scripts
+uv run --with ruff ruff format --check skills/run-agoge/scripts
+uv run --with ruff ruff check skills/run-agoge/scripts
 uv run --directory skills/run-agoge/scripts --with pytest python -m pytest -q -rs
