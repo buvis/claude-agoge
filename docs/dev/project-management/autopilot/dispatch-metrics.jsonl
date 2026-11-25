@@ -742,3 +742,4 @@
 {"kind":"handoff","site":"done","edge":"leave","at":1795569190,"phase":"build","prd":"00031-fifo-replacement-reports-removed-v1.md"}
 {"kind":"handoff","site":"build","edge":"resume","at":1795569196,"phase":"build","prd":"00032-changelog-omits-process-filters-v1.md"}
 {"kind":"handoff","site":"done","edge":"resume","at":1795569483,"phase":"done","prd":"00032-changelog-omits-process-filters-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795569546,"phase":"build","prd":"00032-changelog-omits-process-filters-v1.md"}
