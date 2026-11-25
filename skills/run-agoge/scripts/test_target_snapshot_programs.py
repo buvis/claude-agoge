@@ -608,3 +608,56 @@ def test_unreadable_included_config_exits_2_and_runs_nothing(tmp_path, template_
     assert "config" in reason.lower(), (
         f"the exit-2 reason does not name config discovery: {result.stderr!r}"
     )
+
+
+def test_compare_does_not_run_gpg_program_on_new_signed_ref(tmp_path, template_target):
+    """A new ref carrying a `gpgsig` header must not run the target's gpg.program.
+
+    `_ref_violation` runs `git log -1 <sha>` and `git reflog show` on a
+    changed ref. With `log.showSignature=true` and `gpg.program` set, a plain
+    `git log` on a signed commit appends a signature-verification line, which
+    launches the configured program - a hostile repo can create such a ref
+    itself, before `compare` ever sees it.
+    """
+    target, env = _copy_target(template_target, tmp_path)
+    script, log = _marker(tmp_path, name="gpg.sh")
+    _git(target, env, "config", "--local", "log.showSignature", "true")
+    _git(target, env, "config", "--local", "gpg.program", str(script))
+
+    before = _snap(tmp_path, target, env)
+
+    # Build a signed commit by hand: no real gpg key is needed, only a
+    # `gpgsig` header, which is what makes `git log` try to verify it.
+    parent = _git(target, env, "rev-parse", "HEAD")
+    tree = _git(target, env, "rev-parse", "HEAD^{tree}")
+    ident = _git(target, env, "var", "GIT_AUTHOR_IDENT")
+    commit_text = (
+        f"tree {tree}\n"
+        f"parent {parent}\n"
+        f"author {ident}\n"
+        f"committer {ident}\n"
+        "gpgsig -----BEGIN PGP SIGNATURE-----\n"
+        " not a real signature\n"
+        " -----END PGP SIGNATURE-----\n"
+        "\n"
+        "evil commit\n"
+    )
+    evil_sha = subprocess.run(
+        ["git", "hash-object", "-t", "commit", "-w", "--stdin"],
+        cwd=target, env=env, input=commit_text, capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    _git(target, env, "update-ref", "refs/heads/evilref", evil_sha)
+
+    result = _run(tmp_path, env, "compare", str(target), str(before), timeout=10)
+    assert result.returncode == 1, result.stderr
+    assert not log.exists(), (
+        f"compare ran the target's gpg.program on a new signed ref: {log.read_text()!r}"
+    )
+
+    # Control: a plain `git log` in this repo, outside the module, really
+    # does launch the configured gpg.program for this signed commit - so
+    # "never ran" above cannot pass because the fixture is inert.
+    _git(target, env, "log", "-1", evil_sha)
+    assert log.exists() and log.read_text().strip(), (
+        "fixture is inert: the target's gpg.program never ran for a plain `git log`"
+    )
