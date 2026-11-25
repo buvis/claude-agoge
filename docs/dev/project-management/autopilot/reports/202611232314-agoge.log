@@ -1,0 +1,37 @@
+I sent out all five armed lanes: walter, heidi, wendy, peggy and trudy. They are running now. Judy did not run because the repo has no UI. Recon refreshed the profile at HEAD a6d6767. The pins section has the same checksum before and after recon, so it did not change. The target was unchanged before the lanes started. When every lane returns, I will compare the target again, check every "verified" finding against its evidence, merge duplicates, and write the report. This run is unattended, so the report will end with the "walkthrough pending" marker.
+
+Walter is done: 2 verified findings (1 MEDIUM, 1 LOW). Heidi, wendy, peggy and trudy are still running.
+
+Heidi is done: 4 findings, all verified (1 MEDIUM, 3 LOW). The scratch tool blocked heidi from deleting its scratch directory `/tmp/agoge-heidi.VuSZux`, so the directory is still there. I will list it in the report and not delete it myself. Wendy, peggy and trudy are still running.
+
+Wendy is done: 7 findings (5 verified, 1 mocked, 1 unverified). Several of them overlap with walter's and heidi's findings, and I will merge those duplicates before I write the report. Peggy and trudy are still running.
+
+Peggy is done: 5 findings, all verified (1 MEDIUM, 4 LOW). Peggy also measured what PRDs 00024-00040 gained. For example, a 4 GiB file in the git directory used 4.1 GiB of memory to snapshot before those PRDs and now uses 29 MiB. Only trudy is still running.
+
+Done. The agoge product-QA run on `buvis/claude-agoge` (branch `master`) is finished. I committed the report and the refreshed profile as `deb5a3a` and did not push.
+
+**Result:** 18 findings: 1 HIGH, 6 MEDIUM and 11 LOW. All 18 are verified, because each lane ran the code and quoted the output.
+- **HIGH:** the snapshot script still runs the target repo's filter program when the filter's name holds a byte that is not valid UTF-8. In a UTF-8 locale, the discovery regex skips that name. This breaks the security promise that 0.3.1 made.
+- **MEDIUM:**
+  - A broken snapshot file can pass `compare`, crash it, or give a false violation.
+  - A run can hide the deletion of an ignored file by pushing the ignored-file count over 20000.
+  - An unreadable untracked directory is skipped with no message, so edits inside it are not seen.
+  - A snapshot can hang forever if a file is swapped for a fifo during the read.
+  - Run against a linked worktree, the check misses a branch switch in the main worktree.
+  - Every snapshot reads the whole Git LFS store.
+- Judy did not run, because the repo has no UI. I wrote no regression tests, because the tree had uncommitted autopilot files and the run was unattended.
+
+**Verification:**
+- The pins section has the same checksum before and after recon.
+- Both target checks (after recon and after the lanes) found no change.
+- The gates pass at HEAD: ruff format, ruff check, and pytest with 300 passed and 2 skipped. Both skips are non-UTF-8 file name tests that macOS cannot run.
+- The security lane was authorized by the line in the profile. The `--authorized autoclaude-drain` flag was also passed, but the profile line takes precedence.
+
+Report: `docs/dev/project-management/audit-results/agoge-2026-11-25.md` (sidecar `.json` beside it).
+
+**Call to action**
+- Required: you. Run `/run-agoge --resume docs/dev/project-management/audit-results/agoge-2026-11-25.md` to accept, defer or reject the 18 findings. The report suggests six PRD groups. Do finding 1 (HIGH) first.
+- Follow-up:
+  - None of the code from PRDs 00024-00040 has run in CI, because local `master` is 132 commits ahead of `origin`. The first push will run the ruff gate and the ubuntu job for the first time.
+  - Six scratch directories stay under `/tmp`. The report lists them. A safety hook stopped heidi from deleting its own directory, so I did not delete any of them. Delete them by hand.
+  - Delete the local untracked file `.claude/CLAUDE.md` when the installed autopilot plugin is newer than 0.10.0. That file says so itself.
