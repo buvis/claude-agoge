@@ -1,4 +1,5 @@
 """Core snapshot and compare behavior: refs, HEAD, index, work tree, restore commands, input errors."""
+
 import json
 import os
 import shlex
@@ -9,15 +10,36 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    NOTES_V1, NOTES_V2, SHARED_PREFIX, _assert_exit2, _build_target, _compare,
-    _copy_target, _git, _git_dir_state, _run, _sha, _snap, _write_packed_refs,
+    NOTES_V1,
+    NOTES_V2,
+    SHARED_PREFIX,
+    _assert_exit2,
+    _build_target,
+    _compare,
+    _copy_target,
+    _git,
+    _git_dir_state,
+    _run,
+    _sha,
+    _snap,
+    _write_packed_refs,
 )
 
 STAGED = SHARED_PREFIX + b"staged edit\n"
 
 MALFORMED_SNAPSHOT_KEYS = [
-    "repo", "config", "index", "head", "refs", "worktree_heads", "submodules",
-    "dirty", "untracked_fingerprints", "gitdir", "worktrees", "untracked",
+    "repo",
+    "config",
+    "index",
+    "head",
+    "refs",
+    "worktree_heads",
+    "submodules",
+    "dirty",
+    "untracked_fingerprints",
+    "gitdir",
+    "worktrees",
+    "untracked",
     "ignored",
 ]
 
@@ -57,7 +79,9 @@ WRONG_TYPE_VALUES = {
 
 
 @pytest.mark.parametrize("key", MALFORMED_SNAPSHOT_KEYS)
-def test_snapshot_wrongly_typed_field_is_rejected_by_name(tmp_path, template_target, key):
+def test_snapshot_wrongly_typed_field_is_rejected_by_name(
+    tmp_path, template_target, key
+):
     target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     before = _snap(tmp_path, target, env)
@@ -77,7 +101,9 @@ def test_snapshot_wrongly_typed_field_is_rejected_by_name(tmp_path, template_tar
 
 
 @pytest.mark.parametrize("value", ["x", True])
-def test_snapshot_non_int_ignored_overflow_is_rejected_by_name(tmp_path, template_target, value):
+def test_snapshot_non_int_ignored_overflow_is_rejected_by_name(
+    tmp_path, template_target, value
+):
     target, env = _copy_target(template_target, tmp_path)
     before = _snap(tmp_path, target, env)
     snapshot = json.loads(before.read_text())
@@ -92,7 +118,9 @@ def test_snapshot_non_int_ignored_overflow_is_rejected_by_name(tmp_path, templat
     )
 
 
-def test_snapshot_untracked_fingerprints_missing_entry_is_rejected(tmp_path, template_target):
+def test_snapshot_untracked_fingerprints_missing_entry_is_rejected(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     before = _snap(tmp_path, target, env)
@@ -162,7 +190,9 @@ def test_snapshot_and_compare_write_nothing_in_target(tmp_path, template_target)
     assert _git_dir_state(target) == git_state_before
 
 
-def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path, template_target):
+def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     old = _git(target, env, "rev-parse", "HEAD")
     before = _snap(tmp_path, target, env)
@@ -174,8 +204,18 @@ def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path,
         "GIT_COMMITTER_EMAIL": "cy@example.test",
         "GIT_COMMITTER_DATE": "2026-03-04T05:06:07+02:00",
     }
-    new = _git(target, commit_env, "commit-tree", "HEAD^{tree}", "-p", "HEAD",
-               "-m", "feat: second change", "-m", "body line")
+    new = _git(
+        target,
+        commit_env,
+        "commit-tree",
+        "HEAD^{tree}",
+        "-p",
+        "HEAD",
+        "-m",
+        "feat: second change",
+        "-m",
+        "body line",
+    )
     # The reflog entry carries its own identity and message, distinct from the
     # commit's metadata, so a reflog value derived from the commit cannot match.
     reflog_env = {
@@ -183,27 +223,37 @@ def test_new_commit_on_current_branch_is_one_ref_violation_with_commit(tmp_path,
         "GIT_COMMITTER_NAME": "Rex Reflogger",
         "GIT_COMMITTER_EMAIL": "rex@example.test",
     }
-    _git(target, reflog_env, "update-ref", "-m", "custom reflog message",
-         "refs/heads/master", new, old)
+    _git(
+        target,
+        reflog_env,
+        "update-ref",
+        "-m",
+        "custom reflog message",
+        "refs/heads/master",
+        new,
+        old,
+    )
     assert _git(target, env, "rev-parse", "HEAD") == new
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     assert report["status"] == "changed"
     repo = shlex.quote(os.path.realpath(target))
-    assert report["violations"] == [{
-        "kind": "ref",
-        "ref": "refs/heads/master",
-        "before": old,
-        "after": new,
-        "commit": {
-            "author": "Ada Author <ada@example.test>",
-            "committer": "Cy Committer <cy@example.test>",
-            "date": "2026-03-04T05:06:07+02:00",
-            "subject": "feat: second change",
-        },
-        "reflog": "Rex Reflogger <rex@example.test> | custom reflog message",
-        "restore": f"git -C {repo} update-ref refs/heads/master {old} {new}",
-    }]
+    assert report["violations"] == [
+        {
+            "kind": "ref",
+            "ref": "refs/heads/master",
+            "before": old,
+            "after": new,
+            "commit": {
+                "author": "Ada Author <ada@example.test>",
+                "committer": "Cy Committer <cy@example.test>",
+                "date": "2026-03-04T05:06:07+02:00",
+                "subject": "feat: second change",
+            },
+            "reflog": "Rex Reflogger <rex@example.test> | custom reflog message",
+            "restore": f"git -C {repo} update-ref refs/heads/master {old} {new}",
+        }
+    ]
     assert report["touched"] == []
 
 
@@ -231,9 +281,18 @@ def test_moved_remote_tracking_ref_is_ref_violation(tmp_path, template_target):
     target, env = _copy_target(template_target, tmp_path)
     old = _git(target, env, "rev-parse", "refs/remotes/origin/master")
     before = _snap(tmp_path, target, env)
-    new = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "remote work")
-    _git(target, env, "update-ref", "-m", "fetch origin: fast-forward",
-         "refs/remotes/origin/master", new)
+    new = _git(
+        target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "remote work"
+    )
+    _git(
+        target,
+        env,
+        "update-ref",
+        "-m",
+        "fetch origin: fast-forward",
+        "refs/remotes/origin/master",
+        new,
+    )
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     repo = shlex.quote(os.path.realpath(target))
@@ -243,7 +302,10 @@ def test_moved_remote_tracking_ref_is_ref_violation(tmp_path, template_target):
     assert violation["before"] == old
     assert violation["after"] == new
     assert violation["commit"]["subject"] == "remote work"
-    assert violation["reflog"] == "Test User <test@test.local> | fetch origin: fast-forward"
+    assert (
+        violation["reflog"]
+        == "Test User <test@test.local> | fetch origin: fast-forward"
+    )
     assert violation["restore"] == (
         f"git -C {repo} update-ref refs/remotes/origin/master {old} {new}"
     )
@@ -257,11 +319,13 @@ def test_branch_switch_is_head_violation(tmp_path, template_target):
     _git(target, env, "switch", "-q", "feature")
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{
-        "kind": "head",
-        "before": {"ref": "refs/heads/master", "commit": head},
-        "after": {"ref": "refs/heads/feature", "commit": head},
-    }]
+    assert report["violations"] == [
+        {
+            "kind": "head",
+            "before": {"ref": "refs/heads/master", "commit": head},
+            "after": {"ref": "refs/heads/feature", "commit": head},
+        }
+    ]
 
 
 def test_moved_detached_head_is_head_violation(tmp_path, template_target):
@@ -269,18 +333,24 @@ def test_moved_detached_head_is_head_violation(tmp_path, template_target):
     head = _git(target, env, "rev-parse", "HEAD")
     _git(target, env, "checkout", "-q", "--detach", "HEAD")
     before = _snap(tmp_path, target, env)
-    other = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "detached work")
+    other = _git(
+        target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "detached work"
+    )
     _git(target, env, "checkout", "-q", "--detach", other)
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{
-        "kind": "head",
-        "before": {"ref": None, "commit": head},
-        "after": {"ref": None, "commit": other},
-    }]
+    assert report["violations"] == [
+        {
+            "kind": "head",
+            "before": {"ref": None, "commit": head},
+            "after": {"ref": None, "commit": other},
+        }
+    ]
 
 
-def test_deleted_ref_is_ref_violation_with_recreating_restore(tmp_path, template_target):
+def test_deleted_ref_is_ref_violation_with_recreating_restore(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     head = _git(target, env, "rev-parse", "HEAD")
     _git(target, env, "branch", "gone")
@@ -303,7 +373,13 @@ def test_deleted_ref_is_ref_violation_with_recreating_restore(tmp_path, template
             "reflog": None,
         }
         assert shlex.split(restore) == [
-            "git", "-C", real, "update-ref", v["ref"], head, "",
+            "git",
+            "-C",
+            real,
+            "update-ref",
+            v["ref"],
+            head,
+            "",
         ]
         outside = tmp_path / "elsewhere"
         outside.mkdir(exist_ok=True)
@@ -342,12 +418,14 @@ def test_editing_already_modified_file_is_tracked_violation(tmp_path, template_t
     (target / "notes.txt").write_bytes(NOTES_V2)
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{
-        "kind": "tracked",
-        "path": "notes.txt",
-        "before": f" M {_sha(NOTES_V1)}",
-        "after": f" M {_sha(NOTES_V2)}",
-    }]
+    assert report["violations"] == [
+        {
+            "kind": "tracked",
+            "path": "notes.txt",
+            "before": f" M {_sha(NOTES_V1)}",
+            "after": f" M {_sha(NOTES_V2)}",
+        }
+    ]
 
 
 def test_reverting_modified_file_is_tracked_violation(tmp_path, template_target):
@@ -358,15 +436,19 @@ def test_reverting_modified_file_is_tracked_violation(tmp_path, template_target)
     _git(target, env, "checkout", "-q", "--", "notes.txt")
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert report["violations"] == [{
-        "kind": "tracked",
-        "path": "notes.txt",
-        "before": f" M {_sha(NOTES_V1)}",
-        "after": None,
-    }]
+    assert report["violations"] == [
+        {
+            "kind": "tracked",
+            "path": "notes.txt",
+            "before": f" M {_sha(NOTES_V1)}",
+            "after": None,
+        }
+    ]
 
 
-def test_removed_untracked_file_is_untracked_removed_violation(tmp_path, template_target):
+def test_removed_untracked_file_is_untracked_removed_violation(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     (target / "scratch.txt").write_text("scratch\n")
     (target / "scratch.txt.keep").write_text("keep\n")
@@ -375,7 +457,9 @@ def test_removed_untracked_file_is_untracked_removed_violation(tmp_path, templat
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     assert report["status"] == "changed"
-    assert report["violations"] == [{"kind": "untracked-removed", "path": "scratch.txt"}]
+    assert report["violations"] == [
+        {"kind": "untracked-removed", "path": "scratch.txt"}
+    ]
     assert report["touched"] == []
 
 
@@ -409,7 +493,11 @@ def test_allowed_path_is_not_tracked_removed_or_touched(tmp_path, template_targe
     (target / "new.txt.extra").write_text("e\n")
 
     code, report = _compare(
-        tmp_path, target, before, env, allow=("notes.txt", "scratch.txt", "new.txt"),
+        tmp_path,
+        target,
+        before,
+        env,
+        allow=("notes.txt", "scratch.txt", "new.txt"),
     )
     assert code == 1
     assert [(v["kind"], v["path"]) for v in report["violations"]] == [
@@ -499,14 +587,18 @@ def test_restore_commands_put_refs_back(tmp_path, template_target):
     before = _snap(tmp_path, target, env)
     _git(target, env, "tag", "v9")
     _git(target, env, "branch", "side")
-    moved = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "remote")
+    moved = _git(
+        target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "remote"
+    )
     _git(target, env, "update-ref", "refs/remotes/origin/master", moved)
 
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     violations = report["violations"]
     assert sorted(v["ref"] for v in violations) == [
-        "refs/heads/side", "refs/remotes/origin/master", "refs/tags/v9",
+        "refs/heads/side",
+        "refs/remotes/origin/master",
+        "refs/tags/v9",
     ]
     outside = tmp_path / "elsewhere"
     outside.mkdir()
@@ -518,7 +610,9 @@ def test_restore_commands_put_refs_back(tmp_path, template_target):
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_path, template_target):
+def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     sub = target / "sub"
     sub.mkdir()
@@ -537,7 +631,10 @@ def test_tracked_dir_replaced_by_external_symlink_does_not_follow_traversal(tmp_
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     violations = {v["path"]: v for v in report["violations"] if v["kind"] == "tracked"}
-    assert violations["sub/child.txt"]["after"] != f" D {_sha((outside / 'child.txt').read_bytes())}"
+    assert (
+        violations["sub/child.txt"]["after"]
+        != f" D {_sha((outside / 'child.txt').read_bytes())}"
+    )
     assert "external-symlink" in violations["sub/child.txt"]["after"]
 
 
@@ -585,10 +682,14 @@ def test_file_below_nested_external_symlink_is_external(tmp_path):
     (repo / "out-link").symlink_to(outside)
     (repo / "inner" / "out-nested").symlink_to(outside)
     real = os.path.realpath(repo)
-    assert target_snapshot._fingerprint(real, "out-link/sub/deep.txt") == "external-symlink"
-    assert target_snapshot._fingerprint(
-        real, "inner/out-nested/sub/deep.txt"
-    ) == "external-symlink"
+    assert (
+        target_snapshot._fingerprint(real, "out-link/sub/deep.txt")
+        == "external-symlink"
+    )
+    assert (
+        target_snapshot._fingerprint(real, "inner/out-nested/sub/deep.txt")
+        == "external-symlink"
+    )
 
 
 def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path, template_target):
@@ -627,7 +728,9 @@ def test_unusable_inputs_exit_2_with_prefixed_stderr(tmp_path, template_target):
     not_json.write_text("{not json\n")
     wrong_version = tmp_path / "snaps" / "wrong-version.json"
     snapshot = json.loads(sibling.read_text())
-    wrong_version.write_text(json.dumps({**snapshot, "version": target_snapshot.VERSION + 1}))
+    wrong_version.write_text(
+        json.dumps({**snapshot, "version": target_snapshot.VERSION + 1})
+    )
     for bad in (missing, not_json, wrong_version):
         result = _run(tmp_path, env, "compare", str(target), str(bad))
         _assert_exit2(result)
@@ -743,7 +846,9 @@ def test_non_utf8_paths_round_trip(tmp_path, template_target):
     (target / later_name).write_text("l\n")
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
-    assert [(v["kind"], v["path"]) for v in report["violations"]] == [("tracked", tracked_name)]
+    assert [(v["kind"], v["path"]) for v in report["violations"]] == [
+        ("tracked", tracked_name)
+    ]
     assert report["touched"] == [later_name]
 
 
@@ -862,7 +967,9 @@ def test_fingerprints_unchanged_by_symlink_cache(tmp_path):
         assert fp(real, "b.txt") == _sha(b"beta\n")
         assert fp(real, "link-a") == "link:" + _sha(b"a.txt")
         assert fp(real, "link-b") == "link:" + _sha(b"b.txt")
-        assert fp(real, "link-out") == "link:" + _sha(os.fsencode(str(outside / "leak.txt")))
+        assert fp(real, "link-out") == "link:" + _sha(
+            os.fsencode(str(outside / "leak.txt"))
+        )
         assert fp(real, "out-link") == "link:" + _sha(os.fsencode(str(outside)))
         assert fp(real, "pipe") == "special:10000"
         assert fp(real, "inner") == "dir"
@@ -883,7 +990,9 @@ def test_fingerprint_of_unreadable_file_raises(tmp_path):
     locked.write_bytes(b"secret\n")
     locked.chmod(0o000)
     try:
-        with pytest.raises(target_snapshot.Fail, match="cannot read locked.txt: permission denied"):
+        with pytest.raises(
+            target_snapshot.Fail, match="cannot read locked.txt: permission denied"
+        ):
             target_snapshot._fingerprint(os.path.realpath(repo), "locked.txt")
     finally:
         locked.chmod(0o644)
@@ -985,7 +1094,10 @@ def test_untracked_mode_change_is_not_reported(tmp_path, template_target):
         scratch.chmod(0o644)
 
     doc = " ".join(target_snapshot.__doc__.split())
-    assert "Permission bits of untracked files are not checked; only content, file type and symlink target are." in doc
+    assert (
+        "Permission bits of untracked files are not checked; only content, file type and symlink target are."
+        in doc
+    )
 
 
 def test_untracked_file_replaced_by_fifo_reads_as_removed(tmp_path, template_target):

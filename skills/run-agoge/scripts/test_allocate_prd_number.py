@@ -360,7 +360,9 @@ def test_cli_bad_slug_exits_2_with_one_line(tmp_path: Path) -> None:
     lines = result.stderr.splitlines(keepends=True)
     assert len(lines) == 1
     assert lines[0].startswith("allocate_prd_number: ")
-    assert not (tmp_path / "docs" / "dev" / "project-management" / "prds" / "backlog").exists()
+    assert not (
+        tmp_path / "docs" / "dev" / "project-management" / "prds" / "backlog"
+    ).exists()
 
 
 def test_claim_rejects_backlog_symlink_at_claim_time(

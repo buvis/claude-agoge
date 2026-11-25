@@ -1,4 +1,5 @@
 """Repository state beyond tracked content: gitdir, config, ignored paths, worktrees, submodules, fingerprints, large files."""
+
 import hashlib
 import json
 import os
@@ -13,8 +14,19 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    NOTES_V1, NOTES_V2, SCRIPT, _assert_exit2, _assert_scratch_ignored,
-    _build_target, _compare, _copy_target, _git, _pair_env, _run, _sha, _snap,
+    NOTES_V1,
+    NOTES_V2,
+    SCRIPT,
+    _assert_exit2,
+    _assert_scratch_ignored,
+    _build_target,
+    _compare,
+    _copy_target,
+    _git,
+    _pair_env,
+    _run,
+    _sha,
+    _snap,
     _write_packed_refs,
 )
 
@@ -37,11 +49,17 @@ def _peak_rss(tmp_path, env, *args, timeout=None):
     flag = "-l" if sys.platform == "darwin" else "-v"
     result = subprocess.run(
         ["/usr/bin/time", flag, sys.executable, str(SCRIPT), *args],
-        cwd=tmp_path, env=env, capture_output=True, text=True, timeout=timeout,
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
     )
     pattern = _MAXRSS_RE.get(sys.platform, _MAXRSS_RE["linux"])
     match = pattern.search(result.stderr)
-    assert match, f"could not parse peak RSS from /usr/bin/time output:\n{result.stderr}"
+    assert match, (
+        f"could not parse peak RSS from /usr/bin/time output:\n{result.stderr}"
+    )
     value = int(match.group(1))
     # ru_maxrss is bytes on Darwin, kilobytes on Linux; /usr/bin/time mirrors it.
     return value if sys.platform == "darwin" else value * 1024
@@ -53,7 +71,9 @@ def _commit_gitignore(target, env, *rules):
     _git(target, env, "commit", "-q", "-m", "ignore")
 
 
-def test_overwritten_untracked_file_is_untracked_modified_violation(tmp_path, template_target):
+def test_overwritten_untracked_file_is_untracked_modified_violation(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     (target / "sub").mkdir()
     (target / "sub/keep.txt").write_text("k\n")
@@ -134,7 +154,9 @@ def test_deleted_ignored_dir_is_ignored_removed_violation(tmp_path, template_tar
     ]
 
 
-def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path, template_target):
+def test_allow_exempts_untracked_modified_and_ignored_removed(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, ".env")
     (target / "notes.md").write_bytes(NOTES_V1)
@@ -155,7 +177,9 @@ def test_allow_exempts_untracked_modified_and_ignored_removed(tmp_path, template
     ]
 
 
-def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_violation(tmp_path, template_target):
+def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_violation(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "vault/")
     (target / "vault").mkdir()
@@ -174,7 +198,9 @@ def test_deleted_child_of_ignored_dir_with_surviving_sibling_is_ignored_removed_
     ]
 
 
-def test_deleted_empty_ignored_dir_is_ignored_removed_violation(tmp_path, template_target):
+def test_deleted_empty_ignored_dir_is_ignored_removed_violation(
+    tmp_path, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     _commit_gitignore(target, env, "empty/")
     (target / "empty").mkdir()
@@ -223,9 +249,20 @@ def test_ignored_contents_are_never_read(tmp_path, template_target):
     assert snapshot["ignored"] == ["secret.key", "vault/", "vault/a.txt"]
     assert set(snapshot["untracked_fingerprints"]) == set(snapshot["untracked"])
     assert set(snapshot) == {
-        "version", "repo", "head", "refs", "config", "worktrees", "worktree_heads",
-        "submodules", "index", "dirty", "untracked", "untracked_fingerprints",
-        "ignored", "gitdir",
+        "version",
+        "repo",
+        "head",
+        "refs",
+        "config",
+        "worktrees",
+        "worktree_heads",
+        "submodules",
+        "index",
+        "dirty",
+        "untracked",
+        "untracked_fingerprints",
+        "ignored",
+        "gitdir",
     }
     # The readable ignored file's content hash appears nowhere in the snapshot.
     assert _sha(b"a\n") not in before.read_text()
@@ -251,7 +288,11 @@ def test_allow_exempts_ignored_children_by_exact_path(tmp_path, template_target)
     (target / "a.txt").write_text("changed\n")
     (target / "sub/a.txt").write_text("changed\n")
     code, report = _compare(
-        tmp_path, target, before, env, allow=("vault/a.txt", "empty/", "a.txt", "sub/a.txt"),
+        tmp_path,
+        target,
+        before,
+        env,
+        allow=("vault/a.txt", "empty/", "a.txt", "sub/a.txt"),
     )
     assert code == 1
     assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/b.txt"}]
@@ -440,7 +481,9 @@ def test_detached_linked_worktree_is_worktree_head_violation(tmp_path, template_
     worktree = tmp_path / "wt"
     _git(target, env, "worktree", "add", "-q", "--detach", str(worktree), "HEAD")
     before = _snap(tmp_path, target, env)
-    other = _git(worktree, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "wt work")
+    other = _git(
+        worktree, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "wt work"
+    )
     _git(worktree, env, "checkout", "-q", "--detach", other)
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
@@ -448,7 +491,9 @@ def test_detached_linked_worktree_is_worktree_head_violation(tmp_path, template_
     assert _kinds(report) == ["worktree-head"]
 
 
-def test_submodule_commit_is_submodule_violation(tmp_path, template_target_with_submodule):
+def test_submodule_commit_is_submodule_violation(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     before = _snap(tmp_path, target, env)
@@ -458,7 +503,9 @@ def test_submodule_commit_is_submodule_violation(tmp_path, template_target_with_
     assert "submodule" in _kinds(report)
 
 
-def test_submodule_untracked_file_is_submodule_violation(tmp_path, template_target_with_submodule):
+def test_submodule_untracked_file_is_submodule_violation(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     before = _snap(tmp_path, target, env)
@@ -491,7 +538,9 @@ def test_malformed_ref_value_in_snapshot_exits_2(tmp_path, template_target):
     assert result.stdout == ""
 
 
-def test_dirty_submodule_second_edit_is_submodule_violation(tmp_path, template_target_with_submodule):
+def test_dirty_submodule_second_edit_is_submodule_violation(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     (sub / "notes.txt").write_bytes(NOTES_V1)
@@ -517,7 +566,9 @@ def test_restore_command_puts_non_utf8_ref_back(tmp_path, template_target):
     _write_packed_refs(target, sha, bad_ref)
     before = _snap(tmp_path, target, env)
 
-    other = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "move it")
+    other = _git(
+        target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "move it"
+    )
     _write_packed_refs(target, other, bad_ref)
 
     code, report = _compare(tmp_path, target, before, env)
@@ -528,7 +579,12 @@ def test_restore_command_puts_non_utf8_ref_back(tmp_path, template_target):
 
     outside = tmp_path / "elsewhere"
     outside.mkdir(exist_ok=True)
-    subprocess.run(["bash", "-c", violation["restore"].encode("ascii")], cwd=outside, env=env, check=True)
+    subprocess.run(
+        ["bash", "-c", violation["restore"].encode("ascii")],
+        cwd=outside,
+        env=env,
+        check=True,
+    )
 
     assert _git(target, env, "rev-parse", os.fsdecode(bad_ref)) == sha
     code, report = _compare(tmp_path, target, before, env)
@@ -540,18 +596,31 @@ def test_utf8_restore_command_is_unchanged(tmp_path, template_target):
     target, env = _copy_target(template_target, tmp_path)
     old = _git(target, env, "rev-parse", "HEAD")
     before = _snap(tmp_path, target, env)
-    new = _git(target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "second change")
+    new = _git(
+        target, env, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "second change"
+    )
     _git(target, env, "update-ref", "refs/heads/master", new, old)
     code, report = _compare(tmp_path, target, before, env)
     assert code == 1
     [violation] = [v for v in report["violations"] if v["kind"] == "ref"]
     repo = shlex.quote(os.path.realpath(target))
     expected = " ".join(
-        shlex.quote(a) for a in
-        ["git", "-C", os.path.realpath(target), "update-ref", "refs/heads/master", old, new]
+        shlex.quote(a)
+        for a in [
+            "git",
+            "-C",
+            os.path.realpath(target),
+            "update-ref",
+            "refs/heads/master",
+            old,
+            new,
+        ]
     )
     assert violation["restore"] == expected
-    assert violation["restore"] == f"git -C {repo} update-ref refs/heads/master {old} {new}"
+    assert (
+        violation["restore"]
+        == f"git -C {repo} update-ref refs/heads/master {old} {new}"
+    )
 
 
 def _write_non_uniform_file(path, size):
@@ -758,7 +827,9 @@ def test_unreadable_git_dir_file_names_the_file(tmp_path, template_target):
     assert "unexpected" not in lines[0]
 
 
-def test_unreadable_untracked_file_error_is_not_called_unexpected(tmp_path, template_target):
+def test_unreadable_untracked_file_error_is_not_called_unexpected(
+    tmp_path, template_target
+):
     if os.geteuid() == 0:
         pytest.skip("root reads mode-000 files")
     target, env = _copy_target(template_target, tmp_path)
@@ -791,9 +862,10 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     (target / "scratch.txt").write_text("scratch\n")
     excludes = tmp_path / "excludes"
     excludes.write_text("scratch.txt\n")
-    assert "scratch.txt" in _git(
-        target, env, "ls-files", "--others", "--exclude-standard"
-    ).splitlines(), "fixture is inert: scratch.txt is not untracked to begin with"
+    assert (
+        "scratch.txt"
+        in _git(target, env, "ls-files", "--others", "--exclude-standard").splitlines()
+    ), "fixture is inert: scratch.txt is not untracked to begin with"
 
     # A careless or hostile caller sets the threshold above the file size. The
     # module's own `-c core.bigFileThreshold=1m` is on the command line, which
@@ -801,7 +873,9 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
     # Measured on git 2.56.0 for this fixture: ~8 MiB when 1m wins, ~72 MiB
     # when the inherited 4g wins.
     hostile_env = _pair_env(
-        env, ("core.bigFileThreshold", "4g"), ("core.excludesFile", excludes),
+        env,
+        ("core.bigFileThreshold", "4g"),
+        ("core.excludesFile", excludes),
     )
     budget = 48 * 1024 * 1024
     peak_rss = _peak_rss(tmp_path, hostile_env, "compare", str(target), str(before))
@@ -809,7 +883,9 @@ def test_inherited_big_file_threshold_does_not_beat_module_override(tmp_path):
         f"an inherited core.bigFileThreshold=4g beat the module's own 1m: "
         f"peak RSS {peak_rss} bytes exceeded {budget} byte budget"
     )
-    hostile = json.loads(_snap(tmp_path, target, hostile_env, name="hostile.json").read_text())
+    hostile = json.loads(
+        _snap(tmp_path, target, hostile_env, name="hostile.json").read_text()
+    )
     _assert_scratch_ignored(
         hostile,
         "the inherited core.excludesFile was dropped instead of forwarded, so the "
@@ -842,10 +918,19 @@ def _write_files(target, *names):
         (target / name).write_text(f"{name}\n")
 
 
-def test_ignored_listing_over_cap_records_directories_only(tmp_path, template_target, monkeypatch):
+def test_ignored_listing_over_cap_records_directories_only(
+    tmp_path, template_target, monkeypatch
+):
     target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
-    _write_files(target, "vault/a.txt", "vault/b.txt", "vault/deep/c.txt",
-                 "cache/a.bin", "cache/b.bin", "x.log")
+    _write_files(
+        target,
+        "vault/a.txt",
+        "vault/b.txt",
+        "vault/deep/c.txt",
+        "cache/a.bin",
+        "cache/b.bin",
+        "x.log",
+    )
     before = target_snapshot.take_snapshot(repo)
     assert before["ignored"] == ["cache/", "vault/"]
     assert type(before["ignored_overflow"]) is int
@@ -863,12 +948,19 @@ def test_ignored_listing_over_cap_records_directories_only(tmp_path, template_ta
     assert report["violations"] == []
 
 
-def test_ignored_listing_at_cap_records_every_file(tmp_path, template_target, monkeypatch):
+def test_ignored_listing_at_cap_records_every_file(
+    tmp_path, template_target, monkeypatch
+):
     target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 4)
     _write_files(target, "vault/a.txt", "vault/b.txt", "cache/a.bin", "x.log")
     snapshot = target_snapshot.take_snapshot(repo)
     assert snapshot["ignored"] == [
-        "cache/", "cache/a.bin", "vault/", "vault/a.txt", "vault/b.txt", "x.log",
+        "cache/",
+        "cache/a.bin",
+        "vault/",
+        "vault/a.txt",
+        "vault/b.txt",
+        "x.log",
     ]
     assert "ignored_overflow" not in snapshot
 
@@ -878,7 +970,9 @@ def test_ignored_listing_at_cap_records_every_file(tmp_path, template_target, mo
     assert report["violations"] == [{"kind": "ignored-removed", "path": "x.log"}]
 
 
-def test_ignored_listing_crossing_cap_reports_no_file_removals(tmp_path, template_target, monkeypatch):
+def test_ignored_listing_crossing_cap_reports_no_file_removals(
+    tmp_path, template_target, monkeypatch
+):
     target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
     _write_files(target, "vault/a.txt", "vault/b.txt", "x.log")
     before = target_snapshot.take_snapshot(repo)
@@ -897,7 +991,9 @@ def test_ignored_listing_crossing_cap_reports_no_file_removals(tmp_path, templat
     assert report["violations"] == [{"kind": "ignored-removed", "path": "vault/"}]
 
 
-def test_crossing_cap_keeps_nested_repo_dir_named_by_plain_listing(tmp_path, template_target, monkeypatch):
+def test_crossing_cap_keeps_nested_repo_dir_named_by_plain_listing(
+    tmp_path, template_target, monkeypatch
+):
     target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
     _write_files(target, "vault/a.txt", "vault/b.txt")
     subprocess.run(["git", "init", "-q", str(target / "vault/inner")], check=True)
@@ -909,7 +1005,9 @@ def test_crossing_cap_keeps_nested_repo_dir_named_by_plain_listing(tmp_path, tem
     assert report == {"status": "unchanged", "violations": [], "touched": []}
 
 
-def test_v4_snapshot_refused_after_ignored_cap(tmp_path, template_target, monkeypatch, capsys):
+def test_v4_snapshot_refused_after_ignored_cap(
+    tmp_path, template_target, monkeypatch, capsys
+):
     target, repo = _ignored_cap_target(tmp_path, template_target, monkeypatch, 3)
     _write_files(target, "vault/a.txt", "vault/b.txt", "cache/a.bin", "x.log")
     snapshot = target_snapshot.take_snapshot(repo)
@@ -921,9 +1019,16 @@ def test_v4_snapshot_refused_after_ignored_cap(tmp_path, template_target, monkey
     stale = snaps / "v4.json"
     stale.write_text(json.dumps({**snapshot, "version": 4}))
 
-    assert target_snapshot.main(["target_snapshot.py", "compare", str(target), str(current)]) == 0
+    assert (
+        target_snapshot.main(
+            ["target_snapshot.py", "compare", str(target), str(current)]
+        )
+        == 0
+    )
     capsys.readouterr()
-    code = target_snapshot.main(["target_snapshot.py", "compare", str(target), str(stale)])
+    code = target_snapshot.main(
+        ["target_snapshot.py", "compare", str(target), str(stale)]
+    )
     out, err = capsys.readouterr()
     assert code == 2
     assert out == ""

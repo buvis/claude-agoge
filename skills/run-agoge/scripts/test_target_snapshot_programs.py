@@ -1,4 +1,5 @@
 """Target-configured programs (filters, fsmonitor) that snapshot and compare must never run."""
+
 import json
 import os
 import shlex
@@ -10,8 +11,16 @@ import pytest
 
 import target_snapshot
 from snapshot_fixtures import (
-    _add_submodule, _assert_exit2, _assert_scratch_ignored, _compare, _copy_target,
-    _git, _git_dir_state, _pair_env, _run, _snap,
+    _add_submodule,
+    _assert_exit2,
+    _assert_scratch_ignored,
+    _compare,
+    _copy_target,
+    _git,
+    _git_dir_state,
+    _pair_env,
+    _run,
+    _snap,
 )
 
 
@@ -25,9 +34,7 @@ def _marker(tmp_path, name="marker.sh"):
     script = tmp_path / name
     log = tmp_path / f"{name}.log"
     script.write_text(
-        "#!/bin/sh\n"
-        f'echo "ran: $*" >> {shlex.quote(str(log))}\n'
-        "exec cat\n"
+        f'#!/bin/sh\necho "ran: $*" >> {shlex.quote(str(log))}\nexec cat\n'
     )
     script.chmod(0o755)
     return script, log
@@ -212,7 +219,14 @@ def _source_include_if(tmp_path, target, env, driver, script, kind):
     # work here, but the realpath is the deterministic one: on macOS pytest's
     # tmp_path sits under /var/folders, which resolves to /private/var/folders.
     real = os.path.realpath(str(target))
-    _git(target, env, "config", "--local", f"includeIf.gitdir:{real}/.path", str(included))
+    _git(
+        target,
+        env,
+        "config",
+        "--local",
+        f"includeIf.gitdir:{real}/.path",
+        str(included),
+    )
     return env, target
 
 
@@ -244,11 +258,15 @@ _FILTER_SOURCES = {
 
 @pytest.mark.parametrize("kind", ["clean", "process"])
 @pytest.mark.parametrize("source", list(_FILTER_SOURCES))
-def test_snapshot_does_not_run_filter_from_any_source(tmp_path, source, kind, template_target):
+def test_snapshot_does_not_run_filter_from_any_source(
+    tmp_path, source, kind, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
-    env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, driver, script, kind)
+    env, declaring = _FILTER_SOURCES[source](
+        tmp_path, target, env, driver, script, kind
+    )
     # Same-size edit with a newer mtime, so git must run the filter to
     # decide whether the content changed.
     (declaring / "notes.txt").write_bytes(b"notes v1\n")
@@ -257,7 +275,11 @@ def test_snapshot_does_not_run_filter_from_any_source(tmp_path, source, kind, te
     # inert fixture (wrong scope flag, non-matching includeIf) would otherwise
     # make the assertions below pass vacuously.
     _assert_program_ran(
-        declaring, env, log, f"the {source} {kind} filter", fails=kind == "process",
+        declaring,
+        env,
+        log,
+        f"the {source} {kind} filter",
+        fails=kind == "process",
     )
 
     before = _snap(tmp_path, target, env)
@@ -312,10 +334,17 @@ def test_snapshot_handles_clean_filter_named_with_a_space(tmp_path, template_tar
     # rejected as an invalid attribute name. The controls that do exist: the
     # key really is set under the exact name, and the discovery command the
     # module relies on sees it.
-    assert _git(target, env, "check-attr", "filter", "--", "notes.txt").endswith(": has")
+    assert _git(target, env, "check-attr", "filter", "--", "notes.txt").endswith(
+        ": has"
+    )
     names = _git(
-        target, env, "config", "--includes", "--name-only",
-        "--get-regexp", r"^filter\..*\.(clean|process|required)$",
+        target,
+        env,
+        "config",
+        "--includes",
+        "--name-only",
+        "--get-regexp",
+        r"^filter\..*\.(clean|process|required)$",
     )
     assert f"filter.{driver}.clean" in names.splitlines()
 
@@ -326,9 +355,17 @@ def test_snapshot_handles_clean_filter_named_with_a_space(tmp_path, template_tar
     # `_git` adds to an invocation is what every snapshot command sees, so an
     # empty `clean`, an empty `process` and a non-required driver here mean
     # the program can no longer run.
-    for key, allowed in (("clean", ("",)), ("process", ("",)), ("required", ("", "false"))):
+    for key, allowed in (
+        ("clean", ("",)),
+        ("process", ("",)),
+        ("required", ("", "false")),
+    ):
         probe = target_snapshot._git(
-            str(target), "config", "--get", f"filter.{driver}.{key}", allow_fail=True,
+            str(target),
+            "config",
+            "--get",
+            f"filter.{driver}.{key}",
+            allow_fail=True,
         )
         value = probe.stdout.decode(errors="replace").strip()
         assert value in allowed, (
@@ -359,7 +396,11 @@ def test_snapshot_does_not_run_required_process_filter(tmp_path, template_target
     # protocol, so git fails - but only after launching it, which is what the
     # log line proves.
     _assert_program_ran(
-        target, env, log, "the target's process filter", fails=True,
+        target,
+        env,
+        log,
+        "the target's process filter",
+        fails=True,
     )
 
     # `_snap` asserts the snapshot exited 0, which is the other half of the
@@ -376,7 +417,9 @@ def test_snapshot_does_not_run_required_process_filter(tmp_path, template_target
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path, template_target_with_submodule):
+def test_snapshot_does_not_run_submodule_only_clean_filter(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     sub_script, sub_log = _marker(tmp_path, name="sub-filter.sh")
@@ -427,7 +470,9 @@ def test_snapshot_does_not_run_submodule_only_clean_filter(tmp_path, template_ta
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path, template_target_with_submodule):
+def test_snapshot_does_not_run_submodule_only_fsmonitor(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     script, log = _marker(tmp_path, name="sub-fsmonitor.sh")
@@ -455,7 +500,9 @@ def test_snapshot_does_not_run_submodule_only_fsmonitor(tmp_path, template_targe
     assert code == 0, report
 
 
-def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path, template_target_with_submodule):
+def test_snapshot_does_not_run_inherited_command_scope_filter(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
@@ -472,7 +519,9 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path, template
     # Baseline with no inherited pair at all: the dirty submodule shows up in
     # `dirty`, and scratch.txt counts as untracked rather than ignored. Both
     # effects below are therefore the pairs' doing, not the fixture's.
-    baseline = json.loads(_snap(tmp_path, target, env, name="baseline.json").read_text())
+    baseline = json.loads(
+        _snap(tmp_path, target, env, name="baseline.json").read_text()
+    )
     assert "sub" in baseline["dirty"]
     assert "scratch.txt" in baseline["untracked"]
 
@@ -506,11 +555,15 @@ def test_snapshot_does_not_run_inherited_command_scope_filter(tmp_path, template
 
 
 @pytest.mark.parametrize("source", ["local", "global", "include-if", "submodule"])
-def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_path, source, template_target):
+def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(
+    tmp_path, source, template_target
+):
     target, env = _copy_target(template_target, tmp_path)
     script, log = _marker(tmp_path)
     driver = _driver()
-    env, declaring = _FILTER_SOURCES[source](tmp_path, target, env, driver, script, "clean")
+    env, declaring = _FILTER_SOURCES[source](
+        tmp_path, target, env, driver, script, "clean"
+    )
     (declaring / "notes.txt").write_bytes(b"notes v1\n")
 
     # `git config` reads only GIT_CONFIG when set; `git status` ignores it and
@@ -528,7 +581,10 @@ def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_p
     # future git stops honouring GIT_CONFIG, the fixture goes inert and this says so.
     probe = subprocess.run(
         ["git", "config", "--includes", "--get", f"filter.{driver}.clean"],
-        cwd=declaring, env=hostile_env, capture_output=True, text=True,
+        cwd=declaring,
+        env=hostile_env,
+        capture_output=True,
+        text=True,
     )
     assert not probe.stdout.strip(), (
         f"the fixture is inert: `git config` still reports filter.{driver}.clean "
@@ -536,7 +592,9 @@ def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_p
     )
 
     assert_target_untouched = _capture_untouched(target, hostile_env, "the target")
-    assert_declaring_untouched = _capture_untouched(declaring, hostile_env, f"the {source}")
+    assert_declaring_untouched = _capture_untouched(
+        declaring, hostile_env, f"the {source}"
+    )
 
     before = _snap(tmp_path, target, hostile_env)
     assert not log.exists(), (
@@ -557,7 +615,9 @@ def test_snapshot_does_not_run_clean_filter_hidden_by_inherited_git_config(tmp_p
     assert code == 0, report
 
 
-def test_inherited_non_filter_config_pair_still_takes_effect(tmp_path, template_target_with_submodule):
+def test_inherited_non_filter_config_pair_still_takes_effect(
+    tmp_path, template_target_with_submodule
+):
     target, env = _copy_target(template_target_with_submodule, tmp_path)
     sub = target / "sub"
     _git(sub, env, "commit", "-q", "--allow-empty", "-m", "sub work")
@@ -637,7 +697,12 @@ def test_compare_does_not_run_gpg_program_on_new_signed_ref(tmp_path, template_t
     )
     evil_sha = subprocess.run(
         ["git", "hash-object", "-t", "commit", "-w", "--stdin"],
-        cwd=target, env=env, input=commit_text, capture_output=True, text=True, check=True,
+        cwd=target,
+        env=env,
+        input=commit_text,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
     _git(target, env, "update-ref", "refs/heads/evilref", evil_sha)
 

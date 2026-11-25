@@ -47,15 +47,27 @@ def _env_for(tmp_path):
 def _snapshot(target, env):
     for_each_ref = subprocess.run(
         ["git", "--no-optional-locks", "for-each-ref"],
-        cwd=target, env=env, capture_output=True, text=True, check=True,
+        cwd=target,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     ls_files = subprocess.run(
         ["git", "ls-files", "--stage", "-z"],
-        cwd=target, env=env, capture_output=True, text=True, check=True,
+        cwd=target,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     status = subprocess.run(
         ["git", "status", "--porcelain=v1", "-z"],
-        cwd=target, env=env, capture_output=True, text=True, check=True,
+        cwd=target,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     return (for_each_ref, ls_files, status)
 
@@ -77,10 +89,14 @@ def _build_incident_fixture(tmp_path):
     subprocess.run(["git", "init", "-q"], cwd=target, env=env, check=True)
     (target / "README.md").write_text("seed\n")
     subprocess.run(["git", "add", "-A"], cwd=target, env=env, check=True)
-    subprocess.run(["git", "commit", "-q", "-m", "init"], cwd=target, env=env, check=True)
+    subprocess.run(
+        ["git", "commit", "-q", "-m", "init"], cwd=target, env=env, check=True
+    )
     subprocess.run(
         ["git", "update-ref", "refs/remotes/origin/master", "HEAD"],
-        cwd=target, env=env, check=True,
+        cwd=target,
+        env=env,
+        check=True,
     )
     (target / "untracked.txt").write_text("scratch\n")
 
@@ -103,12 +119,20 @@ def _extract_preamble_block(contract_text):
         block = match.group(1)
         if "GIT_CEILING_DIRECTORIES" in block:
             return block
-    raise AssertionError("no fenced bash block containing GIT_CEILING_DIRECTORIES found")
+    raise AssertionError(
+        "no fenced bash block containing GIT_CEILING_DIRECTORIES found"
+    )
 
 
 def test_scratch_contract_mechanisms():
     text = CONTRACT_PATH.read_text()
-    for token in ("mktemp -d", "set -eu", "GIT_CEILING_DIRECTORIES", "--git-dir", "read-only"):
+    for token in (
+        "mktemp -d",
+        "set -eu",
+        "GIT_CEILING_DIRECTORIES",
+        "--git-dir",
+        "read-only",
+    ):
         assert token in text
 
 
@@ -148,16 +172,26 @@ def test_scratch_contract_incident_control(tmp_path):
     before = _refs(
         subprocess.run(
             ["git", "--no-optional-locks", "for-each-ref"],
-            cwd=target, env=env, capture_output=True, text=True, check=True,
+            cwd=target,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
     )
 
-    subprocess.run(["bash", "-c", A7], env=env, cwd=target, capture_output=True, text=True)
+    subprocess.run(
+        ["bash", "-c", A7], env=env, cwd=target, capture_output=True, text=True
+    )
 
     after = _refs(
         subprocess.run(
             ["git", "--no-optional-locks", "for-each-ref"],
-            cwd=target, env=env, capture_output=True, text=True, check=True,
+            cwd=target,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout
     )
 
@@ -168,9 +202,9 @@ def test_scratch_contract_incident_control(tmp_path):
 
 def _extract_scratch_contract_section(contract_text):
     start = contract_text.index("## Scratch contract")
-    rest = contract_text[start + len("## Scratch contract"):]
+    rest = contract_text[start + len("## Scratch contract") :]
     end = rest.index("\n## ")
-    return contract_text[start:start + len("## Scratch contract") + end]
+    return contract_text[start : start + len("## Scratch contract") + end]
 
 
 def test_scratch_contract_sets_identity_with_env():
@@ -205,30 +239,57 @@ def test_env_identity_beats_exported_author(tmp_path):
     subprocess.run(["git", "init", "-q", str(repo_dir)], env=env, check=True)
     (repo_dir / "probe.txt").write_text("scratch\n")
     subprocess.run(
-        ["git", "--git-dir", str(repo_dir / ".git"), "--work-tree", str(repo_dir), "add", "-A"],
-        env=env, check=True,
+        [
+            "git",
+            "--git-dir",
+            str(repo_dir / ".git"),
+            "--work-tree",
+            str(repo_dir),
+            "add",
+            "-A",
+        ],
+        env=env,
+        check=True,
     )
 
     command = (
-        template
-        .replace("<lane>", LANE)
+        template.replace("<lane>", LANE)
         .replace("$SCRATCH", str(scratch))
         .replace("<repo>", repo)
         .replace("<command>", 'commit -q -m "chore(probe): seed scratch dotfiles"')
     )
     result = subprocess.run(
         ["bash", "-c", export_preamble + command],
-        cwd=repo_dir, env=env, capture_output=True, text=True,
+        cwd=repo_dir,
+        env=env,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, result.stderr
 
-    log_fields = subprocess.run(
-        ["git", "--git-dir", str(repo_dir / ".git"), "log", "-1", "--format=%an%n%ae%n%cn%n%ce"],
-        env=env, capture_output=True, text=True, check=True,
-    ).stdout.strip().splitlines()
+    log_fields = (
+        subprocess.run(
+            [
+                "git",
+                "--git-dir",
+                str(repo_dir / ".git"),
+                "log",
+                "-1",
+                "--format=%an%n%ae%n%cn%n%ce",
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        .stdout.strip()
+        .splitlines()
+    )
     assert log_fields == [
-        f"agoge-{LANE}", f"agoge-{LANE}@example.invalid",
-        f"agoge-{LANE}", f"agoge-{LANE}@example.invalid",
+        f"agoge-{LANE}",
+        f"agoge-{LANE}@example.invalid",
+        f"agoge-{LANE}",
+        f"agoge-{LANE}@example.invalid",
     ]
 
     # Premise control: the OLD `-c user.name=` form (no `env` prefix) loses to
@@ -236,8 +297,17 @@ def test_env_identity_beats_exported_author(tmp_path):
     # this test would have failed against the old contract/command form.
     (repo_dir / "probe2.txt").write_text("scratch2\n")
     subprocess.run(
-        ["git", "--git-dir", str(repo_dir / ".git"), "--work-tree", str(repo_dir), "add", "-A"],
-        env=env, check=True,
+        [
+            "git",
+            "--git-dir",
+            str(repo_dir / ".git"),
+            "--work-tree",
+            str(repo_dir),
+            "add",
+            "-A",
+        ],
+        env=env,
+        check=True,
     )
     old_command = (
         f'git --git-dir="{repo_dir}/.git" --work-tree="{repo_dir}" '
@@ -246,13 +316,19 @@ def test_env_identity_beats_exported_author(tmp_path):
     )
     control_result = subprocess.run(
         ["bash", "-c", export_preamble + old_command],
-        cwd=repo_dir, env=env, capture_output=True, text=True,
+        cwd=repo_dir,
+        env=env,
+        capture_output=True,
+        text=True,
     )
     assert control_result.returncode == 0, control_result.stderr
 
     control_author = subprocess.run(
         ["git", "--git-dir", str(repo_dir / ".git"), "log", "-1", "--format=%an"],
-        env=env, capture_output=True, text=True, check=True,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
     assert control_author == "Operator Name"
 

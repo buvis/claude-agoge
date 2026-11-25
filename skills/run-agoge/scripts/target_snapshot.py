@@ -71,23 +71,48 @@ SAMPLE_ABOVE = 64 * 1024 * 1024
 
 IGNORED_FILE_CAP = 20000
 
-GITDIR_UNCHECKED = frozenset({
-    "HEAD", "config", "index", "packed-refs",
-    "COMMIT_EDITMSG", "FETCH_HEAD", "ORIG_HEAD", "MERGE_HEAD", "MERGE_MSG",
-    "MERGE_MODE", "SQUASH_MSG", "BISECT_LOG", "shallow", "gc.log",
-    "objects", "refs", "logs", "worktrees",
-    "description", "branches", "modules",
-})
+GITDIR_UNCHECKED = frozenset(
+    {
+        "HEAD",
+        "config",
+        "index",
+        "packed-refs",
+        "COMMIT_EDITMSG",
+        "FETCH_HEAD",
+        "ORIG_HEAD",
+        "MERGE_HEAD",
+        "MERGE_MSG",
+        "MERGE_MODE",
+        "SQUASH_MSG",
+        "BISECT_LOG",
+        "shallow",
+        "gc.log",
+        "objects",
+        "refs",
+        "logs",
+        "worktrees",
+        "description",
+        "branches",
+        "modules",
+    }
+)
 
 
 class Fail(Exception):
     """The check cannot run; exits 2 with a one-line reason."""
 
 
-_GIT_REPO_VARS = frozenset({
-    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_NAMESPACE",
-})
+_GIT_REPO_VARS = frozenset(
+    {
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_COMMON_DIR",
+        "GIT_NAMESPACE",
+    }
+)
 
 _GIT_CONFIG_COUNT_VARS = frozenset({"GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"})
 
@@ -212,7 +237,14 @@ def _filter_overrides(repo: str) -> tuple[tuple[str, str], ...]:
         return _filter_override_cache[cache_key]
     found = _run_git(
         repo,
-        ("config", "--includes", "--null", "--name-only", "--get-regexp", _FILTER_KEY_REGEX),
+        (
+            "config",
+            "--includes",
+            "--null",
+            "--name-only",
+            "--get-regexp",
+            _FILTER_KEY_REGEX,
+        ),
         _STATIC_OVERRIDES,
         True,
     )
@@ -221,7 +253,7 @@ def _filter_overrides(repo: str) -> tuple[tuple[str, str], ...]:
         detail = reason[0] if reason else f"exit {found.returncode}"
         raise Fail(f"git config filter discovery failed: {detail}")
     names = {
-        os.fsdecode(name)[len("filter."):].rsplit(".", 1)[0]
+        os.fsdecode(name)[len("filter.") :].rsplit(".", 1)[0]
         for name in found.stdout.split(b"\0")
         if name
     }
@@ -241,7 +273,9 @@ def _filter_overrides(repo: str) -> tuple[tuple[str, str], ...]:
     return result
 
 
-def _git(repo: str, *args: str, allow_fail: bool = False) -> subprocess.CompletedProcess:
+def _git(
+    repo: str, *args: str, allow_fail: bool = False
+) -> subprocess.CompletedProcess:
     return _run_git(repo, args, _STATIC_OVERRIDES + _filter_overrides(repo), allow_fail)
 
 
@@ -347,7 +381,9 @@ def _dirty(repo: str) -> dict[str, str]:
 
 
 def _gitdir_files(repo: str) -> dict[str, str]:
-    git_dir = _text(_git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+    git_dir = _text(
+        _git(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    )
     files: dict[str, str] = {}
     for root, _dirs, names in os.walk(git_dir):
         for name in names:
@@ -372,28 +408,38 @@ def take_snapshot(repo: str) -> dict:
     if head.returncode != 0:
         raise Fail("HEAD has no commit")
     refs = {}
-    for line in _text(_git(repo, "for-each-ref", "--format=%(refname)%00%(objectname)")).splitlines():
+    for line in _text(
+        _git(repo, "for-each-ref", "--format=%(refname)%00%(objectname)")
+    ).splitlines():
         name, oid = line.split("\0")
         refs[name] = oid
     worktrees: list[str] = []
     worktree_heads: dict[str, str] = {}
     for line in _git(repo, "worktree", "list", "--porcelain").stdout.splitlines():
         if line.startswith(b"worktree "):
-            worktrees.append(os.fsdecode(line[len(b"worktree "):]))
-        elif line.startswith((b"HEAD ", b"branch ", b"detached")) and len(worktrees) > 1:
-            worktree_heads[worktrees[-1]] = worktree_heads.get(worktrees[-1], "") + os.fsdecode(line) + "\n"
+            worktrees.append(os.fsdecode(line[len(b"worktree ") :]))
+        elif (
+            line.startswith((b"HEAD ", b"branch ", b"detached")) and len(worktrees) > 1
+        ):
+            worktree_heads[worktrees[-1]] = (
+                worktree_heads.get(worktrees[-1], "") + os.fsdecode(line) + "\n"
+            )
     submodules = {}
     for entry in _git(repo, "ls-files", "--stage", "-z").stdout.split(b"\0"):
         if entry.startswith(b"160000 "):
             path = os.fsdecode(entry.split(b"\t", 1)[1])
             if os.path.exists(os.path.join(repo, path, ".git")):
                 submodules[path] = take_snapshot(os.path.join(repo, path))
-    untracked_out = _git(repo, "ls-files", "--others", "--exclude-standard", "-z").stdout
+    untracked_out = _git(
+        repo, "ls-files", "--others", "--exclude-standard", "-z"
+    ).stdout
     untracked = sorted(os.fsdecode(p) for p in untracked_out.split(b"\0") if p)
     ignored: set[str] = set()
     overflow = 0
     for extra in ([], ["--directory"]):
-        out = _git(repo, "ls-files", "-o", "-i", "--exclude-standard", *extra, "-z").stdout
+        out = _git(
+            repo, "ls-files", "-o", "-i", "--exclude-standard", *extra, "-z"
+        ).stdout
         found = [os.fsdecode(p) for p in out.split(b"\0") if p]
         if not extra and len(found) > IGNORED_FILE_CAP:
             overflow = len(found)
@@ -406,7 +452,10 @@ def take_snapshot(repo: str) -> dict:
     return {
         "version": VERSION,
         "repo": repo,
-        "head": {"ref": _text(ref) if ref.returncode == 0 else None, "commit": _text(head)},
+        "head": {
+            "ref": _text(ref) if ref.returncode == 0 else None,
+            "commit": _text(head),
+        },
         "refs": refs,
         "config": _sha(_git(repo, "config", "--local", "--list", "-z").stdout),
         "worktrees": worktrees,
@@ -415,7 +464,9 @@ def take_snapshot(repo: str) -> dict:
         "index": _sha(_git(repo, "ls-files", "--stage", "-z").stdout),
         "dirty": _dirty(repo),
         "untracked": untracked,
-        "untracked_fingerprints": {path: _fingerprint(repo, path) for path in untracked},
+        "untracked_fingerprints": {
+            path: _fingerprint(repo, path) for path in untracked
+        },
         "ignored": sorted(ignored),
         "gitdir": _gitdir_files(repo),
         **extras,
@@ -439,14 +490,24 @@ def _ref_violation(repo: str, name: str, before: str | None, after: str | None) 
     violation: dict = {"kind": "ref", "ref": name, "before": before, "after": after}
     reflog = None
     if after is not None:
-        peeled = _git(repo, "rev-parse", "--verify", "-q", f"{after}^{{commit}}", allow_fail=True)
+        peeled = _git(
+            repo, "rev-parse", "--verify", "-q", f"{after}^{{commit}}", allow_fail=True
+        )
         if peeled.returncode == 0:
             fmt = "--format=%an <%ae>%x00%cn <%ce>%x00%cI%x00%s"
-            author, committer, date, subject = _text(_git(repo, "log", "-1", fmt, after)).split("\0")
+            author, committer, date, subject = _text(
+                _git(repo, "log", "-1", fmt, after)
+            ).split("\0")
             violation["commit"] = {
-                "author": author, "committer": committer, "date": date, "subject": subject,
+                "author": author,
+                "committer": committer,
+                "date": date,
+                "subject": subject,
             }
-        reflog = _text(_git(repo, "reflog", "show", "-n1", "--format=%gn <%ge> | %gs", name)) or None
+        reflog = (
+            _text(_git(repo, "reflog", "show", "-n1", "--format=%gn <%ge> | %gs", name))
+            or None
+        )
     violation["reflog"] = reflog
     if before is None:
         args = ["update-ref", "-d", name, after]
@@ -483,12 +544,18 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
         violations.append({"kind": "config"})
     if before["worktrees"] != after["worktrees"]:
         violations.append(
-            {"kind": "worktrees", "before": before["worktrees"], "after": after["worktrees"]}
+            {
+                "kind": "worktrees",
+                "before": before["worktrees"],
+                "after": after["worktrees"],
+            }
         )
     for path in sorted(set(before["worktree_heads"]) & set(after["worktree_heads"])):
         old, new = before["worktree_heads"][path], after["worktree_heads"][path]
         if old != new:
-            violations.append({"kind": "worktree-head", "path": path, "before": old, "after": new})
+            violations.append(
+                {"kind": "worktree-head", "path": path, "before": old, "after": new}
+            )
     for path in sorted(set(before["submodules"]) | set(after["submodules"])):
         if before["submodules"].get(path) != after["submodules"].get(path):
             violations.append({"kind": "submodule", "path": path})
@@ -497,35 +564,53 @@ def compare(repo: str, before: dict, allow: set[str]) -> dict:
     for path in sorted(set(before["gitdir"]) | set(after["gitdir"])):
         old, new = before["gitdir"].get(path), after["gitdir"].get(path)
         if old != new:
-            violations.append({"kind": "gitdir", "path": path, "before": old, "after": new})
+            violations.append(
+                {"kind": "gitdir", "path": path, "before": old, "after": new}
+            )
     for path in sorted(set(before["dirty"]) | set(after["dirty"])):
         old, new = before["dirty"].get(path), after["dirty"].get(path)
         if old != new and not _allowed(path, allow):
-            violations.append({"kind": "tracked", "path": path, "before": old, "after": new})
+            violations.append(
+                {"kind": "tracked", "path": path, "before": old, "after": new}
+            )
     current = set(after["untracked"])
     for path in sorted(set(before["untracked"]) - current):
         if not _allowed(path, allow):
             violations.append({"kind": "untracked-removed", "path": path})
     for path in sorted(set(before["untracked"]) & current):
         if not _allowed(path, allow) and (
-            before["untracked_fingerprints"][path] != after["untracked_fingerprints"][path]
+            before["untracked_fingerprints"][path]
+            != after["untracked_fingerprints"][path]
         ):
             violations.append({"kind": "untracked-modified", "path": path})
     for path in sorted(set(before["ignored"]) - set(after["ignored"])):
-        if ("ignored_overflow" in before or "ignored_overflow" in after) and not path.endswith("/"):
+        if (
+            "ignored_overflow" in before or "ignored_overflow" in after
+        ) and not path.endswith("/"):
             continue
         if not _allowed(path, allow):
             violations.append({"kind": "ignored-removed", "path": path})
-    touched = sorted(p for p in current - set(before["untracked"]) if not _allowed(p, allow))
+    touched = sorted(
+        p for p in current - set(before["untracked"]) if not _allowed(p, allow)
+    )
     status = "changed" if violations else "unchanged"
     return {"status": status, "violations": violations, "touched": touched}
 
 
 _REQUIRED_FIELD_TYPES = {
-    "repo": str, "config": str, "index": str,
-    "head": dict, "refs": dict, "worktree_heads": dict, "submodules": dict,
-    "dirty": dict, "untracked_fingerprints": dict, "gitdir": dict,
-    "worktrees": list, "untracked": list, "ignored": list,
+    "repo": str,
+    "config": str,
+    "index": str,
+    "head": dict,
+    "refs": dict,
+    "worktree_heads": dict,
+    "submodules": dict,
+    "dirty": dict,
+    "untracked_fingerprints": dict,
+    "gitdir": dict,
+    "worktrees": list,
+    "untracked": list,
+    "ignored": list,
 }
 
 
@@ -535,21 +620,25 @@ def _load(path: str, repo: str) -> dict:
             data = json.load(handle)
     except (OSError, ValueError) as exc:
         raise Fail(f"cannot read snapshot {path}: {exc}") from exc
-    if not isinstance(data, dict) or type(data.get("version")) is not int or data["version"] != VERSION:
+    if (
+        not isinstance(data, dict)
+        or type(data.get("version")) is not int
+        or data["version"] != VERSION
+    ):
         raise Fail(f"snapshot {path} is not version {VERSION}")
     for key, expected_type in _REQUIRED_FIELD_TYPES.items():
         if key not in data or not isinstance(data[key], expected_type):
             raise Fail(f"snapshot {path} is malformed: {key}")
     if "ignored_overflow" in data and type(data["ignored_overflow"]) is not int:
         raise Fail(f"snapshot {path} is malformed: ignored_overflow")
-    if any(
-        p not in data["untracked_fingerprints"] for p in data["untracked"]
-    ):
+    if any(p not in data["untracked_fingerprints"] for p in data["untracked"]):
         raise Fail(f"snapshot {path} is malformed: untracked_fingerprints")
     if os.path.realpath(data["repo"]) != repo:
         raise Fail(f"snapshot {path} belongs to another repo")
     for name, oid in data["refs"].items():
-        if not name.startswith("refs/") or not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", oid):
+        if not name.startswith("refs/") or not re.fullmatch(
+            r"[0-9a-f]{40}|[0-9a-f]{64}", oid
+        ):
             raise Fail(f"snapshot {path} has a malformed ref")
     return data
 
@@ -582,7 +671,9 @@ def main(argv: list[str]) -> int:
     comp.add_argument("repo")
     comp.add_argument("before")
     comp.add_argument(
-        "--allow", action="append", default=[],
+        "--allow",
+        action="append",
+        default=[],
         help="repo-relative path to exempt; an allowed directory, with or "
         "without a trailing slash, exempts everything under it",
     )
@@ -593,7 +684,10 @@ def main(argv: list[str]) -> int:
         print(f"target_snapshot: {exc}", file=sys.stderr)
         return 2
     except Exception as exc:
-        print(f"target_snapshot: unexpected {type(exc).__name__}: {str(exc)!r}", file=sys.stderr)
+        print(
+            f"target_snapshot: unexpected {type(exc).__name__}: {str(exc)!r}",
+            file=sys.stderr,
+        )
         return 2
 
 

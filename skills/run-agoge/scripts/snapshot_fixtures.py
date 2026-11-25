@@ -8,7 +8,11 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent / "target_snapshot.py"
 
-_GIT_CONFIG_SCOPE_PREFIXES = ("GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
+_GIT_CONFIG_SCOPE_PREFIXES = (
+    "GIT_CONFIG_COUNT",
+    "GIT_CONFIG_KEY_",
+    "GIT_CONFIG_VALUE_",
+)
 
 TEST_ENV = {
     **{
@@ -37,7 +41,12 @@ def _env_for(tmp_path):
 
 def _git(target, env, *args):
     return subprocess.run(
-        ["git", *args], cwd=target, env=env, capture_output=True, text=True, check=True,
+        ["git", *args],
+        cwd=target,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.strip()
 
 
@@ -76,7 +85,11 @@ def _copy_target(template, tmp_path, name="target"):
 def _run(tmp_path, env, *args, timeout=None):
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
-        cwd=tmp_path, env=env, capture_output=True, text=True, timeout=timeout,
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
     )
 
 
@@ -122,8 +135,17 @@ def _write_packed_refs(target, sha, *names):
 
 def _add_submodule(tmp_path, target, env):
     sub_src, _ = _build_target(tmp_path, name="sub-src")
-    _git(target, env, "-c", "protocol.file.allow=always",
-         "submodule", "add", "-q", str(sub_src), "sub")
+    _git(
+        target,
+        env,
+        "-c",
+        "protocol.file.allow=always",
+        "submodule",
+        "add",
+        "-q",
+        str(sub_src),
+        "sub",
+    )
     _git(target, env, "commit", "-q", "-m", "add submodule")
     return target / "sub"
 
@@ -142,6 +164,4 @@ def _assert_scratch_ignored(snapshot, dropped):
     assert "scratch.txt" not in snapshot["untracked"], (
         f"{dropped}: {snapshot['untracked']}"
     )
-    assert "scratch.txt" in snapshot["ignored"], (
-        f"{dropped}: {snapshot['ignored']}"
-    )
+    assert "scratch.txt" in snapshot["ignored"], f"{dropped}: {snapshot['ignored']}"

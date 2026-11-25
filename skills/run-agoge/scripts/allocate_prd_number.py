@@ -35,7 +35,10 @@ MAX_ATTEMPTS = 200
 
 def claimed_numbers(repo: Path) -> set[int]:
     """Every sequence number already spoken for anywhere in the repo."""
-    roots = [repo / "docs" / "dev" / "project-management" / "prds", repo / "docs" / "dev" / "project-management" / "discovery"]
+    roots = [
+        repo / "docs" / "dev" / "project-management" / "prds",
+        repo / "docs" / "dev" / "project-management" / "discovery",
+    ]
     numbers: set[int] = set()
     for root in roots:
         if not root.is_dir():

@@ -37,11 +37,13 @@ def _flat(text):
 
 
 def _section(text, start, end):
-    return text[text.index(start):text.index(end)]
+    return text[text.index(start) : text.index(end)]
 
 
 COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
-BASH_FENCE_RE = re.compile(r"^```bash[ \t]*\n(.*?)^```[ \t]*$", re.DOTALL | re.MULTILINE)
+BASH_FENCE_RE = re.compile(
+    r"^```bash[ \t]*\n(.*?)^```[ \t]*$", re.DOTALL | re.MULTILINE
+)
 # One shell word: <placeholder> chunks or plain characters, never a redirect,
 # pipe, list operator or comment.
 _WORD = r"(?:<[^<>\n]*>|[^\s<>|;&#`])+"
@@ -49,11 +51,15 @@ _SCRIPT = r'"?[^\s<>|;&#`"]*target_snapshot\.py"?'
 
 
 def _invocation(verb, name, tail=""):
-    return re.compile(rf"python3 {_SCRIPT} {verb} {_WORD} {_WORD}/{re.escape(name)}{tail}")
+    return re.compile(
+        rf"python3 {_SCRIPT} {verb} {_WORD} {_WORD}/{re.escape(name)}{tail}"
+    )
 
 
 SNAP_START = _invocation("snapshot", "start.json")
-COMPARE_START = _invocation("compare", "start.json", r"(?P<allows>(?: --allow [^\s<>|;&#`]+)+)")
+COMPARE_START = _invocation(
+    "compare", "start.json", r"(?P<allows>(?: --allow [^\s<>|;&#`]+)+)"
+)
 SNAP_LANES = _invocation("snapshot", "lanes.json")
 COMPARE_LANES = _invocation("compare", "lanes.json")
 DISPATCH = "Dispatch every armed specialist **in one message**"
@@ -119,20 +125,28 @@ def test_run_integrity_wiring():
     _only(SNAP_START, _commands(step1), "step 1")
     assert re.search(_sentence("If the snapshot exits 2, stop before recon"), step1)
 
-    step3 = _section(text, "### 3. Dispatch the armed specialists", "### 4. Audit the statuses")
+    step3 = _section(
+        text, "### 3. Dispatch the armed specialists", "### 4. Audit the statuses"
+    )
     assert step3.count(DISPATCH) == 1, "step 3 must name the dispatch exactly once"
     dispatch = step3.index(DISPATCH)
     commands = _commands(step3)
     recon_at, recon = _only(COMPARE_START, commands, "step 3")
     snap_at, _ = _only(SNAP_LANES, commands, "step 3")
     lanes_at, _ = _only(COMPARE_LANES, commands, "step 3")
-    assert recon_at < snap_at < dispatch < lanes_at, "lanes must be snapshot before dispatch, compared after"
+    assert recon_at < snap_at < dispatch < lanes_at, (
+        "lanes must be snapshot before dispatch, compared after"
+    )
 
     allows = re.findall(r"--allow (\S+)", recon.group("allows"))
     assert sorted(allows) == sorted(PROFILE_PATHS), allows
 
-    stop = re.compile(_sentence("If it exits 1 or 2, dispatch nobody and go to step 7."))
-    assert stop.search(step3[snap_at:dispatch]), "a failed recon comparison must stop dispatch"
+    stop = re.compile(
+        _sentence("If it exits 1 or 2, dispatch nobody and go to step 7.")
+    )
+    assert stop.search(step3[snap_at:dispatch]), (
+        "a failed recon comparison must stop dispatch"
+    )
     returned = re.compile(_sentence("When every lane has returned, compare again"))
     assert returned.search(step3[dispatch:lanes_at])
     fails = re.compile(_sentence("Exit 1 or 2 fails the run."))
@@ -141,13 +155,27 @@ def test_run_integrity_wiring():
 
 def test_run_integrity_authoring():
     text = _live(SKILL_PATH.read_text())
-    step6 = _flat(_section(text, "### 6. Author, if the profile assigns it", "### 7. Report"))
-    assert re.search(_sentence(SKIP_SENTENCE), step6), "step 6 does not skip after a failed comparison"
-    assert len(re.findall(r"\bcompar", step6, re.I)) == 1, "step 6 qualifies the comparison skip"
+    step6 = _flat(
+        _section(text, "### 6. Author, if the profile assigns it", "### 7. Report")
+    )
+    assert re.search(_sentence(SKIP_SENTENCE), step6), (
+        "step 6 does not skip after a failed comparison"
+    )
+    assert len(re.findall(r"\bcompar", step6, re.I)) == 1, (
+        "step 6 qualifies the comparison skip"
+    )
 
-    step3 = _flat(_section(text, "### 3. Dispatch the armed specialists", "### 4. Audit the statuses"))
-    assert re.search(_sentence(RESTORE_BAN), step3), "step 3 does not ban running a restore"
-    assert not re.search(r"\bgit\s+restore\b|\bupdate-ref\b", text), "the skill runs a restore"
+    step3 = _flat(
+        _section(
+            text, "### 3. Dispatch the armed specialists", "### 4. Audit the statuses"
+        )
+    )
+    assert re.search(_sentence(RESTORE_BAN), step3), (
+        "step 3 does not ban running a restore"
+    )
+    assert not re.search(r"\bgit\s+restore\b|\bupdate-ref\b", text), (
+        "the skill runs a restore"
+    )
 
 
 def test_run_integrity_contract():
@@ -174,7 +202,11 @@ def test_run_integrity_sidecar():
             blocks.append(json.loads(match.group(1)))
         except ValueError:
             continue
-    integrity = [b["target_integrity"] for b in blocks if isinstance(b, dict) and "target_integrity" in b]
+    integrity = [
+        b["target_integrity"]
+        for b in blocks
+        if isinstance(b, dict) and "target_integrity" in b
+    ]
     assert integrity, "no sidecar JSON block carries target_integrity"
     block = integrity[0]
     for key in ("status", "violations", "touched"):
@@ -192,7 +224,10 @@ def test_run_integrity_incident(tmp_path):
 
     subprocess.run(
         [sys.executable, str(SNAPSHOT_SCRIPT), "snapshot", str(target), str(start)],
-        env=env, check=True, capture_output=True, text=True,
+        env=env,
+        check=True,
+        capture_output=True,
+        text=True,
     )
     before_refs = json.loads(start.read_text())["refs"]
 
@@ -206,7 +241,9 @@ def test_run_integrity_incident(tmp_path):
 
     result = subprocess.run(
         [sys.executable, str(SNAPSHOT_SCRIPT), "compare", str(target), str(start)],
-        env=env, capture_output=True, text=True,
+        env=env,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 1, result.stderr
     report = json.loads(result.stdout)
@@ -222,6 +259,10 @@ def test_run_integrity_incident(tmp_path):
         subprocess.run(shlex.split(violation["restore"]), env=env, check=True)
     after = subprocess.run(
         ["git", "--no-optional-locks", "for-each-ref"],
-        cwd=target, env=env, capture_output=True, text=True, check=True,
+        cwd=target,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout
     assert _refs(after) == before_refs
