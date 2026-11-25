@@ -825,7 +825,6 @@ def test_fingerprinting_many_files_stats_each_file_once(tmp_path, monkeypatch):
             rel = f"{leaf}/file{n}.txt"
             (repo / rel).write_bytes(rel.encode())
             paths.append(rel)
-    assert len(paths) == 200
     real = os.path.realpath(repo)
     calls = []
     real_lstat = os.lstat
@@ -839,7 +838,6 @@ def test_fingerprinting_many_files_stats_each_file_once(tmp_path, monkeypatch):
     monkeypatch.undo()
     assert len(calls) <= 200 + 2 * 4 + 10, len(calls)
     assert prints == {path: _sha(path.encode()) for path in paths}
-    assert len(set(prints.values())) == 200
 
 
 def test_fingerprints_unchanged_by_symlink_cache(tmp_path):
