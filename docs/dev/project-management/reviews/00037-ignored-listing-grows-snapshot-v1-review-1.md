@@ -3,7 +3,7 @@ head_sha: 74aeb18eaa9b5df204f13275999a3da525bcea3e
 reviewers: fanout, blake, eve, bob, carl
 ---
 
-## Alice
+## Fanout
 
 **00037-ignored-listing-grows-snapshot-v1-c1**
 [ALICE] ✅ No issues found
