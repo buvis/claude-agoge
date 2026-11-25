@@ -126,6 +126,26 @@
       "action": "auto-fixed",
       "reason": "fixed by review-close",
       "prd": "00028-test-suite-takes-65-seconds-v1.md"
+    },
+    {
+      "type": "deferred_decision",
+      "cycle": 1,
+      "issue": "Pre-existing over-50-line functions that the PRD forbids touching beyond formatting: take_snapshot (72 lines), compare (65), main (61), claim (52), test_env_identity_beats_exported_author (117) and others. No new function crosses the limit, but the reformat lengthened some of them.",
+      "severity": "\u26aa",
+      "file": "skills/run-agoge/scripts/target_snapshot.py:402",
+      "action": "deferred",
+      "reason": "deferred by review-close",
+      "prd": "00039-adopt-ruff-format-v1.md"
+    },
+    {
+      "type": "deferred_decision",
+      "cycle": 1,
+      "issue": "Pre-existing file-size debt (deferred as 00041) is now larger after reformatting: test_target_snapshot.py is 1126 lines and test_target_snapshot_state.py is 1038, both over the 800-line cap. The 800-line cap is not met, but this PRD (format only, \"no manual edits\") cannot fix it.",
+      "severity": "\u26aa",
+      "file": "skills/run-agoge/scripts/test_target_snapshot.py:1",
+      "action": "deferred",
+      "reason": "deferred by review-close",
+      "prd": "00039-adopt-ruff-format-v1.md"
     }
   ]
 }
