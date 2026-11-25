@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: target snapshot and compare now report an error that names an unreadable untracked file as its expected one-line reason, instead of an "unexpected PermissionError"
 - **run-agoge**: target compare now rejects a snapshot with a missing or wrongly typed field, instead of crashing or silently passing on a mistyped version
 - **run-agoge**: target compare no longer runs the repo's gpg program when inspecting a changed ref
+- **run-agoge**: target snapshot fingerprints paths more than 1000 directories deep and checks directory symlinks again on every snapshot
 - **run-agoge**: PRD number allocator no longer writes outside the repo if the backlog path is swapped during the run
 
 ## [0.3.1] - 2026-11-16

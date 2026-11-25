@@ -254,21 +254,30 @@ def _sha(data: bytes) -> str:
 
 
 @functools.lru_cache(maxsize=None)
-def _external_symlink_dir(repo: str, rel_dir: str) -> bool:
-    """True when `rel_dir` or one of its ancestors is a symlink escaping `repo`.
-
-    Memoized per directory, so fingerprinting many files under one directory
-    stats each ancestor once per process.
+def _is_symlink_escaping(repo: str, rel: str) -> bool:
+    """True when `rel` itself is a symlink escaping `repo`. Memoized per
+    directory, so fingerprinting many files under one directory stats each
+    ancestor once per process.
     """
-    if not rel_dir:
-        return False
-    parent, _name = os.path.split(rel_dir)
-    if _external_symlink_dir(repo, parent):
-        return True
-    check = os.path.join(repo, rel_dir)
+    check = os.path.join(repo, rel)
     if os.path.islink(check):
         real = os.path.realpath(check)
         return os.path.commonpath([real, repo]) != repo
+    return False
+
+
+def _external_symlink_dir(repo: str, rel_dir: str) -> bool:
+    """True when `rel_dir` or one of its ancestors is a symlink escaping
+    `repo`. Walks ancestors iteratively, not recursively, so a very deep path
+    cannot exceed the recursion limit.
+    """
+    if not rel_dir:
+        return False
+    prefix = ""
+    for part in rel_dir.split(os.sep):
+        prefix = part if not prefix else os.path.join(prefix, part)
+        if _is_symlink_escaping(repo, prefix):
+            return True
     return False
 
 
@@ -355,6 +364,7 @@ def _gitdir_files(repo: str) -> dict[str, str]:
 
 
 def take_snapshot(repo: str) -> dict:
+    _is_symlink_escaping.cache_clear()
     ref = _git(repo, "symbolic-ref", "-q", "HEAD", allow_fail=True)
     if ref.returncode not in (0, 1):
         raise Fail("git symbolic-ref failed")
