@@ -904,3 +904,21 @@ def test_sampled_file_head_tail_and_size_edits_are_reported(tmp_path, template_t
     assert [(v["kind"], v["path"]) for v in report["violations"]] == [
         ("untracked-modified", "big.bin"),
     ]
+
+
+def test_untracked_mode_change_is_not_reported(tmp_path, template_target):
+    target, env = _copy_target(template_target, tmp_path)
+    scratch = target / "scratch.txt"
+    scratch.write_text("scratch\n")
+    scratch.chmod(0o644)
+    before = _snap(tmp_path, target, env)
+    scratch.chmod(0o755)
+    try:
+        code, report = _compare(tmp_path, target, before, env)
+        assert code == 0
+        assert report == {"status": "unchanged", "violations": [], "touched": []}
+    finally:
+        scratch.chmod(0o644)
+
+    doc = " ".join(target_snapshot.__doc__.split())
+    assert "Permission bits of untracked files are not checked; only content, file type and symlink target are." in doc
