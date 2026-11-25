@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **run-agoge**: target compare `--allow <dir>` now exempts everything under that directory, with or without a trailing slash
 - **run-agoge**: target snapshot no longer hangs on a fifo or device symlink in the git dir, reads large git-dir files in chunks, records a symlink there by its target path instead of following it, and names an unreadable file in its error
 - **run-agoge**: target compare now rejects a snapshot with a missing or wrongly typed field, instead of crashing or silently passing on a mistyped version
+- **run-agoge**: target compare no longer runs the target's `gpg.program` when inspecting a newly created signed ref
 
 ## [0.3.1] - 2026-11-16
 

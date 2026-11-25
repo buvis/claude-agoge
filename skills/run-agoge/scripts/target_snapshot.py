@@ -91,6 +91,7 @@ _GIT_CONFIG_INDEXED_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
 
 _STATIC_OVERRIDES: tuple[tuple[str, str], ...] = (
     ("core.fsmonitor", "false"),
+    ("log.showSignature", "false"),
 )
 
 _FILTER_KEY_REGEX = r"^filter\..*\.(clean|process|required)$"
