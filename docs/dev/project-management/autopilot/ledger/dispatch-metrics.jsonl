@@ -719,3 +719,4 @@
 {"id":"e45ec400","ended_at":1795567309,"elapsed_s":305,"outcome":"ok","detail":null}
 {"id":"2fd7c201","ended_at":1795567419,"elapsed_s":418,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"done","edge":"resume","at":1795567644,"phase":"done","prd":"00030-untracked-chmod-not-reported-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795567743,"phase":"build","prd":"00030-untracked-chmod-not-reported-v1.md"}
