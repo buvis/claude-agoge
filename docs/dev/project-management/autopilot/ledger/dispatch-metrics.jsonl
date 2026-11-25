@@ -792,3 +792,5 @@
 {"id":"b76a7e17","kind":"fast-track:delta","task":"00035-allocator-backlog-path-race-v1-c1","queued_at":1795573417,"prompt_bytes":7075}
 {"id":"b76a7e17","ended_at":1795573778,"elapsed_s":361,"outcome":"ok","detail":null}
 {"kind":"handoff","site":"build","edge":"leave","at":1795573989,"phase":"done","prd":"00035-allocator-backlog-path-race-v1.md"}
+{"kind":"handoff","site":"done","edge":"resume","at":1795574013,"phase":"done","prd":"00035-allocator-backlog-path-race-v1.md"}
+{"kind":"handoff","site":"done","edge":"leave","at":1795574087,"phase":"build","prd":"00035-allocator-backlog-path-race-v1.md"}
