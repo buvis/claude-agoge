@@ -27,6 +27,9 @@ worktree outside `worktree list`.
 Above 64 MiB a file is fingerprinted by its size and its first and last MiB,
 so a same-size edit in the middle of such a file is not detected.
 
+Permission bits of untracked files are not checked; only content, file type
+and symlink target are.
+
 Exit 0 when unchanged, 1 when changed, 2 when the check cannot run (one
 `target_snapshot: <reason>` line on stderr, no JSON). Any other unexpected
 error also exits 2. Every git call runs with `--no-optional-locks` and nothing
